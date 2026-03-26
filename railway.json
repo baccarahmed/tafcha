@@ -6,6 +6,11 @@
   },
   "deploy": {
     "startCommand": "npm run start",
-    "restartPolicyType": "ON_FAILURE"
+    "restartPolicyType": "ON_FAILURE",
+    "env": {
+      "NIXPACKS_NODE_VERSION": "22",
+      "NIXPACKS_PKGS": "python3 build-essential",
+      "NODE_ENV": "production"
+    }
   }
 }

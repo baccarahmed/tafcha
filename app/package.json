@@ -2,6 +2,9 @@
   "name": "tafchaa-ecommerce",
   "private": true,
   "version": "1.0.0",
+  "engines": {
+    "node": ">=20.0.0"
+  },
   "scripts": {
     "dev": "vite",
     "dev:ssr": "cross-env NODE_ENV=development node server/index.js",
