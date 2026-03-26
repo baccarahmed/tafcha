@@ -177,14 +177,14 @@ function AppRoutes() {
   );
 }
 
-export const PreloadedDataContext = createContext<any>(null);
+export const PreloadedDataContext = createContext<unknown>(null);
 
 function App({ 
   RouterComponent, 
   preloadedData 
 }: { 
   RouterComponent?: React.ComponentType<{ children: React.ReactNode }>;
-  preloadedData?: any;
+  preloadedData?: unknown;
 }) {
   const { settings } = useSettings();
   const siteBg = settings?.siteBgColor || '#3d4d5d';
@@ -221,7 +221,7 @@ function App({
           <style>
             {`
               /* All sections using bg-[--site-bg] become slightly transparent when animated background is on */
-              .animated-bg-on .bg-\\[--site-bg\\] { background: transparent !important; }
+              .animated-bg-on .bg-\[--site-bg\] { background: transparent !important; }
               body { background: transparent !important; }
             `}
           </style>
@@ -231,13 +231,13 @@ function App({
         <style>
           {`
             /* When animation is off, ensure any bg-[--site-bg] does not fill the screen */
-            .bg-\\[--site-bg\\] { background: var(--site-bg) !important; }
+            .bg-\[--site-bg\] { background: var(--site-bg) !important; }
             body { background: var(--site-bg) !important; }
           `}
         </style>
       )}
       <Router>
-        <PreloadedDataContext.Provider value={preloadedData || (typeof window !== 'undefined' ? (window as any).__PRELOADED_DATA__ : null)}>
+        <PreloadedDataContext.Provider value={preloadedData || (typeof window !== 'undefined' ? (window as { __PRELOADED_DATA__?: unknown }).__PRELOADED_DATA__ : null)}>
           <AuthProvider>
             <CartProvider>
               <WishlistProvider>

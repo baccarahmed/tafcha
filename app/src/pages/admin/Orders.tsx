@@ -16,11 +16,47 @@ import {
 } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 
+interface OrderAddress {
+  firstName?: string;
+  lastName?: string;
+  address?: string;
+  city?: string;
+  postalCode?: string;
+  country?: string;
+  phone?: string;
+}
+
+interface OrderItem {
+  id: string;
+  name: string;
+  price: number;
+  quantity: number;
+  images?: string[];
+}
+
+interface OrderData {
+  id: string;
+  userId: string;
+  userEmail?: string;
+  userName?: string;
+  status: string;
+  total: number;
+  createdAt: string;
+  shippingAddress?: string | OrderAddress;
+  billingAddress?: string | OrderAddress;
+  items?: OrderItem[];
+  deliveryProofUrl?: string;
+  deliveryWindowStart?: string;
+  deliveryWindowEnd?: string;
+  email?: string;
+  phone?: string;
+}
+
 export default function AdminOrders() {
-  const [orders, setOrders] = useState<Record<string, any>[]>([]);
+  const [orders, setOrders] = useState<OrderData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [selected, setSelected] = useState<Record<string, any> | null>(null);
+  const [selected, setSelected] = useState<OrderData | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
 
   useEffect(() => {
@@ -35,7 +71,7 @@ export default function AdminOrders() {
   }, []);
 
   useEffect(() => {
-    const base = (import.meta as any).env?.VITE_API_URL || '';
+    const base = (import.meta as { env?: { VITE_API_URL?: string } }).env?.VITE_API_URL || '';
     try {
       const es = new EventSource(`${base}/api/orders/events`);
       es.addEventListener('order_created', () => fetchOrders());
@@ -63,9 +99,13 @@ export default function AdminOrders() {
       try {
         const data = await ordersAPI.getById(selectedId);
         // Parse adresses JSON éventuelles
-        const o = { ...data.order };
-        try { o.shippingAddress = o.shippingAddress && JSON.parse(o.shippingAddress); } catch (e) { console.error('Parse shipping address failed', e); }
-        try { o.billingAddress = o.billingAddress && JSON.parse(o.billingAddress); } catch (e) { console.error('Parse billing address failed', e); }
+        const o = { ...data.order } as OrderData;
+        if (typeof o.shippingAddress === 'string') {
+          try { o.shippingAddress = JSON.parse(o.shippingAddress); } catch (e) { console.error('Parse shipping address failed', e); }
+        }
+        if (typeof o.billingAddress === 'string') {
+          try { o.billingAddress = JSON.parse(o.billingAddress); } catch (e) { console.error('Parse billing address failed', e); }
+        }
         setSelected(o);
       } catch (e) {
         console.error('Failed to load order', e);
@@ -160,30 +200,30 @@ export default function AdminOrders() {
             </thead>
             <tbody className="divide-y divide-[#fff4e9]/10">
               {orders.map((order) => (
-                <tr key={order.id as string} className="hover:bg-[#fff4e9]/5 transition-colors">
+                <tr key={order.id} className="hover:bg-[#fff4e9]/5 transition-colors">
                   <td className="px-6 py-4 text-[#fff4e9] font-mono text-xs">
-                    #{(order.id as string).slice(0, 8).toUpperCase()}
+                    #{order.id.slice(0, 8).toUpperCase()}
                   </td>
                   <td className="px-6 py-4">
-                    <p className="text-[#fff4e9]">{order.userName as string || 'Customer'}</p>
-                    <p className="text-xs text-[#fff4e9]/50">{order.userEmail as string}</p>
+                    <p className="text-[#fff4e9]">{order.userName || 'Customer'}</p>
+                    <p className="text-xs text-[#fff4e9]/50">{order.userEmail}</p>
                   </td>
                   <td className="px-6 py-4 text-[#fff4e9]/60">
-                    {formatDate(order.createdAt as string)}
+                    {formatDate(order.createdAt)}
                   </td>
                   <td className="px-6 py-4 text-[#fff4e9] font-medium">
-                    {formatPrice(order.total as number)}
+                    {formatPrice(order.total)}
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-2">
-                      {getStatusIcon(order.status as string)}
-                      <span className="text-xs text-[#fff4e9] capitalize">{order.status as string}</span>
+                      {getStatusIcon(order.status)}
+                      <span className="text-xs text-[#fff4e9] capitalize">{order.status}</span>
                     </div>
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center justify-end gap-2">
                       <button
-                        onClick={() => setSelectedId(order.id as string)}
+                        onClick={() => setSelectedId(order.id)}
                         className="px-3 py-1 text-xs rounded border border-[#fff4e9]/30 text-[#fff4e9]/80 hover:text-[#fff4e9]"
                       >
                         Voir
@@ -235,24 +275,24 @@ export default function AdminOrders() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <section className="space-y-2">
                   <h3 className="text-[#fff4e9] font-medium">Livraison</h3>
-                  <p className="text-sm text-[#fff4e9]">{detailAddress(selected.shippingAddress as any)}</p>
-                  <p className="text-sm text-[#fff4e9]/70">{(selected.shippingAddress as any)?.address}</p>
+                  <p className="text-sm text-[#fff4e9]">{detailAddress(selected.shippingAddress as OrderAddress)}</p>
+                  <p className="text-sm text-[#fff4e9]/70">{(selected.shippingAddress as OrderAddress)?.address}</p>
                   <p className="text-sm text-[#fff4e9]/70">
-                    {[(selected.shippingAddress as any)?.city, (selected.shippingAddress as any)?.postalCode, (selected.shippingAddress as any)?.country].filter(Boolean).join(', ')}
+                    {[(selected.shippingAddress as OrderAddress)?.city, (selected.shippingAddress as OrderAddress)?.postalCode, (selected.shippingAddress as OrderAddress)?.country].filter(Boolean).join(', ')}
                   </p>
-                  {(selected.shippingAddress as any)?.phone && (
-                    <p className="text-sm text-[#fff4e9]/70">Tél: {(selected.shippingAddress as any).phone}</p>
+                  {(selected.shippingAddress as OrderAddress)?.phone && (
+                    <p className="text-sm text-[#fff4e9]/70">Tél: {(selected.shippingAddress as OrderAddress).phone}</p>
                   )}
                 </section>
                 <section className="space-y-2">
                   <h3 className="text-[#fff4e9] font-medium">Facturation</h3>
-                  <p className="text-sm text-[#fff4e9]">{detailAddress(selected.billingAddress as any)}</p>
-                  <p className="text-sm text-[#fff4e9]/70">{(selected.billingAddress as any)?.address}</p>
+                  <p className="text-sm text-[#fff4e9]">{detailAddress(selected.billingAddress as OrderAddress)}</p>
+                  <p className="text-sm text-[#fff4e9]/70">{(selected.billingAddress as OrderAddress)?.address}</p>
                   <p className="text-sm text-[#fff4e9]/70">
-                    {[(selected.billingAddress as any)?.city, (selected.billingAddress as any)?.postalCode, (selected.billingAddress as any)?.country].filter(Boolean).join(', ')}
+                    {[(selected.billingAddress as OrderAddress)?.city, (selected.billingAddress as OrderAddress)?.postalCode, (selected.billingAddress as OrderAddress)?.country].filter(Boolean).join(', ')}
                   </p>
-                  {(selected.billingAddress as any)?.phone && (
-                    <p className="text-sm text-[#fff4e9]/70">Tél: {(selected.billingAddress as any).phone}</p>
+                  {(selected.billingAddress as OrderAddress)?.phone && (
+                    <p className="text-sm text-[#fff4e9]/70">Tél: {(selected.billingAddress as OrderAddress).phone}</p>
                   )}
                 </section>
               </div>
@@ -260,7 +300,7 @@ export default function AdminOrders() {
               <div>
                 <h3 className="text-sm text-[#fff4e9]/60 uppercase tracking-wider mb-3">Articles</h3>
                 <div className="space-y-3">
-                  {(selected.items || []).map((it: any) => (
+                  {(selected.items || []).map((it: OrderItem) => (
                     <div key={it.id} className="flex items-center gap-4">
                       <div className="w-14 h-14 rounded bg-[#fff4e9]/5 overflow-hidden">
                         <img src={it.images?.[0] || '/images/placeholder.jpg'} alt={it.name} className="w-full h-full object-cover" />
@@ -277,14 +317,14 @@ export default function AdminOrders() {
 
               <div className="flex items-center justify-between border-t border-[#fff4e9]/10 pt-4">
                 <span className="text-[#fff4e9]/80">Total</span>
-                <span className="font-display text-xl text-[#fff4e9]">{formatPrice(selected.total as number)}</span>
+                <span className="font-display text-xl text-[#fff4e9]">{formatPrice(selected.total)}</span>
               </div>
 
               {selected.deliveryProofUrl && (
                 <div className="pt-2">
                   <h4 className="text-sm text-[#fff4e9]/60 uppercase tracking-wider mb-2">Preuve de livraison</h4>
                   <div className="w-full max-w-xs rounded border border-[#fff4e9]/10 overflow-hidden">
-                    <img src={selected.deliveryProofUrl as string} alt="Preuve de livraison" className="w-full h-auto object-cover" />
+                    <img src={selected.deliveryProofUrl} alt="Preuve de livraison" className="w-full h-auto object-cover" />
                   </div>
                 </div>
               )}
@@ -293,21 +333,21 @@ export default function AdminOrders() {
                 <div className="flex items-center justify-between">
                   <span className="text-[#fff4e9]/60">Livraison estimée</span>
                   <span className="text-[#fff4e9]">
-                    {selected.deliveryWindowStart as string || '—'}{selected.deliveryWindowEnd ? ` → ${selected.deliveryWindowEnd as string}` : ''}
+                    {selected.deliveryWindowStart || '—'}{selected.deliveryWindowEnd ? ` → ${selected.deliveryWindowEnd}` : ''}
                   </span>
                 </div>
               )}
 
               <div className="flex items-center justify-end gap-3">
                 <button
-                  onClick={() => selected && rejectOrder(selected.id as string)}
+                  onClick={() => selected && rejectOrder(selected.id)}
                   disabled={isUpdating}
                   className="px-4 py-2 rounded border border-red-400/40 text-red-300 hover:bg-red-500/10"
                 >
                   Rejeter
                 </button>
                 <button
-                  onClick={() => selected && confirmOrder(selected.id as string)}
+                  onClick={() => selected && confirmOrder(selected.id)}
                   disabled={isUpdating}
                   className="px-4 py-2 rounded bg-[#fff4e9] text-[#3d4d5d] hover:bg-[#f3e7d9]"
                 >

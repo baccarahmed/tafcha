@@ -69,6 +69,7 @@ export default function Shop() {
     };
 
     fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedCategory]); // categories.length removed as it is set internally and would cause loops or warnings
 
   const handleCategoryChange = (slug: string) => {
