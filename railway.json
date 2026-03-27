@@ -5,7 +5,7 @@
     "rootDirectory": "app"
   },
   "deploy": {
-    "startCommand": "npm run start",
+    "startCommand": "npm run server",
     "restartPolicyType": "ON_FAILURE"
   }
 }
