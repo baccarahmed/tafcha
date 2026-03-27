@@ -243,7 +243,7 @@ function App({
         </style>
       )}
       <Router>
-        <PreloadedDataContext.Provider value={preloadedData || (typeof window !== 'undefined' ? (window as { __PRELOADED_DATA__?: unknown }).__PRELOADED_DATA__ : null)}>
+        <PreloadedDataContext.Provider value={preloadedData || (typeof window !== 'undefined' ? (window as { __PRELOADED_DATA__?: PreloadedData }).__PRELOADED_DATA__ || null : null)}>
           <AuthProvider>
             <CartProvider>
               <WishlistProvider>

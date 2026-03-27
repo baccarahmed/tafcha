@@ -9,7 +9,7 @@ import { useWishlist } from '@/contexts/WishlistContext';
 import { productsAPI } from '@/services/api';
 import { useSettings } from '@/hooks/useSettings';
 import { Helmet } from 'react-helmet-async';
-import { PreloadedDataContext, type PreloadedData } from '@/App';
+import { PreloadedDataContext } from '@/App';
 
 interface Product {
   id: string;
@@ -27,10 +27,10 @@ interface Product {
 export default function ProductDetail() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
-  const preloadedData = useContext(PreloadedDataContext) as PreloadedData | null;
+  const preloadedData = useContext(PreloadedDataContext);
   
   // Initialize from preloaded data if available and slug matches
-  const initialProduct = preloadedData?.product?.slug === slug ? preloadedData.product : null;
+  const initialProduct = preloadedData?.product?.slug === slug ? preloadedData?.product : null;
   
   const [product, setProduct] = useState<Product | null>(initialProduct);
   const [isLoading, setIsLoading] = useState(!initialProduct);
