@@ -1,6 +1,12 @@
-const Database = require('better-sqlite3');
-const path = require('path');
-const fs = require('fs');
+import Database from 'better-sqlite3';
+import path from 'path';
+import fs from 'fs';
+import { fileURLToPath } from 'url';
+import bcrypt from 'bcryptjs';
+import { v4 as uuidv4 } from 'uuid';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const dbPath = path.join(__dirname, 'tafchaa.db');
 const db = new Database(dbPath);
@@ -228,9 +234,6 @@ function initDatabase() {
   `);
 
   // Insert default admin user if not exists
-  const bcrypt = require('bcryptjs');
-  const { v4: uuidv4 } = require('uuid');
-  
   const adminExists = db.prepare('SELECT * FROM users WHERE email = ?').get('admin@tafchaa.com');
   if (!adminExists) {
     const hashedPassword = bcrypt.hashSync('admin123', 10);
@@ -280,4 +283,4 @@ function initDatabase() {
 
 initDatabase();
 
-module.exports = db;
+export default db;

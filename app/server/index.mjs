@@ -137,7 +137,7 @@ app.get(/^(?!\/api).*/, async (req, res) => {
       render = (await vite.ssrLoadModule('/src/entry-server.tsx')).render;
     } else {
       template = fs.readFileSync(path.resolve(__dirname, '../dist/client/index.html'), 'utf-8');
-      const serverEntry = await import(path.resolve(__dirname, '../dist/server/entry-server.mjs'));
+      const serverEntry = await import(path.resolve(__dirname, '../dist/server/entry-server.js'));
       render = serverEntry.render;
     }
 

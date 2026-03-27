@@ -1,9 +1,9 @@
-const jwt = require('jsonwebtoken');
-const db = require('../database/db');
+import jwt from 'jsonwebtoken';
+import db from '../database/db.js';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'tafchaa-secret-key-2026';
+export const JWT_SECRET = process.env.JWT_SECRET || 'tafchaa-secret-key-2026';
 
-const authenticateToken = (req, res, next) => {
+export const authenticateToken = (req, res, next) => {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
 
@@ -20,14 +20,14 @@ const authenticateToken = (req, res, next) => {
   }
 };
 
-const requireAdmin = (req, res, next) => {
+export const requireAdmin = (req, res, next) => {
   if (req.user.role !== 'admin') {
     return res.status(403).json({ error: 'Admin access required' });
   }
   next();
 };
 
-const generateToken = (user) => {
+export const generateToken = (user) => {
   return jwt.sign(
     { 
       id: user.id, 
@@ -41,7 +41,7 @@ const generateToken = (user) => {
   );
 };
 
-module.exports = {
+export default {
   authenticateToken,
   requireAdmin,
   generateToken,

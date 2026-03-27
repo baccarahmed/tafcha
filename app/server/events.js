@@ -1,14 +1,14 @@
 const clients = new Set();
 
-function addClient(res) {
+export function addClient(res) {
   clients.add(res);
 }
 
-function removeClient(res) {
+export function removeClient(res) {
   clients.delete(res);
 }
 
-function broadcast(type, payload) {
+export function broadcast(type, payload) {
   const data = `event: ${type}\ndata: ${JSON.stringify(payload)}\n\n`;
   for (const res of clients) {
     try {
@@ -19,7 +19,7 @@ function broadcast(type, payload) {
   }
 }
 
-module.exports = {
+export default {
   addClient,
   removeClient,
   broadcast,

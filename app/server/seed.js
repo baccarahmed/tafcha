@@ -1,5 +1,5 @@
-const db = require('./database/db');
-const { v4: uuidv4 } = require('uuid');
+import db from './database/db.js';
+import { v4 as uuidv4 } from 'uuid';
 
 function seedProducts() {
   console.log('Seeding products...');

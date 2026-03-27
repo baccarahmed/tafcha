@@ -1,7 +1,7 @@
-const express = require('express');
-const { v4: uuidv4 } = require('uuid');
-const db = require('../database/db');
-const { authenticateToken, requireAdmin } = require('../middleware/auth');
+import express from 'express';
+import { v4 as uuidv4 } from 'uuid';
+import db from '../database/db.js';
+import { authenticateToken, requireAdmin } from '../middleware/auth.js';
 
 const router = express.Router();
 
@@ -270,7 +270,6 @@ router.post('/categories', authenticateToken, requireAdmin, (req, res) => {
     if (exists) slug = `${baseSlug}-${Date.now()}`;
     const posRow = db.prepare('SELECT MAX(position) as maxp FROM categories').get();
     const position = (posRow?.maxp ?? -1) + 1;
-    const { v4: uuidv4 } = require('uuid');
     const id = uuidv4();
     db.prepare('INSERT INTO categories (id, name, slug, description, position) VALUES (?, ?, ?, ?, ?)')
       .run(id, name, slug, description || null, position);
@@ -452,4 +451,4 @@ router.post('/reviews/:productId', authenticateToken, (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;

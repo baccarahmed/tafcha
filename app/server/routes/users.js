@@ -1,7 +1,7 @@
-const express = require('express');
-const bcrypt = require('bcryptjs');
-const db = require('../database/db');
-const { authenticateToken, requireAdmin } = require('../middleware/auth');
+import express from 'express';
+import bcrypt from 'bcryptjs';
+import db from '../database/db.js';
+import { authenticateToken, requireAdmin } from '../middleware/auth.js';
 
 const router = express.Router();
 
@@ -137,4 +137,4 @@ router.get('/stats/overview', authenticateToken, requireAdmin, (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;

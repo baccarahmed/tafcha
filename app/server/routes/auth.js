@@ -1,8 +1,8 @@
-const express = require('express');
-const bcrypt = require('bcryptjs');
-const { v4: uuidv4 } = require('uuid');
-const db = require('../database/db');
-const { authenticateToken, generateToken } = require('../middleware/auth');
+import express from 'express';
+import bcrypt from 'bcryptjs';
+import { v4 as uuidv4 } from 'uuid';
+import db from '../database/db.js';
+import { authenticateToken, generateToken } from '../middleware/auth.js';
 
 const router = express.Router();
 
@@ -152,4 +152,4 @@ router.put('/password', authenticateToken, (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;

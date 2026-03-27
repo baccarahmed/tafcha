@@ -1,8 +1,12 @@
-const express = require('express');
-const path = require('path');
-const fs = require('fs');
-const sharp = require('sharp');
-const { authenticateToken, requireAdmin } = require('../middleware/auth');
+import express from 'express';
+import path from 'path';
+import fs from 'fs';
+import sharp from 'sharp';
+import { fileURLToPath } from 'url';
+import { authenticateToken, requireAdmin } from '../middleware/auth.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const router = express.Router();
 
@@ -74,4 +78,4 @@ router.post('/', authenticateToken, requireAdmin, async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;

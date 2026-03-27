@@ -1,6 +1,6 @@
-const express = require('express');
-const db = require('../database/db');
-const { authenticateToken, requireAdmin } = require('../middleware/auth');
+import express from 'express';
+import db from '../database/db.js';
+import { authenticateToken, requireAdmin } from '../middleware/auth.js';
 
 const router = express.Router();
 
@@ -186,4 +186,4 @@ router.put('/', authenticateToken, requireAdmin, (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;
