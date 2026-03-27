@@ -1,9 +1,23 @@
-const express = require('express');
-const cors = require('cors');
-const path = require('path');
-const fs = require('fs');
-const { createServer: createViteServer } = require('vite');
-const db = require('./database/db');
+import express from 'express';
+import cors from 'cors';
+import path from 'path';
+import fs from 'fs';
+import { createServer as createViteServer } from 'vite';
+import db from './database/db.js';
+import { fileURLToPath } from 'url';
+import compression from 'compression';
+
+// API Routes
+import authRoutes from './routes/auth.js';
+import productRoutes from './routes/products.js';
+import userRoutes from './routes/users.js';
+import orderRoutes from './routes/orders.js';
+import settingsRoutes from './routes/settings.js';
+import uploadRoutes from './routes/uploads.js';
+import { addClient, removeClient } from './events.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -30,22 +44,13 @@ async function setupVite() {
     });
     app.use(vite.middlewares);
   } else if (isProd) {
-    app.use(require('compression')());
+    app.use(compression());
     app.use(express.static(path.resolve(__dirname, '../dist/client'), { index: false }));
   }
 }
 
 // Static files for uploads (must be after headers middleware if any)
 app.use('/uploads', express.static(uploadsDir));
-
-// API Routes
-const authRoutes = require('./routes/auth');
-const productRoutes = require('./routes/products');
-const userRoutes = require('./routes/users');
-const orderRoutes = require('./routes/orders');
-const settingsRoutes = require('./routes/settings');
-const uploadRoutes = require('./routes/uploads');
-const { addClient, removeClient } = require('./events');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
@@ -132,7 +137,8 @@ app.get(/^(?!\/api).*/, async (req, res) => {
       render = (await vite.ssrLoadModule('/src/entry-server.tsx')).render;
     } else {
       template = fs.readFileSync(path.resolve(__dirname, '../dist/client/index.html'), 'utf-8');
-      render = require('../dist/server/entry-server.js').render;
+      const serverEntry = await import(path.resolve(__dirname, '../dist/server/entry-server.mjs'));
+      render = serverEntry.render;
     }
 
     // Pre-fetch data for SSR
@@ -179,14 +185,13 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Internal server error' });
 });
 
-if (require.main === module) {
-  setupVite().then(() => {
-    app.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
-      console.log(`API available at http://localhost:${PORT}/api`);
-    });
+setupVite().then(() => {
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+    console.log(`API available at http://localhost:${PORT}/api`);
   });
-}
+});
 
-module.exports = app;
+export default app;
+
 
