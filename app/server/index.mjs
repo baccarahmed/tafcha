@@ -34,19 +34,17 @@ if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
 }
 
-// Vite SSR setup (Lazy initialized)
+// Initialize Vite or Static Middleware immediately
 let vite;
-async function setupVite() {
-  if (!isProd && !vite) {
-    vite = await createViteServer({
-      server: { middlewareMode: true },
-      appType: 'custom'
-    });
-    app.use(vite.middlewares);
-  } else if (isProd) {
-    app.use(compression());
-    app.use(express.static(path.resolve(__dirname, '../dist/client'), { index: false }));
-  }
+if (!isProd) {
+  vite = await createViteServer({
+    server: { middlewareMode: true },
+    appType: 'custom'
+  });
+  app.use(vite.middlewares);
+} else {
+  app.use(compression());
+  app.use(express.static(path.resolve(__dirname, '../dist/client'), { index: false }));
 }
 
 // Static files for uploads (must be after headers middleware if any)
@@ -185,11 +183,9 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Internal server error' });
 });
 
-setupVite().then(() => {
-  app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-    console.log(`API available at http://localhost:${PORT}/api`);
-  });
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+  console.log(`API available at http://localhost:${PORT}/api`);
 });
 
 export default app;

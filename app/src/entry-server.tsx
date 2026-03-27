@@ -1,9 +1,9 @@
 import { renderToString } from 'react-dom/server'
 import { StaticRouter } from 'react-router-dom'
 import { HelmetProvider } from 'react-helmet-async'
-import App from './App.tsx'
+import App, { type PreloadedData } from './App.tsx'
 
-export function render(url: string, preloadedData?: unknown) {
+export function render(url: string, preloadedData?: PreloadedData) {
   const helmetContext = {} as any
 
   const RouterComponent = ({ children }: { children: React.ReactNode }) => (
