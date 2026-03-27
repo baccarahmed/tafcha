@@ -3,7 +3,7 @@ import react from "@vitejs/plugin-react"
 import { defineConfig } from "vite"
 
 // https://vite.dev/config/
-export default defineConfig({
+export default defineConfig(({ isSsrBuild }) => ({
   // base: './',
   ssr: {
     noExternal: ['react-helmet-async'],
@@ -29,7 +29,7 @@ export default defineConfig({
   build: {
     rollupOptions: {
       output: {
-        manualChunks: {
+        manualChunks: isSsrBuild ? undefined : {
           'react-vendor': ['react', 'react-dom', 'react-router-dom', 'react-helmet-async'],
           'ui-vendor': [
             '@radix-ui/react-accordion',
@@ -65,4 +65,4 @@ export default defineConfig({
       },
     },
   },
-});
+}));
