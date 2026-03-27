@@ -177,14 +177,20 @@ function AppRoutes() {
   );
 }
 
-export const PreloadedDataContext = createContext<unknown>(null);
+export interface PreloadedData {
+  categories?: { id: string; name: string; slug: string }[];
+  product?: any;
+  [key: string]: any;
+}
+
+export const PreloadedDataContext = createContext<PreloadedData | null>(null);
 
 function App({ 
   RouterComponent, 
   preloadedData 
 }: { 
   RouterComponent?: React.ComponentType<{ children: React.ReactNode }>;
-  preloadedData?: unknown;
+  preloadedData?: PreloadedData;
 }) {
   const { settings } = useSettings();
   const siteBg = settings?.siteBgColor || '#3d4d5d';

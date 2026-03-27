@@ -7,7 +7,7 @@ import CartDrawer from '@/components/CartDrawer';
 import { useCart } from '@/contexts/CartContext';
 import { productsAPI } from '@/services/api';
 import { Helmet } from 'react-helmet-async';
-import { PreloadedDataContext } from '@/App';
+import { PreloadedDataContext, type PreloadedData } from '@/App';
 import {
   Select,
   SelectContent,
@@ -31,7 +31,7 @@ interface Product {
 export default function Shop() {
   const navigate = useNavigate();
   const { categorySlug } = useParams();
-  const preloadedData = useContext(PreloadedDataContext);
+  const preloadedData = useContext(PreloadedDataContext) as PreloadedData | null;
   const [searchParams, setSearchParams] = useSearchParams();
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<{ id: string; name: string; slug: string }[]>(preloadedData?.categories || []);
