@@ -161,8 +161,8 @@ export default function Shop() {
         <meta property="og:title" content={shopTitle || 'Boutique | Tafchaa'} />
         <meta property="og:description" content={shopDescription || 'Découvrez notre collection de bijoux.'} />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content={`https://tafchaa.com/shop${selectedCategory !== 'all' ? `/${selectedCategory}` : ''}`} />
-        <link rel="canonical" href={`https://tafchaa.com/shop${selectedCategory !== 'all' ? `/${selectedCategory}` : ''}`} />
+        <meta property="og:url" content={`https://tafcha.com/shop${selectedCategory !== 'all' ? `/${selectedCategory}` : ''}`} />
+        <link rel="canonical" href={`https://tafcha.com/shop${selectedCategory !== 'all' ? `/${selectedCategory}` : ''}`} />
       </Helmet>
       <Navigation />
       

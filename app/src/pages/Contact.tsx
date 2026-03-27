@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Mail, Phone, Clock, Send, Instagram, Facebook  } from 'lucide-react';
+import { Mail, Phone, MapPin, Send, Instagram, Facebook  } from 'lucide-react';
 import Navigation from '@/sections/Navigation';
 import Footer from '@/sections/Footer';
 import CartDrawer from '@/components/CartDrawer';
@@ -33,19 +33,19 @@ export default function Contact() {
     {
       icon: Mail,
       label: 'Email',
-      value: settings?.contactEmail || 'hello@tafchaa.com',
-      href: `mailto:${settings?.contactEmail || 'hello@tafchaa.com'}`,
+      value: settings?.contactEmail || 'hello@tafcha.com',
+      href: `mailto:${settings?.contactEmail || 'hello@tafcha.com'}`,
     },
     {
       icon: Phone,
       label: 'Phone',
       value: settings?.contactPhone || '+216 99 888 777',
-      href: `tel:${settings?.contactPhone || '+21699888777'}`,
+      href: `tel:${(settings?.contactPhone || '+216 99 888 777').replace(/\s/g, '')}`,
     },
     {
-      icon: Clock,
-      label: 'Working Hours',
-      value: 'Mon - Fri: 9AM - 6PM',
+      icon: MapPin,
+      label: 'Address',
+      value: settings?.contactAddress || 'Tunis, Tunisia',
       href: '#',
     },
   ];
@@ -53,13 +53,13 @@ export default function Contact() {
   return (
     <div className="min-h-screen bg-[--site-bg]">
       <Helmet>
-        <title>Contactez-nous | Service Client & Assistance | Tafchaa</title>
-        <meta name="description" content="Une question sur nos bijoux ou besoin d'aide pour une commande ? Contactez l'équipe Tafchaa par email, téléphone ou via notre formulaire." />
-        <meta property="og:title" content="Contactez-nous | Service Client & Assistance | Tafchaa" />
-        <meta property="og:description" content="Nous sommes à votre écoute pour toute question sur nos bijoux ou vos commandes." />
+        <title>Contact | Tafchaa</title>
+        <meta name="description" content="Contactez l'équipe Tafchaa pour toute question sur nos bijoux ou vos commandes." />
+        <meta property="og:title" content="Contact | Tafchaa" />
+        <meta property="og:description" content="Contactez l'équipe Tafchaa pour toute question sur nos bijoux ou vos commandes." />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://tafchaa.com/contact" />
-        <link rel="canonical" href="https://tafchaa.com/contact" />
+        <meta property="og:url" content="https://tafcha.com/contact" />
+        <link rel="canonical" href="https://tafcha.com/contact" />
       </Helmet>
       <Navigation />
       

@@ -69,8 +69,8 @@ export default function About() {
         <meta property="og:title" content="À Propos | Notre Histoire & Valeurs | Tafchaa" />
         <meta property="og:description" content="L'histoire derrière nos bijoux d'exception et notre engagement pour la qualité." />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://tafchaa.com/about" />
-        <link rel="canonical" href="https://tafchaa.com/about" />
+        <meta property="og:url" content="https://tafcha.com/about" />
+        <link rel="canonical" href="https://tafcha.com/about" />
       </Helmet>
       <Navigation />
       

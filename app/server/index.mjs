@@ -86,7 +86,7 @@ app.get('/sitemap.xml', (req, res) => {
   try {
     const products = db.prepare('SELECT slug, updatedAt FROM products WHERE active = 1').all();
     const categories = db.prepare('SELECT slug FROM categories').all();
-    const baseUrl = process.env.BASE_URL || 'https://tafchaa.com';
+    const baseUrl = process.env.BASE_URL || 'https://tafcha.com';
 
     let xml = '<?xml version="1.0" encoding="UTF-8"?>\n';
     xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n';
@@ -183,7 +183,7 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Internal server error' });
 });
 
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on port ${PORT}`);
   console.log(`API available at http://localhost:${PORT}/api`);
 });

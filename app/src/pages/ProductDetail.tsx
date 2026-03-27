@@ -55,7 +55,7 @@ export default function ProductDetail() {
       "@context": "https://schema.org/",
       "@type": "Product",
       "name": product.name,
-      "image": product.images.map(img => img.startsWith('http') ? img : `https://tafchaa.com${img}`),
+      "image": product.images.map(img => img.startsWith('http') ? img : `https://tafcha.com${img}`),
       "description": product.description,
       "sku": product.id,
       "brand": {
@@ -64,7 +64,7 @@ export default function ProductDetail() {
       },
       "offers": {
         "@type": "Offer",
-        "url": `https://tafchaa.com/product/${product.slug}`,
+        "url": `https://tafcha.com/product/${product.slug}`,
         "priceCurrency": "DNR",
         "price": product.price,
         "itemCondition": "https://schema.org/NewCondition",
@@ -178,9 +178,9 @@ export default function ProductDetail() {
         <meta property="og:title" content={`${product.name} | ${product.categoryName || 'Boutique'} | Tafchaa`} />
         <meta property="og:description" content={seoDescription} />
         <meta property="og:image" content={product.images?.[0]} />
-        <meta property="og:url" content={`https://tafchaa.com/product/${product.slug}`} />
+        <meta property="og:url" content={`https://tafcha.com/product/${product.slug}`} />
         <meta property="og:type" content="product" />
-        <link rel="canonical" href={`https://tafchaa.com/product/${product.slug}`} />
+        <link rel="canonical" href={`https://tafcha.com/product/${product.slug}`} />
         {jsonLd && (
           <script type="application/ld+json">
             {JSON.stringify(jsonLd)}

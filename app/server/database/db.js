@@ -234,14 +234,14 @@ function initDatabase() {
   `);
 
   // Insert default admin user if not exists
-  const adminExists = db.prepare('SELECT * FROM users WHERE email = ?').get('admin@tafchaa.com');
+  const adminExists = db.prepare('SELECT * FROM users WHERE email = ?').get('admin@tafcha.com');
   if (!adminExists) {
     const hashedPassword = bcrypt.hashSync('admin123', 10);
     db.prepare(`
       INSERT INTO users (id, email, password, firstName, lastName, role)
       VALUES (?, ?, ?, ?, ?, ?)
-    `).run(uuidv4(), 'admin@tafchaa.com', hashedPassword, 'Admin', 'Tafchaa', 'admin');
-    console.log('Default admin created: admin@tafchaa.com / admin123');
+    `).run(uuidv4(), 'admin@tafcha.com', hashedPassword, 'Admin', 'Tafchaa', 'admin');
+    console.log('Default admin created: admin@tafcha.com / admin123');
   }
 
   // Insert default site settings if not exists
@@ -254,7 +254,7 @@ function initDatabase() {
       'main',
       'Jewelries That Radiates Charm',
       'Discover elegant, one-of-a-kind jewelry crafted to elevate your everyday moments and unforgettable occasions.',
-      'hello@tafchaa.com',
+      'hello@tafcha.com',
       '+216 99 888 777',
       '#3d4d5d',
       '#2a3a4a',
