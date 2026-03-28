@@ -42,11 +42,17 @@ router.post('/', authenticateToken, requireAdmin, async (req, res) => {
       }
       const base = `img_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
       const outWebp = path.join(uploadsDir, `${base}.webp`);
-      await sharp(buffer)
-        .rotate()
-        .resize({ width: 1920, withoutEnlargement: true })
-        .webp({ quality: 82 })
-        .toFile(outWebp);
+      try {
+        await sharp(buffer)
+          .rotate()
+          .resize({ width: 1920, withoutEnlargement: true })
+          .webp({ quality: 82 })
+          .toFile(outWebp);
+      } catch (sharpErr) {
+        console.error('Sharp processing error:', sharpErr);
+        // Fallback: save original buffer if sharp fails (e.g. missing dependencies)
+        fs.writeFileSync(outWebp, buffer);
+      }
       const url = `/uploads/${path.basename(outWebp)}`;
       return res.status(201).json({ url });
     }

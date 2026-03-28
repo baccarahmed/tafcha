@@ -42,10 +42,13 @@ function ProtectedRoute({ children, requireAdmin = false }: { children: React.Re
   }
 
   if (!isAuthenticated) {
+    // Avoid <Navigate> during SSR
+    if (typeof window === 'undefined') return null;
     return <Navigate to="/login" replace />;
   }
 
   if (requireAdmin && !isAdmin) {
+    if (typeof window === 'undefined') return null;
     return <Navigate to="/" replace />;
   }
 
@@ -172,7 +175,14 @@ function AppRoutes() {
       />
 
       {/* Fallback */}
-      <Route path="*" element={<Navigate to="/" replace />} />
+      <Route 
+        path="*" 
+        element={
+          typeof window !== 'undefined' ? (
+            <Navigate to="/" replace />
+          ) : null
+        } 
+      />
     </Routes>
   );
 }
@@ -192,8 +202,10 @@ function App({
   RouterComponent?: React.ComponentType<{ children: React.ReactNode }>;
   preloadedData?: PreloadedData;
 }) {
-  const { settings } = useSettings();
-  const siteBg = settings?.siteBgColor || '#3d4d5d';
+  const resolvedPreloadedData = preloadedData || (typeof window !== 'undefined' ? (window as { __PRELOADED_DATA__?: PreloadedData }).__PRELOADED_DATA__ || null : null);
+  const { settings: fetchedSettings } = useSettings();
+  const settings = resolvedPreloadedData?.settings || fetchedSettings;
+  
   const panel = settings?.sitePanelColor || '#2a3a4a';
   const showAnimated = Boolean(settings?.animatedBackground);
   const blurAmount = (settings?.animatedBlur as string) || 'sm';
@@ -207,43 +219,25 @@ function App({
 
   const Router = RouterComponent ?? BrowserRouter;
 
-  // Prevent hydration mismatch: use defaults on server/first render
-  const currentSiteBg = mounted ? siteBg : '#3d4d5d';
-  const currentShowAnimated = mounted ? showAnimated : false;
+  // Prevent hydration mismatch: root attributes must be static until mounted
+  const currentShowAnimated = mounted ? showAnimated : Boolean(resolvedPreloadedData?.settings?.animatedBackground);
 
   // Robust hydration: root attributes must be static until mounted
-  const rootClassName = mounted && currentShowAnimated ? 'animated-bg-on' : undefined;
-  const rootStyle = mounted ? ({ 
-      minHeight: '100vh', 
-      ['--site-bg' as string]: currentSiteBg
-    } as React.CSSProperties) : { minHeight: '100vh' };
+  const rootClassName = mounted && currentShowAnimated ? 'animated-bg-on' : (currentShowAnimated ? 'animated-bg-on' : undefined);
 
   return (
-    <div className={rootClassName} style={rootStyle}>
-      {currentShowAnimated && (
-        <>
-          <SmokeyBackground className="fixed inset-0 -z-10" color={smokey} backdropBlurAmount={blurAmount} />
-          <div className="fixed inset-0 -z-9 pointer-events-none" style={{ background: 'transparent' }} />
-          <style>
-            {`
-              /* All sections using bg-[--site-bg] become slightly transparent when animated background is on */
-              .animated-bg-on .bg-\[--site-bg\] { background: transparent !important; }
-              body { background: transparent !important; }
-            `}
-          </style>
-        </>
-      )}
-      {!showAnimated && (
-        <style>
-          {`
-            /* When animation is off, ensure any bg-[--site-bg] does not fill the screen */
-            .bg-\[--site-bg\] { background: var(--site-bg) !important; }
-            body { background: var(--site-bg) !important; }
-          `}
-        </style>
-      )}
+    <div className={rootClassName}>
+      <SmokeyBackground className="fixed inset-0 -z-10" color={smokey} backdropBlurAmount={blurAmount} />
+      <div className="fixed inset-0 -z-9 pointer-events-none" style={{ background: 'transparent' }} />
+      <style>
+        {`
+          /* Ensure all sections and body are transparent to show SmokeyBackground */
+          .bg-\[--site-bg\] { background: transparent !important; }
+          body { background: transparent !important; }
+        `}
+      </style>
       <Router>
-        <PreloadedDataContext.Provider value={preloadedData || (typeof window !== 'undefined' ? (window as { __PRELOADED_DATA__?: PreloadedData }).__PRELOADED_DATA__ || null : null)}>
+        <PreloadedDataContext.Provider value={resolvedPreloadedData}>
           <AuthProvider>
             <CartProvider>
               <WishlistProvider>

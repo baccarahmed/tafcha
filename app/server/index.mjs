@@ -41,7 +41,6 @@ if (!isProd) {
     server: { middlewareMode: true },
     appType: 'custom'
   });
-  app.use(vite.middlewares);
 } else {
   app.use(compression());
   app.use(express.static(path.resolve(__dirname, '../dist/client'), { index: false }));
@@ -56,6 +55,11 @@ app.use('/api/users', userRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/uploads', uploadRoutes);
+
+// Vite middleware in dev (after API routes to avoid interference)
+if (!isProd && vite) {
+  app.use(vite.middlewares);
+}
 
 // SSE for order events
 app.get('/api/orders/events', (req, res) => {
@@ -79,6 +83,11 @@ app.get('/api/orders/events', (req, res) => {
 // Health check
 app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() });
+});
+
+// Gestion spéciale pour /vite.svg - rediriger vers favicon.svg
+app.get('/vite.svg', (req, res) => {
+  res.redirect(301, '/favicon.svg');
 });
 
 // Sitemap generator
@@ -117,15 +126,22 @@ app.get('/sitemap.xml', (req, res) => {
   }
 });
 
-// SSR Handler (exclude /api routes)
-app.get(/^(?!\/api).*/, async (req, res) => {
+// Middleware pour gérer les routes catch-all sans conflit
+app.use(async (req, res, next) => {
   const url = req.originalUrl;
+  
+  // Skip if URL has a file extension or matches specific prefixes
+  if (url.includes('.') || url.startsWith('/api/') || url.startsWith('/uploads/')) {
+    return next();
+  }
+  
   console.log(`SSR request for URL: ${url}`);
 
   try {
     // Ensure vite is ready in dev
     if (!isProd && !vite) {
-      await setupVite();
+      console.warn('Vite not initialized, skipping SSR');
+      return res.status(503).end('Server initializing...');
     }
 
     let template, render;
@@ -140,19 +156,26 @@ app.get(/^(?!\/api).*/, async (req, res) => {
     }
 
     // Pre-fetch data for SSR
-      let preloadedData = null;
-      if (url.startsWith('/product/')) {
-        const slug = url.split('/').pop();
-        const product = db.prepare('SELECT * FROM products WHERE slug = ?').get(slug);
-        if (product) {
-          const category = db.prepare('SELECT name FROM categories WHERE id = ?').get(product.categoryId);
-          product.categoryName = category?.name;
-          product.images = JSON.parse(product.images || '[]');
-          preloadedData = { product };
+      let preloadedData = {};
+      try {
+        preloadedData.settings = db.prepare('SELECT * FROM site_settings WHERE id = ?').get('main');
+        
+        if (url.startsWith('/product/')) {
+          const slug = url.split('/').pop();
+          const product = db.prepare('SELECT * FROM products WHERE slug = ?').get(slug);
+          if (product) {
+            const category = db.prepare('SELECT name FROM categories WHERE id = ?').get(product.categoryId);
+            product.categoryName = category?.name;
+            product.images = JSON.parse(product.images || '[]');
+            preloadedData.product = product;
+          }
+        } else if (url.startsWith('/shop')) {
+          const categories = db.prepare('SELECT * FROM categories ORDER BY position ASC').all();
+          preloadedData.categories = categories;
         }
-      } else if (url.startsWith('/shop')) {
-        const categories = db.prepare('SELECT * FROM categories ORDER BY position ASC').all();
-        preloadedData = { categories };
+      } catch (dbErr) {
+        console.error('SSR Database pre-fetch error:', dbErr);
+        // Continue with empty preloadedData if DB fails
       }
 
       const { html: appHtml, helmet } = render(url, preloadedData);

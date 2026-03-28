@@ -54,7 +54,7 @@
   }
   
   body {
-    @apply bg-[#3d4d5d] text-[#fff4e9] antialiased;
+    @apply bg-transparent text-[#fff4e9] antialiased;
     font-family: 'Montserrat', sans-serif;
   }
   

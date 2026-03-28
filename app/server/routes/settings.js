@@ -4,10 +4,28 @@ import { authenticateToken, requireAdmin } from '../middleware/auth.js';
 
 const router = express.Router();
 
+// Cache serveur pour les settings
+let settingsCache = null;
+let cacheTimestamp = 0;
+const CACHE_DURATION = 2 * 60 * 1000; // 2 minutes
+
 // Get site settings (public)
 router.get('/', (req, res) => {
   try {
+    const now = Date.now();
+    
+    // Utiliser le cache si disponible et valide
+    if (settingsCache && (now - cacheTimestamp) < CACHE_DURATION) {
+      return res.json({ settings: settingsCache });
+    }
+    
+    // Récupérer depuis la base de données
     const settings = db.prepare('SELECT * FROM site_settings WHERE id = ?').get('main');
+    
+    // Mettre en cache
+    settingsCache = settings;
+    cacheTimestamp = now;
+    
     res.json({ settings });
   } catch (error) {
     console.error('Get settings error:', error);
@@ -177,6 +195,10 @@ router.put('/', authenticateToken, requireAdmin, (req, res) => {
 
     const query = `UPDATE site_settings SET ${fields.join(', ')} WHERE id = ?`;
     db.prepare(query).run(...values);
+
+    // Invalider le cache après une mise à jour
+    settingsCache = null;
+    cacheTimestamp = 0;
 
     const settings = db.prepare('SELECT * FROM site_settings WHERE id = ?').get('main');
     res.json({ message: 'Settings updated', settings });

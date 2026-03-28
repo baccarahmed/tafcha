@@ -9,7 +9,15 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const dbPath = path.join(__dirname, 'tafchaa.db');
-const db = new Database(dbPath);
+console.log(`Attempting to open database at: ${dbPath}`);
+let db;
+try {
+  db = new Database(dbPath);
+  console.log('Database opened successfully');
+} catch (err) {
+  console.error('CRITICAL: Failed to open database:', err);
+  throw err;
+}
 
 // Enable foreign keys
 db.pragma('journal_mode = WAL');
@@ -57,7 +65,7 @@ function initDatabase() {
       db.exec(`ALTER TABLE categories ADD COLUMN position INTEGER DEFAULT 0`);
     }
   } catch (e) {
-    // ignore
+    console.error('Error ensuring position column in categories:', e);
   }
 
   // Products table
