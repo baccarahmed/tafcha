@@ -1,8 +1,25 @@
+# Robots.txt pour Tafchaa - Accessoires et Bijoux de Luxe
 User-agent: *
 Allow: /
-Disallow: /admin/
-Disallow: /api/
-Disallow: /checkout/
-Disallow: /account/
 
+# Pages importantes pour le référencement des accessoires
+Allow: /shop
+Allow: /shop/*
+Allow: /product/*
+Allow: /about
+Allow: /contact
+
+# Bloquer les pages admin
+Disallow: /admin
+Disallow: /admin/*
+Disallow: /api/admin
+Disallow: /api/admin/*
+
+# Bloquer les paramètres de tri et filtres
+Disallow: /*?sort=
+Disallow: /*?filter=
+Disallow: /*&sort=
+Disallow: /*&filter=
+
+# Sitemap
 Sitemap: https://tafcha.com/sitemap.xml

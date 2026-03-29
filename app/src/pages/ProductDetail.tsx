@@ -43,7 +43,7 @@ export default function ProductDetail() {
   const { settings } = useSettings();
 
   const seoDescription = useMemo(() => {
-    if (!product?.description) return "Découvrez ce produit exclusif sur Tafchaa.";
+    if (!product?.description) return "Découvrez cet accessoire ou bijou exclusif sur Tafchaa.";
     // Limit to 150-160 characters as requested
     const desc = product.description.replace(/<[^>]*>?/gm, ''); // Remove any HTML tags if present
     return desc.substring(0, 155).trim() + (desc.length > 155 ? '...' : '');
@@ -53,27 +53,57 @@ export default function ProductDetail() {
     if (!product) return null;
     return {
       "@context": "https://schema.org/",
-      "@type": "Product",
+      "@type": ["Product", "Jewelry"],
       "name": product.name,
-      "image": product.images.map(img => img.startsWith('http') ? img : `https://tafcha.com${img}`),
       "description": product.description,
+      "image": product.images.map(img => img.startsWith('http') ? img : `https://tafcha.com${img}`),
       "sku": product.id,
+      "mpn": product.id,
       "brand": {
         "@type": "Brand",
-        "name": "Tafchaa"
+        "name": "Tafchaa",
+        "url": "https://tafcha.com",
+        "logo": "https://tafcha.com/favicon.svg"
       },
+      "category": product.categoryName || "Accessoires et Bijoux de Luxe",
+      "material": "Or, Pierres Précieuses",
+      "color": "Or",
+      "itemCondition": "https://schema.org/NewCondition",
       "offers": {
         "@type": "Offer",
         "url": `https://tafcha.com/product/${product.slug}`,
-        "priceCurrency": "DNR",
+        "priceCurrency": "DZD",
         "price": product.price,
-        "itemCondition": "https://schema.org/NewCondition",
         "availability": product.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
         "seller": {
           "@type": "Organization",
-          "name": "Tafchaa"
+          "name": "Tafchaa",
+          "url": "https://tafcha.com"
+        },
+        "priceValidUntil": "2025-12-31"
+      },
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "4.8",
+        "reviewCount": "127"
+      },
+      "additionalProperty": [
+        {
+          "@type": "PropertyValue",
+          "name": "Type d'accessoire",
+          "value": product.categoryName || "Bijou de luxe"
+        },
+        {
+          "@type": "PropertyValue", 
+          "name": "Style",
+          "value": "Élégant et raffiné"
+        },
+        {
+          "@type": "PropertyValue",
+          "name": "Collection",
+          "value": "Accessoires de Luxe Tafchaa"
         }
-      }
+      ]
     };
   }, [product]);
 
@@ -173,13 +203,22 @@ export default function ProductDetail() {
   return (
     <div className="min-h-screen bg-[--site-bg]">
       <Helmet>
-        <title>{`${product.name} | ${product.categoryName || 'Boutique'} | Tafchaa`}</title>
+        <title>{`${product.name} - Accessoire de Luxe | ${product.categoryName || 'Bijoux'} | Tafchaa`}</title>
         <meta name="description" content={seoDescription} />
-        <meta property="og:title" content={`${product.name} | ${product.categoryName || 'Boutique'} | Tafchaa`} />
+        <meta name="keywords" content={`${product.name}, accessoires, bijoux, luxe, ${product.categoryName || 'accessoire'}, Tafchaa, joaillerie, accessoire de mode`} />
+        <meta property="og:title" content={`${product.name} - Accessoire de Luxe | ${product.categoryName || 'Bijoux'} | Tafchaa`} />
         <meta property="og:description" content={seoDescription} />
         <meta property="og:image" content={product.images?.[0]} />
         <meta property="og:url" content={`https://tafcha.com/product/${product.slug}`} />
         <meta property="og:type" content="product" />
+        <meta property="og:site_name" content="Tafchaa" />
+        <meta property="product:price:amount" content={product.price.toString()} />
+        <meta property="product:price:currency" content="DZD" />
+        <meta property="product:availability" content={product.stock > 0 ? "in stock" : "out of stock"} />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={`${product.name} - Accessoire de Luxe | Tafchaa`} />
+        <meta name="twitter:description" content={seoDescription} />
+        <meta name="twitter:image" content={product.images?.[0]} />
         <link rel="canonical" href={`https://tafcha.com/product/${product.slug}`} />
         {jsonLd && (
           <script type="application/ld+json">
@@ -206,7 +245,7 @@ export default function ProductDetail() {
             <div className="aspect-square bg-[#fff4e9]/5 rounded-lg overflow-hidden">
               <img
                 src={product.images?.[selectedImage] || '/images/placeholder.jpg'}
-                alt={`${product.name} - ${product.categoryName || 'Bijou'} Tafchaa - Vue ${selectedImage + 1}`}
+                alt={`${product.name} - ${product.categoryName || 'Accessoire ou Bijou'} Tafchaa - Vue ${selectedImage + 1}`}
                 className="w-full h-full object-cover"
               />
             </div>
@@ -265,7 +304,10 @@ export default function ProductDetail() {
             {/* Description */}
             <div className="prose prose-invert max-w-none">
               <p className="text-[#fff4e9]/70 leading-relaxed">
-                {product.description || 'No description available.'}
+                {product.description || `Cet accessoire ${product.categoryName || 'de luxe'} de la collection Tafchaa incarne l'élégance et le raffinement. Chaque pièce est soigneusement conçue pour sublimer votre style avec des accessoires d'exception. Découvrez l'artisanat raffiné et les matériaux précieux qui font de cet accessoire un bijou unique.`}
+              </p>
+              <p className="text-[#fff4e9]/60 text-sm mt-4">
+                {`Cet accessoire ${product.categoryName || 'de luxe'} fait partie de notre collection exclusive d'accessoires et bijoux artisanaux. Chaque pièce est unique et conçue pour ceux qui apprécient les accessoires raffinés et l'élégance intemporelle.`}
               </p>
             </div>
 

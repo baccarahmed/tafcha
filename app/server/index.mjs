@@ -94,27 +94,35 @@ app.get('/vite.svg', (req, res) => {
 app.get('/sitemap.xml', (req, res) => {
   try {
     const products = db.prepare('SELECT slug, updatedAt FROM products WHERE active = 1').all();
-    const categories = db.prepare('SELECT slug FROM categories').all();
+    const categories = db.prepare('SELECT slug, name FROM categories').all();
     const baseUrl = process.env.BASE_URL || 'https://tafcha.com';
 
     let xml = '<?xml version="1.0" encoding="UTF-8"?>\n';
-    xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n';
+    xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">\n';
 
-    // Static pages
-    const staticPages = ['', '/shop', '/about', '/contact'];
-    staticPages.forEach(page => {
-      xml += `  <url>\n    <loc>${baseUrl}${page}</loc>\n    <changefreq>weekly</changefreq>\n    <priority>${page === '' ? '1.0' : '0.8'}</priority>\n  </url>\n`;
+    // Page d'accueil - optimisée pour accessoires
+    xml += `  <url>\n    <loc>${baseUrl}</loc>\n    <changefreq>daily</changefreq>\n    <priority>1.0</priority>\n    <image:image>\n      <image:loc>${baseUrl}/images/logo.png</image:loc>\n      <image:title>Accessoires et Bijoux de Luxe Tafchaa</image:title>\n    </image:image>\n  </url>\n`;
+
+    // Pages principales optimisées pour accessoires
+    const mainPages = [
+      { path: '/shop', title: 'Accessoires et Bijoux de Luxe', priority: '0.9' },
+      { path: '/about', title: 'À Propos - Accessoires Artisanaux', priority: '0.8' },
+      { path: '/contact', title: 'Contact - Accessoires et Bijoux', priority: '0.8' }
+    ];
+    
+    mainPages.forEach(page => {
+      xml += `  <url>\n    <loc>${baseUrl}${page.path}</loc>\n    <changefreq>weekly</changefreq>\n    <priority>${page.priority}</priority>\n  </url>\n`;
     });
 
-    // Categories
+    // Catégories d'accessoires
     categories.forEach(cat => {
-      xml += `  <url>\n    <loc>${baseUrl}/shop/${cat.slug}</loc>\n    <changefreq>weekly</changefreq>\n    <priority>0.7</priority>\n  </url>\n`;
+      xml += `  <url>\n    <loc>${baseUrl}/shop/${cat.slug}</loc>\n    <changefreq>weekly</changefreq>\n    <priority>0.8</priority>\n    <image:image>\n      <image:loc>${baseUrl}/images/collection-${cat.slug}.jpg</image:loc>\n      <image:title>Collection ${cat.name} - Accessoires de Luxe</image:title>\n    </image:image>\n  </url>\n`;
     });
 
-    // Products
+    // Produits (accessoires et bijoux)
     products.forEach(prod => {
       const lastMod = prod.updatedAt ? new Date(prod.updatedAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
-      xml += `  <url>\n    <loc>${baseUrl}/product/${prod.slug}</loc>\n    <lastmod>${lastMod}</lastmod>\n    <changefreq>monthly</changefreq>\n    <priority>0.6</priority>\n  </url>\n`;
+      xml += `  <url>\n    <loc>${baseUrl}/product/${prod.slug}</loc>\n    <lastmod>${lastMod}</lastmod>\n    <changefreq>monthly</changefreq>\n    <priority>0.7</priority>\n  </url>\n`;
     });
 
     xml += '</urlset>';

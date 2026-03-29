@@ -119,13 +119,12 @@ export default function Shop() {
   }, [products, sortBy]);
 
   const shopTitle = useMemo(() => {
-    return categoryName ? `Boutique | ${categoryName} | Tafchaa` : 'Boutique | Tafchaa';
+    return categoryName ? `Accessoires ${categoryName} | Bijoux et Accessoires de Luxe | Tafchaa` : 'Accessoires et Bijoux de Luxe | Boutique Tafchaa';
   }, [categoryName]);
 
   const shopDescription = useMemo(() => {
     return categoryName 
-      ? `Découvrez nos produits d'exception dans la catégorie ${categoryName} sur Tafchaa. Des bijoux élégants et raffinés pour sublimer vos moments.` 
-      : "Découvrez la collection complète de bijoux Tafchaa : bagues, colliers, bracelets et boucles d'oreilles d'exception.";
+      ? `Découvrez nos accessoires ${categoryName} d'exception : bijoux élégants, accessoires raffinés et pièces uniques pour sublimer votre style. Collection luxe Tafchaa.`       : "Collection exclusive d'accessoires et bijoux de luxe : bagues, colliers, bracelets, boucles d'oreilles et accessoires raffinés. Artisanat d'exception pour un style unique.";
   }, [categoryName]);
 
   const categorySEOContent = useMemo(() => {
@@ -133,12 +132,12 @@ export default function Shop() {
     
     const content: Record<string, { title: string, text: string }> = {
       'shop_root': {
-        title: "Tafchaa : L'Excellence de la Joaillerie Artisanale",
-        text: "Bienvenue dans l'univers de Tafchaa, votre destination de choix pour des bijoux d'exception alliant savoir-faire traditionnel et esthétique moderne. Notre boutique en ligne vous propose une sélection rigoureuse de bagues, colliers, bracelets et boucles d'oreilles, chacun conçu pour raconter une histoire unique. Que vous cherchiez un cadeau mémorable ou une pièce maîtresse pour votre propre collection, notre catalogue complet saura vous séduire par sa diversité et sa qualité irréprochable. Nous nous engageons à n'utiliser que les meilleurs matériaux, de l'or pur aux pierres précieuses certifiées, pour garantir la longévité et l'éclat de chaque création. Explorez nos différentes collections, du minimalisme épuré aux classiques intemporels, et découvrez pourquoi Tafchaa est devenu le symbole de l'élégance raffinée. Notre passion pour la perfection se reflète dans chaque détail, assurant une expérience d'achat en ligne à la hauteur de l'exclusivité de nos bijoux."
+        title: "Tafchaa : Accessoires et Bijoux d\'Exception",
+        text: "Bienvenue dans l\'univers de Tafchaa, votre destination de choix pour des accessoires et bijoux d\'exception alliant savoir-faire traditionnel et esthétique moderne. Notre boutique en ligne vous propose une sélection rigoureuse de bagues, colliers, bracelets, boucles d\'oreilles et autres accessoires, chacun conçu pour raconter une histoire unique. Que vous cherchiez un cadeau mémorable ou une pièce maîtresse pour votre propre collection, notre catalogue complet saura vous séduire par sa diversité et sa qualité irréprochable. Nous nous engageons à n\'utiliser que les meilleurs matériaux, de l\'or pur aux pierres précieuses certifiées, pour garantir la longévité et l\'éclat de chaque création. Explorez nos différentes collections, du minimalisme épuré aux classiques intemporels, et découvrez pourquoi Tafchaa est devenu le symbole de l\'élégance raffinée. Notre passion pour la perfection se reflète dans chaque détail, assurant une expérience d\'achat en ligne à la hauteur de l\'exclusivité de nos accessoires et bijoux."
       },
       'Minimalist Elegance': {
-        title: "L'élégance minimaliste : l'art de la simplicité",
-        text: "Découvrez notre collection de bijoux minimalistes, conçus pour ceux qui apprécient la beauté dans la simplicité. Chaque pièce de notre gamme 'Minimalist Elegance' est une célébration de lignes épurées et de designs intemporels. Que vous recherchiez une bague délicate pour un usage quotidien ou un collier subtil pour une touche de sophistication, notre sélection répondra à vos attentes. Nos artisans joailliers mettent tout leur savoir-faire dans la création de bijoux qui ne dominent pas votre style, mais l'accentuent avec une grâce naturelle. Utilisant des matériaux de la plus haute qualité, nous garantissons que chaque pièce reste un classique de votre boîte à bijoux pour les années à venir. L'élégance minimaliste n'est pas seulement une tendance, c'est un mode de vie qui privilégie la qualité à la quantité et le sens au superficiel."
+        title: "Accessoires Minimalistes de Luxe - Élégance Pure | Tafchaa",
+        text: "Découvrez notre collection d'accessoires minimalistes de luxe, conçus pour ceux qui apprécient la beauté dans la simplicité. Chaque accessoire de notre gamme 'Minimalist Elegance' est une célébration de lignes épurées et de designs intemporels. Que vous recherchiez des accessoires délicats pour un usage quotidien ou des pièces subtiles pour une touche de sophistication, notre sélection répondra à vos attentes. Nos artisans joailliers mettent tout leur savoir-faire dans la création d'accessoires qui ne dominent pas votre style, mais l'accentuent avec une grâce naturelle. Utilisant des matériaux de la plus haute qualité, nous garantissons que chaque accessoire reste un classique de votre collection pour les années à venir. L'élégance minimaliste n'est pas seulement une tendance, c'est un mode de vie qui privilégie la qualité des accessoires à la quantité."
       },
       'Bridal Bliss': {
         title: "Éclat nuptial : des bijoux pour le jour le plus précieux",
@@ -156,12 +155,17 @@ export default function Shop() {
   return (
     <div className="min-h-screen bg-[--site-bg]">
       <Helmet>
-        <title>{shopTitle || 'Boutique | Tafchaa'}</title>
-        <meta name="description" content={shopDescription || 'Découvrez notre collection de bijoux.'} />
-        <meta property="og:title" content={shopTitle || 'Boutique | Tafchaa'} />
-        <meta property="og:description" content={shopDescription || 'Découvrez notre collection de bijoux.'} />
+        <title>{shopTitle || 'Accessoires et Bijoux de Luxe | Boutique Tafchaa'}</title>
+        <meta name="description" content={shopDescription || 'Collection exclusive d\'accessoires et bijoux de luxe : bagues, colliers, bracelets, boucles d\'oreilles et accessoires raffinés. Artisanat d\'exception pour un style unique.'} />
+        <meta name="keywords" content="accessoires, bijoux, luxe, bagues, colliers, bracelets, boucles d'oreilles, joaillerie, accessoires de mode, bijoux artisanaux, Tafchaa" />
+        <meta property="og:title" content={shopTitle || 'Accessoires et Bijoux de Luxe | Boutique Tafchaa'} />
+        <meta property="og:description" content={shopDescription || 'Collection exclusive d\'accessoires et bijoux de luxe : bagues, colliers, bracelets, boucles d\'oreilles et accessoires raffinés. Artisanat d\'exception pour un style unique.'} />
         <meta property="og:type" content="website" />
         <meta property="og:url" content={`https://tafcha.com/shop${selectedCategory !== 'all' ? `/${selectedCategory}` : ''}`} />
+        <meta property="og:site_name" content="Tafchaa" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={shopTitle || 'Accessoires et Bijoux de Luxe | Boutique Tafchaa'} />
+        <meta name="twitter:description" content={shopDescription || 'Collection exclusive d\'accessoires et bijoux de luxe : bagues, colliers, bracelets, boucles d\'oreilles et accessoires raffinés.'} />
         <link rel="canonical" href={`https://tafcha.com/shop${selectedCategory !== 'all' ? `/${selectedCategory}` : ''}`} />
       </Helmet>
       <Navigation />
@@ -169,10 +173,10 @@ export default function Shop() {
       {/* Header */}
       <div className="pt-32 pb-8 section-padding border-b border-[#fff4e9]/10">
         <h1 className="font-display text-4xl sm:text-5xl md:text-6xl text-[#fff4e9] mb-4">
-          {categoryName || 'Shop'}
+          {categoryName ? `Accessoires ${categoryName}` : 'Accessoires et Bijoux de Luxe'}
         </h1>
         <p className="text-[#fff4e9]/60 max-w-xl">
-          Discover our curated collection of elegant jewelry, crafted to elevate your everyday moments.
+          {categorySEOContent?.text || "Découvrez notre collection exclusive d'accessoires et bijoux de luxe. Chaque pièce est soigneusement sélectionnée pour sublimer votre style avec des accessoires raffinés et élégants."}
         </p>
       </div>
 
