@@ -15,8 +15,8 @@ export default function Hero() {
     return () => clearTimeout(timer);
   }, []);
 
-  const title = settings?.heroTitle || 'Jewelries That Radiates Charm';
-  const subtitle = settings?.heroSubtitle || 'Discover elegant, one-of-a-kind jewelry crafted to elevate your everyday moments and unforgettable occasions.';
+  const title = settings?.heroTitle || 'Des Bijoux et Accessoires qui Rayonnent de Charme';
+  const subtitle = settings?.heroSubtitle || 'Découvrez des bijoux et accessoires élégants et uniques, conçus pour sublimer vos moments quotidiens et vos occasions inoubliables.';
   const sideVideoSrc = settings?.heroVideo || '/uploads/vid_1772434897884_salz6b.mp4';
 
   useEffect(() => {
@@ -97,7 +97,7 @@ export default function Hero() {
                 onClick={() => navigate('/shop')}
                 className="inline-flex h-12 animate-shimmer items-center justify-center rounded-full border border-slate-800 bg-[linear-gradient(110deg,#000103,45%,#1e2631,55%,#000103)] bg-[length:200%_100%] px-8 font-medium text-slate-400 transition-colors focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 focus:ring-offset-slate-50 hover:text-[#fff4e9]"
               >
-                Explore Collections
+                Explorer nos Collections
               </button>
             </div>
           </div>

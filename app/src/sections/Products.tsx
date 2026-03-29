@@ -80,7 +80,7 @@ export default function Products() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between mb-12">
           <h2 className="font-display text-4xl sm:text-5xl md:text-6xl text-[#fff4e9]">
-            {'Newest Items'.split('').map((char, i) => (
+            {'Nouveautés'.split('').map((char, i) => (
               <span
                 key={i}
                 className={`inline-block transition-all duration-600 ${
@@ -93,20 +93,20 @@ export default function Products() {
                   transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)',
                 }}
               >
-                {char}
+                {char === ' ' ? '\u00A0' : char}
               </span>
             ))}
           </h2>
           
           <Link
             to="/shop"
-            className={`group inline-flex items-center gap-2 text-[#fff4e9] hover:text-[#f3e7d9] transition-all duration-500 mt-4 sm:mt-0 ${
-              isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-12'
+            className={`group inline-flex items-center gap-2 text-[#fff4e9]/80 hover:text-[#fff4e9] transition-all duration-500 mt-6 sm:mt-0 ${
+              isVisible ? 'opacity-100' : 'opacity-0'
             }`}
-            style={{ transitionDelay: '400ms' }}
+            style={{ transitionDelay: '800ms' }}
           >
-            <span className="text-sm font-medium uppercase tracking-wider">
-              View All
+            <span className="text-sm font-medium uppercase tracking-widest">
+              Voir toute la collection
             </span>
             <ArrowRight className="w-4 h-4 group-hover:translate-x-2 transition-transform duration-300" />
           </Link>

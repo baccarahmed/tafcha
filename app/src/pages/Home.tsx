@@ -4,6 +4,7 @@ import Features from '@/sections/Features';
 import Collections from '@/sections/Collections';
 import Quote from '@/sections/Quote';
 import Products from '@/sections/Products';
+import SEOContent from '@/sections/SEOContent';
 import Testimonials from '@/sections/Testimonials';
 import Footer from '@/sections/Footer';
 import CartDrawer from '@/components/CartDrawer';
@@ -87,6 +88,7 @@ export default function Home() {
         <Collections />
         <Quote />
         <Products />
+        <SEOContent />
         <Testimonials />
       </main>
       <Footer />

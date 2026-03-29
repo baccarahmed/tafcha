@@ -4,23 +4,23 @@ import { Truck, Shield, RefreshCw, Gift } from 'lucide-react';
 const features = [
   {
     icon: Truck,
-    title: 'Very Fast Shipping',
-    description: 'Free delivery on orders over $100',
+    title: 'Livraison Très Rapide',
+    description: 'Livraison gratuite dès 10 000 DZD d\'achat',
   },
   {
     icon: Shield,
-    title: 'Secure Payments',
-    description: '100% secure checkout process',
+    title: 'Paiements Sécurisés',
+    description: 'Processus de paiement 100% sécurisé',
   },
   {
     icon: RefreshCw,
-    title: 'Hassle-Free Returns',
-    description: '30-day return policy',
+    title: 'Retours Faciles',
+    description: 'Politique de retour de 30 jours',
   },
   {
     icon: Gift,
-    title: 'Gift-Ready Packaging',
-    description: 'Beautiful boxes for every order',
+    title: 'Emballage Cadeau',
+    description: 'Magnifiques coffrets pour chaque commande',
   },
 ];
 

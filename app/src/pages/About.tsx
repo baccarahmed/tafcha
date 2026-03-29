@@ -10,32 +10,32 @@ import { Helmet } from 'react-helmet-async';
 const values = [
   {
     icon: Heart,
-    title: 'Crafted with Love',
-    description: 'Each piece is meticulously crafted by skilled artisans who pour their passion into every detail.',
+    title: 'Fabriqué avec Amour',
+    description: 'Chaque pièce est méticuleusement façonnée par des artisans qualifiés qui mettent leur passion dans chaque détail.',
   },
   {
     icon: Sparkles,
-    title: 'Timeless Design',
-    description: 'Our designs transcend trends, creating jewelry that remains elegant for generations.',
+    title: 'Design Intemporel',
+    description: 'Nos designs transcendent les tendances, créant des bijoux qui restent élégants pour des générations.',
   },
   {
     icon: Gem,
-    title: 'Quality Materials',
-    description: 'We use only the finest materials, from ethically sourced gemstones to premium metals.',
+    title: 'Matériaux de Qualité',
+    description: 'Nous utilisons uniquement les meilleurs matériaux, des pierres précieuses éthiques aux métaux de première qualité.',
   },
   {
     icon: Award,
     title: 'Excellence',
-    description: 'Every piece undergoes rigorous quality control to ensure it meets our high standards.',
+    description: 'Chaque pièce subit un contrôle qualité rigoureux pour s\'assurer qu\'elle répond à nos standards élevés.',
   },
 ];
 
 const milestones = [
-  { year: '2018', title: 'The Beginning', description: 'Tafchaa was founded with a vision to create meaningful jewelry.' },
-  { year: '2019', title: 'First Collection', description: 'Launched our signature Minimalist Elegance collection.' },
-  { year: '2020', title: 'Going Global', description: 'Expanded shipping to over 30 countries worldwide.' },
-  { year: '2022', title: 'Bridal Line', description: 'Introduced our Bridal Bliss collection for special moments.' },
-  { year: '2024', title: 'Sustainability', description: 'Committed to 100% ethically sourced materials.' },
+  { year: '2018', title: 'Le Début', description: 'Tafchaa a été fondée avec la vision de créer des bijoux significatifs.' },
+  { year: '2019', title: 'Première Collection', description: 'Lancement de notre collection signature Minimalist Elegance.' },
+  { year: '2020', title: 'Expansion Mondiale', description: 'Extension de la livraison à plus de 30 pays à travers le monde.' },
+  { year: '2022', title: 'Ligne Mariage', description: 'Introduction de notre collection Bridal Bliss pour des moments spéciaux.' },
+  { year: '2024', title: 'Durabilité', description: 'Engagement pour des matériaux 100% sourcés de manière éthique.' },
 ];
 
 export default function About() {
@@ -78,10 +78,10 @@ export default function About() {
       <div className="pt-32 pb-20 section-padding border-b border-[#fff4e9]/10">
         <div className="max-w-4xl mx-auto text-center">
           <h1 className="font-display text-5xl sm:text-6xl md:text-7xl text-[#fff4e9] mb-6">
-            Our Story
+            Notre Histoire
           </h1>
           <p className="text-xl text-[#fff4e9]/70 max-w-2xl mx-auto leading-relaxed">
-            {siteSettings?.aboutText || "At Tafchaa, we believe jewelry is more than an accessory—it's a keepsake of moments, love, and individuality."}
+            {siteSettings?.aboutText || "Chez Tafchaa, nous pensons que les bijoux sont plus que de simples accessoires : ce sont des souvenirs de moments, d'amour et d'individualité."}
           </p>
         </div>
       </div>

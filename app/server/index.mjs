@@ -100,14 +100,14 @@ app.get('/sitemap.xml', (req, res) => {
     let xml = '<?xml version="1.0" encoding="UTF-8"?>\n';
     xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">\n';
 
-    // Page d'accueil - optimisée pour accessoires
-    xml += `  <url>\n    <loc>${baseUrl}</loc>\n    <changefreq>daily</changefreq>\n    <priority>1.0</priority>\n    <image:image>\n      <image:loc>${baseUrl}/images/logo.png</image:loc>\n      <image:title>Accessoires et Bijoux de Luxe Tafchaa</image:title>\n    </image:image>\n  </url>\n`;
+    // Page d'accueil - optimisée pour accessoires et bijoux de luxe
+    xml += `  <url>\n    <loc>${baseUrl}</loc>\n    <changefreq>daily</changefreq>\n    <priority>1.0</priority>\n    <image:image>\n      <image:loc>${baseUrl}/images/logo.png</image:loc>\n      <image:title>Accessoires et Bijoux de Luxe Tafchaa - Boutique en ligne d'exception</image:title>\n    </image:image>\n  </url>\n`;
 
     // Pages principales optimisées pour accessoires
     const mainPages = [
-      { path: '/shop', title: 'Accessoires et Bijoux de Luxe', priority: '0.9' },
-      { path: '/about', title: 'À Propos - Accessoires Artisanaux', priority: '0.8' },
-      { path: '/contact', title: 'Contact - Accessoires et Bijoux', priority: '0.8' }
+      { path: '/shop', title: 'Boutique Accessoires et Bijoux de Luxe', priority: '0.9' },
+      { path: '/about', title: 'À Propos de Tafchaa - Accessoires Artisanaux', priority: '0.8' },
+      { path: '/contact', title: 'Contactez Tafchaa - Accessoires et Bijoux', priority: '0.8' }
     ];
     
     mainPages.forEach(page => {

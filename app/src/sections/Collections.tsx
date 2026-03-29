@@ -61,7 +61,7 @@ export default function Collections() {
         {/* Section Title */}
         <div className="text-center mb-16">
           <h2 className="font-display text-4xl sm:text-5xl md:text-6xl text-[#fff4e9] mb-4">
-            {'Our Signature Collections'.split(' ').map((word, i) => (
+            {'Nos Collections d\'Accessoires'.split(' ').map((word, i) => (
               <span
                 key={i}
                 className={`inline-block mr-3 transition-all duration-800 ${
@@ -123,7 +123,7 @@ export default function Collections() {
                   </p>
                   <div className="flex items-center gap-2 text-[#fff4e9] opacity-0 group-hover:opacity-100 transform translate-y-4 group-hover:translate-y-0 transition-all duration-500 delay-150">
                     <span className="text-sm font-medium uppercase tracking-wider">
-                      Explore
+                      Découvrir
                     </span>
                     <ArrowRight className="w-4 h-4 group-hover:translate-x-2 transition-transform duration-300" />
                   </div>
