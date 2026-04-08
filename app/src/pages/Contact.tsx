@@ -24,7 +24,7 @@ export default function Contact() {
     // Simulate form submission
     await new Promise(resolve => setTimeout(resolve, 1500));
     
-    toast.success('Message envoyé avec succès ! Nous vous répondrons bientôt.');
+    toast.success('Message sent successfully! We will get back to you soon.');
     setFormData({ name: '', email: '', subject: '', message: '' });
     setIsSubmitting(false);
   };
@@ -38,14 +38,14 @@ export default function Contact() {
     },
     {
       icon: Phone,
-      label: 'Téléphone',
+      label: 'Phone',
       value: settings?.contactPhone || '+216 99 888 777',
       href: `tel:${(settings?.contactPhone || '+216 99 888 777').replace(/\s/g, '')}`,
     },
     {
       icon: MapPin,
-      label: 'Adresse',
-      value: settings?.contactAddress || 'Tunis, Tunisie',
+      label: 'Address',
+      value: settings?.contactAddress || 'Tunis, Tunisia',
       href: '#',
     },
   ];
@@ -54,9 +54,9 @@ export default function Contact() {
     <div className="min-h-screen bg-[--site-bg]">
       <Helmet>
         <title>Contact | Tafchaa</title>
-        <meta name="description" content="Contactez l'équipe Tafchaa pour toute question sur nos bijoux ou vos commandes." />
+        <meta name="description" content="Contact the Tafchaa team for any questions about our jewelry or your orders." />
         <meta property="og:title" content="Contact | Tafchaa" />
-        <meta property="og:description" content="Contactez l'équipe Tafchaa pour toute question sur nos bijoux ou vos commandes." />
+        <meta property="og:description" content="Contact the Tafchaa team for any questions about our jewelry or your orders." />
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://tafcha.com/contact" />
         <link rel="canonical" href="https://tafcha.com/contact" />
@@ -67,11 +67,11 @@ export default function Contact() {
       <div className="pt-32 pb-20 section-padding border-b border-[#fff4e9]/10">
         <div className="max-w-4xl mx-auto text-center">
           <h1 className="font-display text-5xl sm:text-6xl md:text-7xl text-[#fff4e9] mb-6">
-            Contactez-nous
+            Contact Us
           </h1>
           <p className="text-xl text-[#fff4e9]/70 max-w-2xl mx-auto leading-relaxed">
-            Nous aimerions avoir de vos nouvelles. Que vous ayez une question sur nos produits, 
-            besoin d'aide pour une commande, ou que vous souhaitiez simplement nous dire bonjour.
+            We'd love to hear from you. Whether you have a question about our products, 
+            need help with an order, or just want to say hello.
           </p>
         </div>
       </div>

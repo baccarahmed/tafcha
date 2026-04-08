@@ -13,15 +13,15 @@ import { useSettings } from '@/hooks/useSettings';
 
 export default function Home() {
   const { settings } = useSettings();
-  const title = settings?.heroTitle ? `${settings.heroTitle} | Tafchaa` : 'Tafchaa | Accessoires et Bijoux de Luxe - Collection Exclusive';
-  const description = settings?.heroSubtitle || 'Collection exclusive d\'accessoires et bijoux de luxe : bagues, colliers, bracelets, boucles d\'oreilles et accessoires raffinés. Artisanat d\'exception pour un style unique avec des pièces artisanales élégantes.';
+  const title = settings?.heroTitle ? `${settings.heroTitle} | Tafchaa` : 'Tafchaa | Luxury Accessories and Jewelry - Exclusive Collection';
+  const description = settings?.heroSubtitle || 'Exclusive collection of luxury accessories and jewelry: refined rings, necklaces, bracelets, earrings, and accessories. Exceptional craftsmanship for a unique style with elegant handcrafted pieces.';
 
   return (
     <div className="min-h-screen bg-[--site-bg]">
       <Helmet>
         <title>{title}</title>
         <meta name="description" content={description} />
-        <meta name="keywords" content="accessoires, bijoux, luxe, bagues, colliers, bracelets, boucles d'oreilles, joaillerie, accessoires de mode, bijoux artisanaux, Tafchaa, accessoires raffinés, bijoux de luxe" />
+        <meta name="keywords" content="accessories, jewelry, luxury, rings, necklaces, bracelets, earrings, fine jewelry, fashion accessories, handcrafted jewelry, Tafchaa, refined accessories, luxury jewelry" />
         <meta property="og:title" content={title} />
         <meta property="og:description" content={description} />
         <meta property="og:type" content="website" />
@@ -32,13 +32,13 @@ export default function Home() {
         <meta name="twitter:description" content={description} />
         <link rel="canonical" href="https://tafcha.com/" />
         
-        {/* Schema.org markup pour accessoires et bijoux de luxe */}
+        {/* Schema.org markup for luxury accessories and jewelry */}
         <script type="application/ld+json">
           {JSON.stringify({
             "@context": "https://schema.org",
             "@type": "JewelryStore",
             "name": "Tafchaa",
-            "description": "Collection exclusive d'accessoires et bijoux de luxe : bagues, colliers, bracelets, boucles d'oreilles et accessoires raffinés",
+            "description": "Exclusive collection of luxury accessories and jewelry: refined rings, necklaces, bracelets, earrings, and accessories",
             "url": "https://tafcha.com",
             "logo": "https://tafcha.com/favicon.svg",
             "image": "https://tafcha.com/images/logo.png",
@@ -46,8 +46,8 @@ export default function Home() {
             "email": "contact@tafcha.com",
             "address": {
               "@type": "PostalAddress",
-              "streetAddress": "Rue des Artisans",
-              "addressLocality": "Alger",
+              "streetAddress": "Artisan Street",
+              "addressLocality": "Algiers",
               "addressCountry": "DZ"
             },
             "priceRange": "$$$",
@@ -58,19 +58,19 @@ export default function Home() {
             "availabilityEnds": "2025-12-31T23:59:59Z",
             "hasOfferCatalog": {
               "@type": "OfferCatalog",
-              "name": "Collection d'Accessoires et Bijoux de Luxe",
+              "name": "Luxury Accessories and Jewelry Collection",
               "itemListElement": [
                 {
                   "@type": "Product",
-                  "name": "Accessoires de Luxe",
-                  "description": "Collection exclusive d'accessoires raffinés et bijoux élégants",
-                  "category": "Accessoires de Mode"
+                  "name": "Luxury Accessories",
+                  "description": "Exclusive collection of refined accessories and elegant jewelry",
+                  "category": "Fashion Accessories"
                 },
                 {
                   "@type": "Product", 
-                  "name": "Bijoux Artisanaux",
-                  "description": "Pièces artisanales uniques en or et pierres précieuses",
-                  "category": "Joaillerie"
+                  "name": "Handcrafted Jewelry",
+                  "description": "Unique handcrafted pieces in gold and precious stones",
+                  "category": "Fine Jewelry"
                 }
               ]
             },

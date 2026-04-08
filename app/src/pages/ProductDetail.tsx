@@ -44,7 +44,7 @@ export default function ProductDetail() {
   const { settings } = useSettings();
 
   const seoDescription = useMemo(() => {
-    if (!product?.description) return "Découvrez cet accessoire ou bijou exclusif sur Tafchaa.";
+    if (!product?.description) return "Discover this exclusive accessory or jewelry on Tafchaa.";
     // Limit to 150-160 characters as requested
     const desc = product.description.replace(/<[^>]*>?/gm, ''); // Remove any HTML tags if present
     return desc.substring(0, 155).trim() + (desc.length > 155 ? '...' : '');
@@ -66,9 +66,9 @@ export default function ProductDetail() {
         "url": "https://tafcha.com",
         "logo": "https://tafcha.com/favicon.svg"
       },
-      "category": product.categoryName || "Accessoires et Bijoux de Luxe",
-      "material": "Or, Pierres Précieuses",
-      "color": "Or",
+      "category": product.categoryName || "Luxury Accessories and Jewelry",
+      "material": "Gold, Precious Stones",
+      "color": "Gold",
       "itemCondition": "https://schema.org/NewCondition",
       "offers": {
         "@type": "Offer",
@@ -91,18 +91,18 @@ export default function ProductDetail() {
       "additionalProperty": [
         {
           "@type": "PropertyValue",
-          "name": "Type d'accessoire",
-          "value": product.categoryName || "Bijou de luxe"
+          "name": "Accessory Type",
+          "value": product.categoryName || "Luxury Jewelry"
         },
         {
           "@type": "PropertyValue", 
           "name": "Style",
-          "value": "Élégant et raffiné"
+          "value": "Elegant and refined"
         },
         {
           "@type": "PropertyValue",
           "name": "Collection",
-          "value": "Accessoires de Luxe Tafchaa"
+          "value": "Tafchaa Luxury Accessories"
         }
       ]
     };
@@ -170,7 +170,7 @@ export default function ProductDetail() {
   };
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('fr-FR', {
+    return new Intl.NumberFormat('en-US', {
       minimumFractionDigits: 0,
     }).format(price) + ' DNR';
   };
@@ -179,8 +179,8 @@ export default function ProductDetail() {
     return (
       <div className="min-h-screen bg-[--site-bg]">
         <Helmet>
-          <title>Chargement... | Tafchaa</title>
-          <meta name="description" content="Découvrez nos bijoux d'exception sur Tafchaa." />
+          <title>Loading... | Tafchaa</title>
+          <meta name="description" content="Discover our exceptional jewelry on Tafchaa." />
         </Helmet>
         <Navigation />
         <div className="pt-32 section-padding">
@@ -204,10 +204,10 @@ export default function ProductDetail() {
   return (
     <div className="min-h-screen bg-[--site-bg]">
       <Helmet>
-        <title>{`${product.name} - Accessoire de Luxe | ${product.categoryName || 'Bijoux'} | Tafchaa`}</title>
+        <title>{`${product.name} - Luxury Accessory | ${product.categoryName || 'Jewelry'} | Tafchaa`}</title>
         <meta name="description" content={seoDescription} />
-        <meta name="keywords" content={`${product.name}, accessoires, bijoux, luxe, ${product.categoryName || 'accessoire'}, Tafchaa, joaillerie, accessoire de mode`} />
-        <meta property="og:title" content={`${product.name} - Accessoire de Luxe | ${product.categoryName || 'Bijoux'} | Tafchaa`} />
+        <meta name="keywords" content={`${product.name}, accessories, jewelry, luxury, ${product.categoryName || 'accessory'}, Tafchaa, fine jewelry, fashion accessory`} />
+        <meta property="og:title" content={`${product.name} - Luxury Accessory | ${product.categoryName || 'Jewelry'} | Tafchaa`} />
         <meta property="og:description" content={seoDescription} />
         <meta property="og:image" content={product.images?.[0]} />
         <meta property="og:url" content={`https://tafcha.com/product/${product.slug}`} />
@@ -217,7 +217,7 @@ export default function ProductDetail() {
         <meta property="product:price:currency" content="DZD" />
         <meta property="product:availability" content={product.stock > 0 ? "in stock" : "out of stock"} />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content={`${product.name} - Accessoire de Luxe | Tafchaa`} />
+        <meta name="twitter:title" content={`${product.name} - Luxury Accessory | Tafchaa`} />
         <meta name="twitter:description" content={seoDescription} />
         <meta name="twitter:image" content={product.images?.[0]} />
         <link rel="canonical" href={`https://tafcha.com/product/${product.slug}`} />
@@ -248,7 +248,7 @@ export default function ProductDetail() {
             <div className="aspect-square bg-[#fff4e9]/5 rounded-lg overflow-hidden flex justify-center items-center">
               <img
                 src={product.images?.[selectedImage] || '/images/placeholder.jpg'}
-                alt={`${product.name} - ${product.categoryName || 'Accessoire ou Bijou'} Tafchaa - Vue ${selectedImage + 1}`}
+                alt={`${product.name} - ${product.categoryName || 'Accessory or Jewelry'} Tafchaa - View ${selectedImage + 1}`}
                 className="w-full h-full object-cover"
               />
             </div>
@@ -266,7 +266,7 @@ export default function ProductDetail() {
                   >
                     <img
                       src={img}
-                      alt={`${product.name} - Miniature ${idx + 1}`}
+                      alt={`${product.name} - Thumbnail ${idx + 1}`}
                       className="w-full h-full object-cover"
                     />
                   </button>
@@ -307,10 +307,10 @@ export default function ProductDetail() {
             {/* Description */}
             <div className="prose prose-invert max-w-none text-center lg:text-left">
               <p className="text-[#fff4e9]/70 leading-relaxed">
-                {product.description || `Cet accessoire ${product.categoryName || 'de luxe'} de la collection Tafchaa incarne l'élégance et le raffinement. Chaque pièce est soigneusement conçue pour sublimer votre style avec des accessoires d'exception. Découvrez l'artisanat raffiné et les matériaux précieux qui font de cet accessoire un bijou unique.`}
+                {product.description || `This ${product.categoryName || 'luxury'} accessory from the Tafchaa collection embodies elegance and refinement. Each piece is carefully designed to enhance your style with exceptional accessories. Discover the refined craftsmanship and precious materials that make this accessory a unique jewel.`}
               </p>
               <p className="text-[#fff4e9]/60 text-sm mt-4">
-                {`Cet accessoire ${product.categoryName || 'de luxe'} fait partie de notre collection exclusive d'accessoires et bijoux artisanaux. Chaque pièce est unique et conçue pour ceux qui apprécient les accessoires raffinés et l'élégance intemporelle.`}
+                {`This ${product.categoryName || 'luxury'} accessory is part of our exclusive collection of handcrafted accessories and jewelry. Each piece is unique and designed for those who appreciate refined accessories and timeless elegance.`}
               </p>
             </div>
 
@@ -375,7 +375,7 @@ export default function ProductDetail() {
                   } transition-colors`}
                 >
                   <Heart className={`w-5 h-5 ${isWished ? 'fill-[#fff4e9] text-[#3d4d5d]' : ''}`} />
-                  {isWished ? 'Retirer de la wishlist' : 'Ajouter à la wishlist'}
+                  {isWished ? 'Remove from wishlist' : 'Add to wishlist'}
                 </button>
               </div>
             )}

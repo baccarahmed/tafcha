@@ -10,32 +10,32 @@ import { Helmet } from 'react-helmet-async';
 const values = [
   {
     icon: Heart,
-    title: 'Fabriqué avec Amour',
-    description: 'Chaque pièce est méticuleusement façonnée par des artisans qualifiés qui mettent leur passion dans chaque détail.',
+    title: 'Made with Love',
+    description: 'Each piece is meticulously crafted by skilled artisans who pour their passion into every detail.',
   },
   {
     icon: Sparkles,
-    title: 'Design Intemporel',
-    description: 'Nos designs transcendent les tendances, créant des bijoux qui restent élégants pour des générations.',
+    title: 'Timeless Design',
+    description: 'Our designs transcend trends, creating jewelry that stays elegant for generations.',
   },
   {
     icon: Gem,
-    title: 'Matériaux de Qualité',
-    description: 'Nous utilisons uniquement les meilleurs matériaux, des pierres précieuses éthiques aux métaux de première qualité.',
+    title: 'Quality Materials',
+    description: 'We use only the finest materials, from ethical gemstones to premium metals.',
   },
   {
     icon: Award,
     title: 'Excellence',
-    description: 'Chaque pièce subit un contrôle qualité rigoureux pour s\'assurer qu\'elle répond à nos standards élevés.',
+    description: 'Every piece undergoes rigorous quality control to ensure it meets our high standards.',
   },
 ];
 
 const milestones = [
-  { year: '2018', title: 'Le Début', description: 'Tafchaa a été fondée avec la vision de créer des bijoux significatifs.' },
-  { year: '2019', title: 'Première Collection', description: 'Lancement de notre collection signature Minimalist Elegance.' },
-  { year: '2020', title: 'Expansion Mondiale', description: 'Extension de la livraison à plus de 30 pays à travers le monde.' },
-  { year: '2022', title: 'Ligne Mariage', description: 'Introduction de notre collection Bridal Bliss pour des moments spéciaux.' },
-  { year: '2024', title: 'Durabilité', description: 'Engagement pour des matériaux 100% sourcés de manière éthique.' },
+  { year: '2018', title: 'The Beginning', description: 'Tafchaa was founded with the vision of creating meaningful jewelry.' },
+  { year: '2019', title: 'First Collection', description: 'Launch of our signature Minimalist Elegance collection.' },
+  { year: '2020', title: 'Global Expansion', description: 'Extending delivery to over 30 countries worldwide.' },
+  { year: '2022', title: 'Bridal Line', description: 'Introduction of our Bridal Bliss collection for special moments.' },
+  { year: '2024', title: 'Sustainability', description: 'Commitment to 100% ethically sourced materials.' },
 ];
 
 export default function About() {
@@ -64,10 +64,10 @@ export default function About() {
   return (
     <div className="min-h-screen bg-[--site-bg]">
       <Helmet>
-        <title>À Propos | Notre Histoire & Valeurs | Tafchaa</title>
-        <meta name="description" content="Découvrez l'histoire de Tafchaa, notre passion pour la joaillerie artisanale et notre engagement envers l'excellence, la durabilité et le design intemporel." />
-        <meta property="og:title" content="À Propos | Notre Histoire & Valeurs | Tafchaa" />
-        <meta property="og:description" content="L'histoire derrière nos bijoux d'exception et notre engagement pour la qualité." />
+        <title>About | Our Story & Values | Tafchaa</title>
+        <meta name="description" content="Discover the story of Tafchaa, our passion for handcrafted jewelry and our commitment to excellence, sustainability, and timeless design." />
+        <meta property="og:title" content="About | Our Story & Values | Tafchaa" />
+        <meta property="og:description" content="The story behind our exceptional jewelry and our commitment to quality." />
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://tafcha.com/about" />
         <link rel="canonical" href="https://tafcha.com/about" />
@@ -78,10 +78,10 @@ export default function About() {
       <div className="pt-32 pb-20 section-padding border-b border-[#fff4e9]/10">
         <div className="max-w-4xl mx-auto text-center">
           <h1 className="font-display text-5xl sm:text-6xl md:text-7xl text-[#fff4e9] mb-6">
-            Notre Histoire
+            Our Story
           </h1>
           <p className="text-xl text-[#fff4e9]/70 max-w-2xl mx-auto leading-relaxed">
-            {siteSettings?.aboutText || "Chez Tafchaa, nous pensons que les bijoux sont plus que de simples accessoires : ce sont des souvenirs de moments, d'amour et d'individualité."}
+            {siteSettings?.aboutText || "At Tafchaa, we believe jewelry is more than just an accessory—it's a keepsake of moments, love, and individuality."}
           </p>
         </div>
       </div>
@@ -99,7 +99,7 @@ export default function About() {
               <div className="aspect-[4/5] rounded-lg overflow-hidden w-full max-w-md lg:max-w-none">
                 <img
                   src="/images/collection-minimalist.jpg"
-                  alt="Artisan joaillier au travail - L'excellence de la fabrication artisanale Tafchaa"
+                  alt="Jewelry artisan at work - Excellence of Tafchaa handcrafted production"
                   className="w-full h-full object-cover"
                 />
               </div>

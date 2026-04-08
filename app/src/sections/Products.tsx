@@ -67,7 +67,7 @@ export default function Products() {
   };
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('fr-FR', {
+    return new Intl.NumberFormat('en-US', {
       minimumFractionDigits: 0,
     }).format(price) + ' DNR';
   };
@@ -81,7 +81,7 @@ export default function Products() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between items-center text-center sm:text-left mb-12">
           <h2 className="font-display text-4xl sm:text-5xl md:text-6xl text-[#fff4e9] mb-6 sm:mb-0">
-            {'Nouveautés'.split('').map((char, i) => (
+            {'New Arrivals'.split('').map((char, i) => (
               <span
                 key={i}
                 className={`inline-block transition-all duration-600 ${
@@ -98,73 +98,70 @@ export default function Products() {
               </span>
             ))}
           </h2>
-          
-          <Link
-            to="/shop"
-            className={`group inline-flex items-center gap-2 text-[#fff4e9]/80 hover:text-[#fff4e9] transition-all duration-500 mt-6 sm:mt-0 ${
-              isVisible ? 'opacity-100' : 'opacity-0'
+
+          <div
+            className={`transition-all duration-500 delay-500 ${
+              isVisible
+                ? 'opacity-100 translate-y-0'
+                : 'opacity-0 translate-y-8'
             }`}
-            style={{ transitionDelay: '800ms' }}
           >
-            <span className="text-sm font-medium uppercase tracking-widest">
-              Voir toute la collection
-            </span>
-            <ArrowRight className="w-4 h-4 group-hover:translate-x-2 transition-transform duration-300" />
-          </Link>
+            <Link
+              to="/shop"
+              className="group flex items-center gap-2 text-sm font-medium uppercase tracking-widest text-[#fff4e9]/70 hover:text-[#fff4e9] transition-colors"
+            >
+              See All Products
+              <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-2" />
+            </Link>
+          </div>
         </div>
 
-        {/* Products Grid */}
-        {isLoading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {[...Array(8)].map((_, i) => (
-              <div
-                key={i}
-                className="aspect-[3/4] bg-[--panel-bg] rounded-lg animate-pulse"
-              />
-            ))}
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {products.map((product, index) => (
+        {/* Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+          {isLoading ? (
+            // Skeleton Loading
+            Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="animate-pulse space-y-4">
+                <div className="aspect-[4/5] bg-[#fff4e9]/5 rounded-lg" />
+                <div className="h-4 w-3/4 bg-[#fff4e9]/5 rounded" />
+                <div className="h-4 w-1/4 bg-[#fff4e9]/5 rounded" />
+              </div>
+            ))
+          ) : (
+            products.map((product, index) => (
               <div
                 key={product.id}
                 className={`group relative transition-all duration-700 ${
                   isVisible
                     ? 'opacity-100 translate-y-0'
-                    : 'opacity-0 translate-y-20'
+                    : 'opacity-0 translate-y-16'
                 }`}
                 style={{
-                  transitionDelay: `${200 + index * 80}ms`,
+                  transitionDelay: `${200 + index * 100}ms`,
                   transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)',
                 }}
               >
                 {/* Image Container */}
-                <Link to={`/product/${product.slug}`} className="block">
-                  <div className="relative aspect-[3/4] overflow-hidden rounded-lg bg-[--panel-bg] mb-4">
+                <div className="relative aspect-[4/5] overflow-hidden rounded-lg bg-[--panel-bg] mb-4">
+                  <Link to={`/product/${product.slug}`} className="block w-full h-full">
                     <img
-                      src={product.images?.[0] || '/images/placeholder.jpg'}
-                      alt={`${product.name} - ${product.categoryName || 'Bijou'} Tafchaa`}
-                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-108"
+                      src={product.images?.[0]}
+                      alt={product.name}
+                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                     />
-                    
-                    {/* Quick Add Button */}
-                    <div className="absolute bottom-4 left-0 right-0 flex justify-center opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-500 z-30">
-                      <MagneticButton
-                        onClick={(e) => {
-                          e?.preventDefault();
-                          handleAddToCart(product);
-                        }}
-                        variant="shimmer"
-                        size="sm"
-                        className="h-10 w-32"
-                        containerStyle={{ padding: '0px' }}
-                      >
-                        <ShoppingBag className="w-4 h-4" />
-                        <span className="text-sm font-semibold uppercase tracking-wider">Quick Add</span>
-                      </MagneticButton>
-                    </div>
+                  </Link>
+
+                  {/* Add to Cart Overlay */}
+                  <div className="absolute inset-x-4 bottom-4 translate-y-12 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500">
+                    <MagneticButton
+                      onClick={() => handleAddToCart(product)}
+                      className="w-full bg-[#fff4e9] text-[#3d4d5d] py-3 rounded-md flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-widest hover:bg-[#fff4e9]/90 transition-colors"
+                    >
+                      <ShoppingBag className="w-4 h-4" />
+                      Add to Cart
+                    </MagneticButton>
                   </div>
-                </Link>
+                </div>
 
                 {/* Product Info */}
                 <div className="space-y-1">

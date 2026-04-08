@@ -29,23 +29,23 @@ export default function SEOContent() {
     >
       <div className="section-padding max-w-4xl mx-auto text-center">
         <h2 className={`font-display text-3xl sm:text-4xl text-[#fff4e9] mb-8 transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
-          Votre Destination pour les Accessoires et Bijoux de Luxe
+          Your Destination for Luxury Accessories and Jewelry
         </h2>
         
         <div className={`space-y-6 text-[#fff4e9]/70 leading-relaxed transition-all duration-1000 delay-300 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
           <p>
-            Chez <strong>Tafchaa</strong>, nous croyons que chaque détail compte. Notre collection d'<strong>accessoires de mode</strong> et de <strong>bijoux de luxe</strong> est soigneusement sélectionnée pour apporter une touche d'élégance et de distinction à votre style. Que vous recherchiez une bague étincelante, un collier raffiné ou des accessoires artisanaux uniques, notre boutique en ligne propose des pièces d'exception qui allient tradition et modernité.
+            At <strong>Tafchaa</strong>, we believe every detail counts. Our collection of <strong>fashion accessories</strong> and <strong>luxury jewelry</strong> is carefully selected to bring a touch of elegance and distinction to your style. Whether you're looking for a sparkling ring, a refined necklace, or unique handcrafted accessories, our online boutique offers exceptional pieces that blend tradition and modernity.
           </p>
           
           <p>
-            Nos <strong>accessoires</strong> sont plus que de simples ornements ; ce sont des expressions de votre personnalité. Nous travaillons avec des artisans passionnés pour vous offrir des bijoux de haute qualité, utilisant des matériaux nobles et des designs exclusifs. Explorez notre gamme complète d'accessoires pour femmes et hommes, et trouvez le cadeau parfait ou la pièce maîtresse de votre prochaine tenue.
+            Our <strong>accessories</strong> are more than simple ornaments; they are expressions of your personality. We work with passionate artisans to offer you high-quality jewelry, using noble materials and exclusive designs. Explore our full range of accessories for women and men, and find the perfect gift or the centerpiece of your next outfit.
           </p>
 
           <div className="pt-8 grid grid-cols-2 md:grid-cols-4 gap-4 text-xs uppercase tracking-widest font-medium text-[#fff4e9]/40">
-            <span>Bijoux Artisanaux</span>
-            <span>Accessoires de Mode</span>
-            <span>Luxe et Élégance</span>
-            <span>Collection Exclusive</span>
+            <span>Handcrafted Jewelry</span>
+            <span>Fashion Accessories</span>
+            <span>Luxury and Elegance</span>
+            <span>Exclusive Collection</span>
           </div>
         </div>
       </div>

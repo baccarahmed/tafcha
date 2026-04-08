@@ -28,9 +28,9 @@ const CountdownTimer = ({ targetDate }: { targetDate: string }) => {
 
   return (
     <span className="flex items-center gap-1.5 font-mono bg-black/10 px-2 py-0.5 rounded ml-2">
-      <span className="text-[10px] opacity-60">FIN DANS:</span>
+      <span className="text-[10px] opacity-60">ENDS IN:</span>
       <span className="text-xs font-bold">
-        {timeLeft.d > 0 && `${timeLeft.d}j `}
+        {timeLeft.d > 0 && `${timeLeft.d}d `}
         {String(timeLeft.h).padStart(2, '0')}:{String(timeLeft.m).padStart(2, '0')}:{String(timeLeft.s).padStart(2, '0')}
       </span>
     </span>

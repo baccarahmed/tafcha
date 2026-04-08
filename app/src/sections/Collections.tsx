@@ -61,7 +61,7 @@ export default function Collections() {
         {/* Section Title */}
         <div className="text-center mb-16">
           <h2 className="font-display text-4xl sm:text-5xl md:text-6xl text-[#fff4e9] mb-4">
-            {'Nos Collections d\'Accessoires'.split(' ').map((word, i) => (
+            {'Our Accessory Collections'.split(' ').map((word, i) => (
               <span
                 key={i}
                 className={`inline-block mx-1.5 transition-all duration-800 ${
@@ -105,7 +105,7 @@ export default function Collections() {
                 <div className="absolute inset-0 overflow-hidden">
                   <img
                     src={collection.image}
-                    alt={`Collection ${collection.name} - Bijoux d'exception Tafchaa`}
+                    alt={`Collection ${collection.name} - Exceptional Tafchaa Jewelry`}
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                   />
                 </div>
@@ -123,7 +123,7 @@ export default function Collections() {
                   </p>
                   <div className="flex items-center gap-2 text-[#fff4e9] opacity-0 group-hover:opacity-100 transform translate-y-4 group-hover:translate-y-0 transition-all duration-500 delay-150">
                     <span className="text-sm font-medium uppercase tracking-wider">
-                      Découvrir
+                      Discover
                     </span>
                     <ArrowRight className="w-4 h-4 group-hover:translate-x-2 transition-transform duration-300" />
                   </div>

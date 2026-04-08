@@ -15,8 +15,8 @@ export default function Hero() {
     return () => clearTimeout(timer);
   }, []);
 
-  const title = settings?.heroTitle || 'Des Bijoux et Accessoires qui Rayonnent de Charme';
-  const subtitle = settings?.heroSubtitle || 'Découvrez des bijoux et accessoires élégants et uniques, conçus pour sublimer vos moments quotidiens et vos occasions inoubliables.';
+  const title = settings?.heroTitle || 'Jewelry and Accessories That Radiate Charm';
+  const subtitle = settings?.heroSubtitle || 'Discover elegant and unique jewelry and accessories, designed to enhance your daily moments and unforgettable occasions.';
   const sideVideoSrc = settings?.heroVideo || '/uploads/vid_1772434897884_salz6b.mp4';
 
   useEffect(() => {
@@ -103,8 +103,8 @@ export default function Hero() {
               controls
               poster={settings?.heroImage || "/images/hero-poster.jpg"}
               className="w-full h-full object-cover"
-              title="Présentation de la collection de bijoux Tafchaa"
-              aria-label="Vidéo de présentation de la joaillerie artisanale Tafchaa"
+              title="Presentation of the Tafchaa jewelry collection"
+              aria-label="Presentation video of Tafchaa handcrafted jewelry"
             >
               <source src={sideVideoSrc} type="video/mp4" />
             </video>
@@ -122,7 +122,7 @@ export default function Hero() {
             onClick={() => navigate('/shop')}
             className="btn-primary"
           >
-            Explorer nos Collections
+            Explore our Collections
           </button>
         </div>
       </div>

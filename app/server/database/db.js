@@ -165,7 +165,7 @@ function initDatabase() {
       newsletterEnabled BOOLEAN DEFAULT 1,
       maintenanceMode BOOLEAN DEFAULT 0,
       announcementEnabled BOOLEAN DEFAULT 1,
-      announcementText TEXT DEFAULT '["✨ Livraison gratuite dès 10 000 DZD d''achat !","💎 Nouvelle collection disponible dès maintenant"]',
+      announcementText TEXT DEFAULT '["✨ Free delivery on orders over 10,000 DZD!","💎 New collection available now"]',
       announcementBgColor TEXT DEFAULT '#fff4e9',
       announcementTextColor TEXT DEFAULT '#3d4d5d',
       updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP
@@ -219,7 +219,7 @@ function initDatabase() {
       db.exec(`ALTER TABLE site_settings ADD COLUMN announcementEnabled BOOLEAN DEFAULT 1`);
     }
     if (!hasAnnounceText) {
-      db.exec(`ALTER TABLE site_settings ADD COLUMN announcementText TEXT DEFAULT '["✨ Livraison gratuite dès 10 000 DZD d''achat !","💎 Nouvelle collection disponible dès maintenant"]'`);
+      db.exec(`ALTER TABLE site_settings ADD COLUMN announcementText TEXT DEFAULT '["✨ Free delivery on orders over 10,000 DZD!","💎 New collection available now"]'`);
     }
     if (!hasAnnounceBg) {
       db.exec(`ALTER TABLE site_settings ADD COLUMN announcementBgColor TEXT DEFAULT '#fff4e9'`);
@@ -299,7 +299,7 @@ function initDatabase() {
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
       'main',
-      'Jewelries That Radiates Charm',
+      'Jewelry That Radiates Charm',
       'Discover elegant, one-of-a-kind jewelry crafted to elevate your everyday moments and unforgettable occasions.',
       'hello@tafcha.com',
       '+216 99 888 777',
