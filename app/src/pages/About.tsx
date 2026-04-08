@@ -89,14 +89,14 @@ export default function About() {
       {/* Mission Section */}
       <section className="py-24 section-padding" ref={sectionRef}>
         <div className="max-w-6xl mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center text-center lg:text-left">
             {/* Image */}
             <div 
-              className={`relative transition-all duration-1000 ${
+              className={`relative transition-all duration-1000 flex justify-center ${
                 isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-12'
               }`}
             >
-              <div className="aspect-[4/5] rounded-lg overflow-hidden">
+              <div className="aspect-[4/5] rounded-lg overflow-hidden w-full max-w-md lg:max-w-none">
                 <img
                   src="/images/collection-minimalist.jpg"
                   alt="Artisan joaillier au travail - L'excellence de la fabrication artisanale Tafchaa"

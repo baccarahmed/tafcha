@@ -164,6 +164,10 @@ function initDatabase() {
       socialYoutube TEXT,
       newsletterEnabled BOOLEAN DEFAULT 1,
       maintenanceMode BOOLEAN DEFAULT 0,
+      announcementEnabled BOOLEAN DEFAULT 1,
+      announcementText TEXT DEFAULT '["✨ Livraison gratuite dès 10 000 DZD d''achat !","💎 Nouvelle collection disponible dès maintenant"]',
+      announcementBgColor TEXT DEFAULT '#fff4e9',
+      announcementTextColor TEXT DEFAULT '#3d4d5d',
       updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP
     )
   `);
@@ -179,6 +183,11 @@ function initDatabase() {
     const hasFreeShip = info.some(c => c.name === 'freeShippingThresholdDNR');
     const hasShipCost = info.some(c => c.name === 'shippingCostDNR');
     const hasSmokey = info.some(c => c.name === 'smokeyColor');
+    const hasAnnounceEnabled = info.some(c => c.name === 'announcementEnabled');
+    const hasAnnounceText = info.some(c => c.name === 'announcementText');
+    const hasAnnounceBg = info.some(c => c.name === 'announcementBgColor');
+    const hasAnnounceColor = info.some(c => c.name === 'announcementTextColor');
+
     if (!hasSiteBg) {
       db.exec(`ALTER TABLE site_settings ADD COLUMN siteBgColor TEXT DEFAULT '#3d4d5d'`);
     }
@@ -206,8 +215,20 @@ function initDatabase() {
     if (!hasSmokey) {
       db.exec(`ALTER TABLE site_settings ADD COLUMN smokeyColor TEXT`);
     }
+    if (!hasAnnounceEnabled) {
+      db.exec(`ALTER TABLE site_settings ADD COLUMN announcementEnabled BOOLEAN DEFAULT 1`);
+    }
+    if (!hasAnnounceText) {
+      db.exec(`ALTER TABLE site_settings ADD COLUMN announcementText TEXT DEFAULT '["✨ Livraison gratuite dès 10 000 DZD d''achat !","💎 Nouvelle collection disponible dès maintenant"]'`);
+    }
+    if (!hasAnnounceBg) {
+      db.exec(`ALTER TABLE site_settings ADD COLUMN announcementBgColor TEXT DEFAULT '#fff4e9'`);
+    }
+    if (!hasAnnounceColor) {
+      db.exec(`ALTER TABLE site_settings ADD COLUMN announcementTextColor TEXT DEFAULT '#3d4d5d'`);
+    }
   } catch (e) {
-    // ignore
+    console.error('Error ensuring new columns in site_settings:', e);
   }
 
   // Cart table (for persistent cart)
@@ -238,6 +259,24 @@ function initDatabase() {
       updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (userId) REFERENCES users(id),
       FOREIGN KEY (productId) REFERENCES products(id)
+    )
+  `);
+
+  // Promotions table
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS promotions (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      description TEXT,
+      type TEXT NOT NULL, -- 'category' or 'product'
+      targets TEXT NOT NULL, -- JSON array of IDs
+      percentage REAL NOT NULL,
+      startDate DATETIME NOT NULL,
+      endDate DATETIME NOT NULL,
+      active BOOLEAN DEFAULT 1,
+      announcementText TEXT,
+      createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP
     )
   `);
 

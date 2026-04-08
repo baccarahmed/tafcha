@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { ShoppingBag, Menu, User, LogOut } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCart } from '@/contexts/CartContext';
+import AnnouncementBar from './AnnouncementBar';
 import {
   Sheet,
   SheetContent,
@@ -47,6 +48,7 @@ export default function Navigation() {
           : 'bg-transparent'
       }`}
     >
+      <AnnouncementBar />
       <nav className="section-padding">
         <div className="flex items-center justify-between h-20">
           {/* Logo */}
@@ -97,7 +99,7 @@ export default function Navigation() {
             >
               <ShoppingBag className="w-5 h-5" />
               {totalItems > 0 && (
-                <span className="absolute -top-1 -right-1 w-5 h-5 bg-[#fff4e9] text-[--site-bg] text-xs font-bold rounded-full flex items-center justify-center animate-scale-in">
+                <span className="absolute -top-1 -right-1 w-5 h-5 bg-[#fff4e9] text-[#5b8bfb] text-xs font-bold rounded-full flex items-center justify-center animate-scale-in">
                   {totalItems}
                 </span>
               )}
@@ -160,7 +162,7 @@ export default function Navigation() {
                   <Menu className="w-6 h-6" />
                 </button>
               </SheetTrigger>
-              <SheetContent side="right" className="bg-[--site-bg] border-[#fff4e9]/20 w-80">
+              <SheetContent side="right" className="bg-[--site-bg] border-[#fff4e9]/20 w-80 p-5">
                 <div className="flex flex-col gap-8 mt-8">
                   <img 
                     src="/images/logo.png" 

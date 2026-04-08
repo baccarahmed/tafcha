@@ -70,10 +70,10 @@ export default function Footer() {
       </svg>
 
       <div className="section-padding py-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-8 text-center md:text-left">
           {/* Brand Column */}
           <div
-            className={`transition-all duration-600 ${
+            className={`flex flex-col items-center md:items-start transition-all duration-600 ${
               isVisible
                 ? 'opacity-100 translate-y-0'
                 : 'opacity-0 translate-y-12'
@@ -90,12 +90,12 @@ export default function Footer() {
                 className="h-12 w-auto object-contain"
               />
             </Link>
-            <p className="text-[#fff4e9]/60 text-sm mb-6 max-w-xs">
+            <p className="text-[#fff4e9]/60 text-sm mb-6 max-w-xs mx-auto md:mx-0">
               The little something you've been missing. Elegant accessories crafted with love and timeless craftsmanship.
             </p>
             
             {/* Contact Info */}
-            <div className="space-y-3">
+            <div className="space-y-3 flex flex-col items-center md:items-start">
               {settings?.contactEmail && (
                 <a
                   href={`mailto:${settings.contactEmail}`}
@@ -125,7 +125,7 @@ export default function Footer() {
 
           {/* Menu Column */}
           <div
-            className={`transition-all duration-600 ${
+            className={`flex flex-col items-center md:items-start transition-all duration-600 ${
               isVisible
                 ? 'opacity-100 translate-y-0'
                 : 'opacity-0 translate-y-12'
@@ -136,7 +136,7 @@ export default function Footer() {
             }}
           >
             <h3 className="font-display text-xl text-[#fff4e9] mb-6">Menu</h3>
-            <ul className="space-y-3">
+            <ul className="space-y-3 flex flex-col items-center md:items-start">
               {menuLinks.map((link) => (
                 <li key={link.name}>
                   <Link
@@ -153,7 +153,7 @@ export default function Footer() {
 
           {/* Collections Column */}
           <div
-            className={`transition-all duration-600 ${
+            className={`flex flex-col items-center md:items-start transition-all duration-600 ${
               isVisible
                 ? 'opacity-100 translate-y-0'
                 : 'opacity-0 translate-y-12'
@@ -164,7 +164,7 @@ export default function Footer() {
             }}
           >
             <h3 className="font-display text-xl text-[#fff4e9] mb-6">Collections</h3>
-            <ul className="space-y-3">
+            <ul className="space-y-3 flex flex-col items-center md:items-start">
               {collectionLinks.map((link) => (
                 <li key={link.name}>
                   <Link
@@ -181,7 +181,7 @@ export default function Footer() {
 
           {/* Legal & Social Column */}
           <div
-            className={`transition-all duration-600 ${
+            className={`flex flex-col items-center md:items-start transition-all duration-600 ${
               isVisible
                 ? 'opacity-100 translate-y-0'
                 : 'opacity-0 translate-y-12'
@@ -192,7 +192,7 @@ export default function Footer() {
             }}
           >
             <h3 className="font-display text-xl text-[#fff4e9] mb-6">Useful</h3>
-            <ul className="space-y-3 mb-8">
+            <ul className="space-y-3 mb-8 flex flex-col items-center md:items-start">
               {legalLinks.map((link) => (
                 <li key={link.name}>
                   <Link
@@ -208,7 +208,7 @@ export default function Footer() {
 
             {/* Social Links */}
             <h3 className="font-display text-xl text-[#fff4e9] mb-4">Follow Us</h3>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center justify-center md:justify-start gap-3">
               {socialLinks.map((social, index) => {
                 const Icon = social.icon;
                 return (

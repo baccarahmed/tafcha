@@ -1,6 +1,8 @@
 import { Link } from 'react-router-dom';
 import { Plus, Minus, ShoppingBag, Trash2 } from 'lucide-react';
 import { useCart } from '@/contexts/CartContext';
+import SlideToConfirm from '@/components/ui/SlideToConfirm';
+import { useNavigate } from 'react-router-dom';
 import {
   Sheet,
   SheetContent,
@@ -10,7 +12,13 @@ import {
 } from '@/components/ui/sheet';
 
 export default function CartDrawer() {
+  const navigate = useNavigate();
   const { items, isOpen, closeCart, totalItems, totalPrice, updateQuantity, removeItem } = useCart();
+
+  const handleCheckout = () => {
+    closeCart();
+    navigate('/checkout');
+  };
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('fr-FR', {
@@ -20,7 +28,7 @@ export default function CartDrawer() {
 
   return (
     <Sheet open={isOpen} onOpenChange={closeCart}>
-      <SheetContent className="bg-transparent backdrop-blur-xl border-[#fff4e9]/20 w-full sm:max-w-md flex flex-col px-[30px] py-[30px]">
+      <SheetContent className="bg-transparent backdrop-blur-xl border-[#fff4e9]/20 w-full sm:max-w-md flex flex-col p-5">
         <SheetHeader className="border-b border-[#fff4e9]/10 pb-4">
           <SheetTitle className="text-[#fff4e9] font-display text-2xl flex items-center gap-3">
             <ShoppingBag className="w-6 h-6" />
@@ -134,13 +142,11 @@ export default function CartDrawer() {
 
               {/* Buttons */}
               <div className="space-y-3">
-                <Link
-                  to="/checkout"
-                  onClick={closeCart}
-                  className="btn-secondary block text-center"
-                >
-                  Checkout
-                </Link>
+                <SlideToConfirm 
+                  onConfirm={handleCheckout}
+                  text="Glisser pour commander"
+                  confirmedText="Chargement..."
+                />
                 <button
                   onClick={closeCart}
                   className="btn-primary block w-full text-center"

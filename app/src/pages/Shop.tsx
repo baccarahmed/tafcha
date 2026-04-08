@@ -7,6 +7,7 @@ import CartDrawer from '@/components/CartDrawer';
 import { useCart } from '@/contexts/CartContext';
 import { productsAPI } from '@/services/api';
 import { Helmet } from 'react-helmet-async';
+import { MagneticButton } from '@/components/lightswind/magnetic-button';
 import { PreloadedDataContext } from '@/App';
 import {
   Select,
@@ -171,11 +172,11 @@ export default function Shop() {
       <Navigation />
       
       {/* Header */}
-      <div className="pt-32 pb-8 section-padding border-b border-[#fff4e9]/10">
+      <div className="pt-32 pb-8 section-padding border-b border-[#fff4e9]/10 text-center sm:text-left">
         <h1 className="font-display text-4xl sm:text-5xl md:text-6xl text-[#fff4e9] mb-4">
           {categoryName ? `Accessoires ${categoryName}` : 'Accessoires et Bijoux de Luxe'}
         </h1>
-        <p className="text-[#fff4e9]/60 max-w-xl">
+        <p className="text-[#fff4e9]/60 max-w-xl mx-auto sm:mx-0">
           {categorySEOContent?.text || "Découvrez notre collection exclusive d'accessoires et bijoux de luxe. Chaque pièce est soigneusement sélectionnée pour sublimer votre style avec des accessoires raffinés et élégants."}
         </p>
       </div>
@@ -183,18 +184,18 @@ export default function Shop() {
       {/* Filters & Products */}
       <div className="section-padding py-12">
         {/* Filter Bar */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8 pb-6 border-b border-[#fff4e9]/10">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between items-center gap-6 mb-8 pb-6 border-b border-[#fff4e9]/10">
           {/* Categories */}
-          <div className="flex items-center gap-4 overflow-x-auto pb-4 sm:pb-0">
+          <div className="flex flex-nowrap items-center justify-center sm:justify-start gap-3 sm:gap-4 overflow-x-auto pb-4 scroll-smooth [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden w-full sm:w-auto">
             <button
               onClick={() => handleCategoryChange('all')}
-              className="relative inline-flex h-10 overflow-hidden rounded-full p-[1px] transition-transform active:scale-95"
+              className="relative flex-shrink-0 inline-flex h-10 overflow-hidden rounded-full p-[1px] transition-transform active:scale-95 group"
             >
               <span className={`absolute inset-[-1000%] animate-[spin_2s_linear_infinite] bg-[conic-gradient(from_90deg_at_50%_50%,#E2CBFF_0%,#393BB2_50%,#E2CBFF_100%)] ${selectedCategory === 'all' ? 'opacity-100' : 'opacity-0'}`} />
-              <span className={`inline-flex h-full w-full cursor-pointer items-center justify-center rounded-full px-6 py-1 text-sm font-medium backdrop-blur-3xl transition-colors whitespace-nowrap ${
+              <span className={`inline-flex h-full w-full cursor-pointer items-center justify-center rounded-full px-5 py-1 text-xs sm:text-sm font-medium backdrop-blur-3xl transition-all duration-300 whitespace-nowrap group-hover:text-transparent group-active:text-transparent ${
                 selectedCategory === 'all'
-                  ? 'bg-[#fff4e9] text-[--site-bg]'
-                  : 'bg-slate-950 text-[#fff4e9] hover:bg-slate-900 border border-[#fff4e9]/10'
+                  ? 'bg-[#fff4e9] text-slate-950'
+                  : 'bg-slate-950 text-[#fff4e9] hover:bg-[#fff4e9] group-active:bg-[#fff4e9] border border-[#fff4e9]/10'
               }`}>
                 All
               </span>
@@ -203,13 +204,13 @@ export default function Shop() {
               <button
                 key={cat.slug}
                 onClick={() => handleCategoryChange(cat.slug)}
-                className="relative inline-flex h-10 overflow-hidden rounded-full p-[1px] transition-transform active:scale-95"
+                className="relative flex-shrink-0 inline-flex h-10 overflow-hidden rounded-full p-[1px] transition-transform active:scale-95 group"
               >
                 <span className={`absolute inset-[-1000%] animate-[spin_2s_linear_infinite] bg-[conic-gradient(from_90deg_at_50%_50%,#E2CBFF_0%,#393BB2_50%,#E2CBFF_100%)] ${selectedCategory === cat.slug ? 'opacity-100' : 'opacity-0'}`} />
-                <span className={`inline-flex h-full w-full cursor-pointer items-center justify-center rounded-full px-6 py-1 text-sm font-medium backdrop-blur-3xl transition-colors whitespace-nowrap ${
+                <span className={`inline-flex h-full w-full cursor-pointer items-center justify-center rounded-full px-5 py-1 text-xs sm:text-sm font-medium backdrop-blur-3xl transition-all duration-300 whitespace-nowrap group-hover:text-transparent group-active:text-transparent ${
                   selectedCategory === cat.slug
-                    ? 'bg-[#fff4e9] text-[--site-bg]'
-                    : 'bg-slate-950 text-[#fff4e9] hover:bg-slate-900 border border-[#fff4e9]/10'
+                    ? 'bg-[#fff4e9] text-slate-950'
+                    : 'bg-slate-950 text-[#fff4e9] hover:bg-[#fff4e9] group-active:bg-[#fff4e9] border border-[#fff4e9]/10'
                 }`}>
                   {cat.name}
                 </span>
@@ -339,16 +340,21 @@ export default function Shop() {
                   
                   {/* List view add to cart */}
                   {viewMode === 'list' && (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleAddToCart(product);
-                      }}
-                      className="btn-primary text-sm py-3 px-6 inline-flex items-center gap-2 w-fit"
-                    >
-                      <ShoppingBag className="w-4 h-4" />
-                      Add to Cart
-                    </button>
+                    <div className="mt-4">
+                      <MagneticButton
+                        onClick={(e) => {
+                          e?.stopPropagation();
+                          handleAddToCart(product);
+                        }}
+                        variant="shimmer"
+                        size="sm"
+                        className="h-10 px-6"
+                        containerStyle={{ padding: '0px' }}
+                      >
+                        <ShoppingBag className="w-4 h-4" />
+                        Add to Cart
+                      </MagneticButton>
+                    </div>
                   )}
                 </div>
               </div>

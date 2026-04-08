@@ -5,6 +5,60 @@ import { authenticateToken, requireAdmin } from '../middleware/auth.js';
 
 const router = express.Router();
 
+// Helper to apply promotions to products
+const applyPromotions = (products) => {
+  const now = new Date().toISOString();
+  const activePromotions = db.prepare(`
+    SELECT * FROM promotions 
+    WHERE active = 1 
+    AND startDate <= ? 
+    AND endDate >= ?
+  `).all(now, now);
+
+  activePromotions.forEach(p => {
+    try {
+      p.targets = JSON.parse(p.targets);
+    } catch {
+      p.targets = [];
+    }
+  });
+
+  const productArray = Array.isArray(products) ? products : [products];
+
+  productArray.forEach(product => {
+    // Find applicable promotions
+    const applicablePromos = activePromotions.filter(promo => {
+      if (promo.type === 'category') {
+        return promo.targets.includes(product.categoryId);
+      } else if (promo.type === 'product') {
+        return promo.targets.includes(product.id);
+      }
+      return false;
+    });
+
+    if (applicablePromos.length > 0) {
+      // Use the best promotion (highest percentage)
+      const bestPromo = applicablePromos.reduce((prev, current) => (prev.percentage > current.percentage) ? prev : current);
+      
+      // Store original price in comparePrice if not already there or if it's smaller
+      if (!product.comparePrice || product.comparePrice < product.price) {
+        product.comparePrice = product.price;
+      }
+      
+      // Calculate discounted price
+      product.price = Math.round(product.price * (1 - bestPromo.percentage / 100));
+      product.activePromotion = {
+        id: bestPromo.id,
+        name: bestPromo.name,
+        percentage: bestPromo.percentage,
+        endDate: bestPromo.endDate
+      };
+    }
+  });
+
+  return products;
+};
+
 // Get all products
 router.get('/', (req, res) => {
   try {
@@ -36,6 +90,9 @@ router.get('/', (req, res) => {
     params.push(parseInt(limit), parseInt(offset));
 
     const products = db.prepare(query).all(...params);
+
+    // Apply promotions
+    applyPromotions(products);
 
     // Parse images JSON
     products.forEach(p => {
@@ -72,6 +129,9 @@ router.get('/:slug', (req, res) => {
     if (!product) {
       return res.status(404).json({ error: 'Product not found' });
     }
+
+    // Apply promotions
+    applyPromotions(product);
 
     // Parse images JSON
     if (product.images) {

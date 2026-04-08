@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { ArrowRight, ShoppingBag } from 'lucide-react';
 import { useCart } from '@/contexts/CartContext';
 import { productsAPI } from '@/services/api';
+import { MagneticButton } from '@/components/lightswind/magnetic-button';
 
 interface Product {
   id: string;
@@ -78,8 +79,8 @@ export default function Products() {
     >
       <div className="section-padding">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between mb-12">
-          <h2 className="font-display text-4xl sm:text-5xl md:text-6xl text-[#fff4e9]">
+        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between items-center text-center sm:text-left mb-12">
+          <h2 className="font-display text-4xl sm:text-5xl md:text-6xl text-[#fff4e9] mb-6 sm:mb-0">
             {'Nouveautés'.split('').map((char, i) => (
               <span
                 key={i}
@@ -147,18 +148,21 @@ export default function Products() {
                     />
                     
                     {/* Quick Add Button */}
-                    <button
-                      onClick={(e) => {
-                        e.preventDefault();
-                        handleAddToCart(product);
-                      }}
-                      className="absolute bottom-4 left-4 right-4 py-3 inline-flex animate-shimmer items-center justify-center rounded-md border border-slate-800 bg-[linear-gradient(110deg,#000103,45%,#1e2631,55%,#000103)] bg-[length:200%_100%] font-medium text-slate-400
-                                 opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-500
-                                 gap-2 hover:text-[#fff4e9] focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 focus:ring-offset-slate-50"
-                    >
-                      <ShoppingBag className="w-4 h-4" />
-                      <span className="text-sm font-semibold uppercase tracking-wider">Quick Add</span>
-                    </button>
+                    <div className="absolute bottom-4 left-0 right-0 flex justify-center opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-500 z-30">
+                      <MagneticButton
+                        onClick={(e) => {
+                          e?.preventDefault();
+                          handleAddToCart(product);
+                        }}
+                        variant="shimmer"
+                        size="sm"
+                        className="h-10 w-32"
+                        containerStyle={{ padding: '0px' }}
+                      >
+                        <ShoppingBag className="w-4 h-4" />
+                        <span className="text-sm font-semibold uppercase tracking-wider">Quick Add</span>
+                      </MagneticButton>
+                    </div>
                   </div>
                 </Link>
 

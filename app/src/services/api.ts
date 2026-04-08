@@ -172,6 +172,24 @@ export const settingsAPI = {
     fetchAPI('/settings', { method: 'PUT', body: JSON.stringify(settingsData) }),
 };
 
+// Promotions API
+export const promotionsAPI = {
+  getAll: () =>
+    fetchAPI('/promotions'),
+  
+  getActive: () =>
+    fetchAPI('/promotions/active'),
+  
+  create: (promotionData: Record<string, unknown>) =>
+    fetchAPI('/promotions', { method: 'POST', body: JSON.stringify(promotionData) }),
+  
+  update: (id: string, promotionData: Record<string, unknown>) =>
+    fetchAPI(`/promotions/${id}`, { method: 'PUT', body: JSON.stringify(promotionData) }),
+  
+  delete: (id: string) =>
+    fetchAPI(`/promotions/${id}`, { method: 'DELETE' }),
+};
+
 // Uploads API (admin only)
 export const uploadsAPI = {
   upload: (data: string) =>

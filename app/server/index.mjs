@@ -14,6 +14,7 @@ import userRoutes from './routes/users.js';
 import orderRoutes from './routes/orders.js';
 import settingsRoutes from './routes/settings.js';
 import uploadRoutes from './routes/uploads.js';
+import promotionRoutes from './routes/promotions.js';
 import { addClient, removeClient } from './events.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -55,6 +56,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/uploads', uploadRoutes);
+app.use('/api/promotions', promotionRoutes);
 
 // Vite middleware in dev (after API routes to avoid interference)
 if (!isProd && vite) {

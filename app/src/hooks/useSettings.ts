@@ -27,6 +27,10 @@ interface SiteSettings {
   shippingCostDNR?: number | null;
   newsletterEnabled: boolean;
   maintenanceMode: boolean;
+  announcementEnabled?: boolean | number | null;
+  announcementText?: string | string[] | null;
+  announcementBgColor?: string | null;
+  announcementTextColor?: string | null;
   updatedAt: string;
 }
 

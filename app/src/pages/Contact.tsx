@@ -108,10 +108,10 @@ export default function Contact() {
       {/* Contact Form Section */}
       <section className="py-16 section-padding">
         <div className="max-w-6xl mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start text-center lg:text-left">
             {/* Form */}
-            <div className="border border-[#fff4e9]/10 p-8 rounded-xl backdrop-blur-sm">
-              <h2 className="font-display text-3xl text-[#fff4e9] mb-6">
+            <div className="border border-[#fff4e9]/10 p-8 rounded-xl backdrop-blur-sm text-left">
+              <h2 className="font-display text-3xl text-[#fff4e9] mb-6 text-center lg:text-left">
                 Send Us a Message
               </h2>
               <form onSubmit={handleSubmit} className="space-y-6">
@@ -235,10 +235,10 @@ export default function Contact() {
 
               {/* Social Links */}
               <div>
-                <h3 className="font-display text-xl text-[#fff4e9] mb-4">
+                <h3 className="font-display text-xl text-[#fff4e9] mb-4 text-center lg:text-left">
                   Follow Us
                 </h3>
-                <div className="flex gap-3">
+                <div className="flex justify-center lg:justify-start gap-3">
                   {[
                     { icon: Instagram, href: settings?.socialInstagram || '#' },
                     { icon: Facebook, href: settings?.socialFacebook || '#' },

@@ -6,6 +6,7 @@ import CartDrawer from '@/components/CartDrawer';
 import { useAuth } from '@/contexts/AuthContext';
 import { useWishlist } from '@/contexts/WishlistContext';
 import { useCart } from '@/contexts/CartContext';
+import { MagneticButton } from '@/components/lightswind/magnetic-button';
 
 export default function Wishlist() {
   const { isAuthenticated } = useAuth();
@@ -80,20 +81,22 @@ export default function Wishlist() {
                   <div className="p-4">
                     <h3 className="font-display text-lg text-[#fff4e9] mb-2">{item.name}</h3>
                     <div className="text-[#fff4e9] font-medium mb-4">{formatPrice(item.price)}</div>
-                    <div className="flex items-center gap-3">
-                      <button
+                    <div className="flex flex-col sm:flex-row gap-2 mt-4">
+                      <MagneticButton
                         onClick={() => handleAddToCart(item.productId)}
-                        className="btn-primary inline-flex items-center gap-2"
+                        variant="shimmer"
+                        size="sm"
+                        className="h-10 px-4"
                       >
                         <ShoppingBag className="w-4 h-4" />
                         Ajouter au panier
-                      </button>
+                      </MagneticButton>
                       <button
                         onClick={() => removeItem(item.productId)}
-                        className="btn-secondary inline-flex items-center gap-2"
+                        className="p-2 text-red-400 hover:bg-red-400/10 rounded-full transition-colors self-center sm:self-auto"
+                        title="Retirer"
                       >
-                        <Trash2 className="w-4 h-4" />
-                        Retirer
+                        <Trash2 className="w-5 h-5" />
                       </button>
                     </div>
                   </div>

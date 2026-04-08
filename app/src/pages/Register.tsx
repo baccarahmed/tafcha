@@ -170,7 +170,7 @@ export default function Register() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full py-4 inline-flex animate-shimmer items-center justify-center rounded-md border border-slate-800 bg-[linear-gradient(110deg,#000103,45%,#1e2631,55%,#000103)] bg-[length:200%_100%] font-medium text-slate-400 transition-colors focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 focus:ring-offset-slate-50 hover:text-[#fff4e9] disabled:opacity-50 disabled:cursor-not-allowed"
+              className="btn-primary w-full"
             >
               {isLoading ? (
                 <span className="w-5 h-5 border-2 border-slate-400 border-t-transparent rounded-full animate-spin" />

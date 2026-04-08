@@ -106,85 +106,103 @@ export default function AdminProducts() {
           </div>
         ) : (
           <div className="bg-[#2a3a4a] rounded-lg overflow-hidden border border-[#fff4e9]/10">
-            <table className="w-full text-left">
-              <thead>
-                <tr className="border-b border-[#fff4e9]/10 bg-[#fff4e9]/5">
-                  <th className="px-6 py-4 text-sm font-medium text-[#fff4e9]">Product</th>
-                  <th className="px-6 py-4 text-sm font-medium text-[#fff4e9]">Category</th>
-                  <th className="px-6 py-4 text-sm font-medium text-[#fff4e9]">Price</th>
-                  <th className="px-6 py-4 text-sm font-medium text-[#fff4e9]">Stock</th>
-                  <th className="px-6 py-4 text-sm font-medium text-[#fff4e9]">Status</th>
-                  <th className="px-6 py-4 text-sm font-medium text-[#fff4e9] text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#fff4e9]/10">
-                {filteredProducts.map((product) => (
-                  <tr key={product.id} className="hover:bg-[#fff4e9]/5 transition-colors">
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded bg-[#3d4d5d] overflow-hidden">
-                          <img
-                            src={product.images[0] || '/images/placeholder.jpg'}
-                            alt={product.name}
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                        <span className="text-[#fff4e9] font-medium">{product.name}</span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-[#fff4e9]/60">
-                      {product.categoryName || 'Uncategorized'}
-                    </td>
-                    <td className="px-6 py-4 text-[#fff4e9]">
-                      {formatPrice(product.price)}
-                    </td>
-                    <td className="px-6 py-4 text-[#fff4e9]">
-                      {product.stock}
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex gap-2">
-                        {product.featured && (
-                          <span className="px-2 py-1 bg-yellow-500/20 text-yellow-400 text-xs rounded">
-                            Featured
-                          </span>
-                        )}
-                        <span className={`px-2 py-1 text-xs rounded ${
-                          product.active
-                            ? 'bg-green-500/20 text-green-400'
-                            : 'bg-red-500/20 text-red-400'
-                        }`}>
-                          {product.active ? 'Active' : 'Inactive'}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center justify-end gap-2">
-                        <a
-                          href={`/product/${product.slug}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="p-2 text-[#fff4e9]/60 hover:text-[#fff4e9] hover:bg-[#fff4e9]/10 rounded transition-colors"
-                        >
-                          <Eye className="w-4 h-4" />
-                        </a>
-                        <Link
-                          to={`/admin/products/edit/${product.id}`}
-                          className="p-2 text-[#fff4e9]/60 hover:text-[#fff4e9] hover:bg-[#fff4e9]/10 rounded transition-colors"
-                        >
-                          <Edit2 className="w-4 h-4" />
-                        </Link>
-                        <button
-                          onClick={() => setDeleteId(product.id)}
-                          className="p-2 text-red-400 hover:bg-red-500/10 rounded transition-colors"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </td>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left">
+                <thead>
+                  <tr className="border-b border-[#fff4e9]/10 bg-[#fff4e9]/5">
+                    <th className="px-6 py-4 text-sm font-medium text-[#fff4e9]">Product</th>
+                    <th className="hidden md:table-cell px-6 py-4 text-sm font-medium text-[#fff4e9]">Category</th>
+                    <th className="px-6 py-4 text-sm font-medium text-[#fff4e9]">Price</th>
+                    <th className="hidden md:table-cell px-6 py-4 text-sm font-medium text-[#fff4e9]">Stock</th>
+                    <th className="hidden md:table-cell px-6 py-4 text-sm font-medium text-[#fff4e9]">Status</th>
+                    <th className="px-6 py-4 text-sm font-medium text-[#fff4e9] text-right">Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-[#fff4e9]/10">
+                  {filteredProducts.map((product) => (
+                    <tr 
+                      key={product.id} 
+                      className="hover:bg-[#fff4e9]/5 transition-colors cursor-pointer md:cursor-default"
+                      onClick={() => {
+                        if (window.innerWidth < 768) {
+                          // We don't have a specific "detail" dialog for products,
+                          // but we can redirect to edit or show delete confirmation.
+                          // Here we'll redirect to edit as it shows full details.
+                          window.location.href = `/admin/products/edit/${product.id}`;
+                        }
+                      }}
+                    >
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded bg-[#3d4d5d] overflow-hidden flex-shrink-0">
+                            <img
+                              src={product.images[0] || '/images/placeholder.jpg'}
+                              alt={product.name}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                          <span className="text-[#fff4e9] font-medium truncate">{product.name}</span>
+                        </div>
+                      </td>
+                      <td className="hidden md:table-cell px-6 py-4 text-[#fff4e9]/60">
+                        {product.categoryName || 'Uncategorized'}
+                      </td>
+                      <td className="px-6 py-4 text-[#fff4e9]">
+                        {formatPrice(product.price)}
+                      </td>
+                      <td className="hidden md:table-cell px-6 py-4 text-[#fff4e9]">
+                        {product.stock}
+                      </td>
+                      <td className="hidden md:table-cell px-6 py-4">
+                        <div className="flex gap-2">
+                          {product.featured && (
+                            <span className="px-2 py-1 bg-yellow-500/20 text-yellow-400 text-xs rounded">
+                              Featured
+                            </span>
+                          )}
+                          <span className={`px-2 py-1 text-xs rounded ${
+                            product.active
+                              ? 'bg-green-500/20 text-green-400'
+                              : 'bg-red-500/20 text-red-400'
+                          }`}>
+                            {product.active ? 'Active' : 'Inactive'}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center justify-end gap-2">
+                          <a
+                            href={`/product/${product.slug}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={(e) => e.stopPropagation()}
+                            className="p-2 text-[#fff4e9]/60 hover:text-[#fff4e9] hover:bg-[#fff4e9]/10 rounded transition-colors"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </a>
+                          <Link
+                            to={`/admin/products/edit/${product.id}`}
+                            onClick={(e) => e.stopPropagation()}
+                            className="p-2 text-[#fff4e9]/60 hover:text-[#fff4e9] hover:bg-[#fff4e9]/10 rounded transition-colors"
+                          >
+                            <Edit2 className="w-4 h-4" />
+                          </Link>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setDeleteId(product.id);
+                            }}
+                            className="p-2 text-red-400 hover:bg-red-500/10 rounded transition-colors"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
       </div>

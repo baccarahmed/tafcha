@@ -30,7 +30,11 @@ export default function AdminSettings() {
     socialYoutube: '',
     freeShippingThresholdDNR: 100,
     shippingCostDNR: 10,
+    announcementEnabled: true,
+    announcementBgColor: '#fff4e9',
+    announcementTextColor: '#3d4d5d',
   });
+  const [announcements, setAnnouncements] = useState<string[]>([]);
   const [featuredHome, setFeaturedHome] = useState<string[]>([]);
   const [isSaving, setIsSaving] = useState(false);
   const [heroUploading, setHeroUploading] = useState(false);
@@ -114,7 +118,11 @@ export default function AdminSettings() {
         socialYoutube: settings.socialYoutube || '',
         freeShippingThresholdDNR: settings.freeShippingThresholdDNR ?? 100,
         shippingCostDNR: settings.shippingCostDNR ?? 10,
+        announcementEnabled: Boolean(settings.announcementEnabled ?? true),
+        announcementBgColor: settings.announcementBgColor || '#fff4e9',
+        announcementTextColor: settings.announcementTextColor || '#3d4d5d',
       });
+      setAnnouncements(typeof settings.announcementText === 'string' ? JSON.parse(settings.announcementText) : (Array.isArray(settings.announcementText) ? settings.announcementText : []));
       setFeaturedHome(Array.isArray(settings.featuredCategories) ? settings.featuredCategories : []);
     }
   }, [settings]);
@@ -223,7 +231,7 @@ export default function AdminSettings() {
     setIsSaving(true);
 
     try {
-      await updateSettings({ ...formData, featuredCategories: featuredHome });
+      await updateSettings({ ...formData, featuredCategories: featuredHome, announcementText: announcements });
       toast.success('Settings saved successfully!');
     } catch {
       toast.error('Failed to save settings');
@@ -300,15 +308,14 @@ export default function AdminSettings() {
                   const f = e.target.files?.[0];
                   if (f) uploadHeroImage(f);
                 }} />
-                <button
-                  type="button"
-                  onClick={() => heroFileRef.current?.click()}
-                  disabled={heroUploading}
-                  className="px-4 py-2 bg-[#fff4e9] text-[#3d4d5d] rounded hover:bg-[#f3e7d9] transition-colors"
-                >
-                  {heroUploading ? 'Téléversement...' : (<span className="inline-flex items-center gap-2"><Upload className="w-4 h-4" />Téléverser</span>)}
+                <button type="button" onClick={() => heroFileRef.current?.click()} className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-[#fff4e9] text-[#3d4d5d] rounded hover:bg-[#f3e7d9] transition-colors font-medium">
+                  <Upload className="w-4 h-4" />
+                  Changer le visuel Hero
                 </button>
-                <p className="text-xs text-[#fff4e9]/50">Formats: JPG, PNG, WebP — 5MB max</p>
+                <button type="button" onClick={() => setFormData(prev => ({ ...prev, heroImage: '' }))} className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-[#fff4e9]/10 text-[#fff4e9] rounded hover:bg-[#fff4e9]/20 transition-colors font-medium">
+                  Effacer
+                </button>
+                <p className="text-[10px] text-[#fff4e9]/40 text-center uppercase tracking-widest">Format conseillé: WebP ou JPG (16:9)</p>
                 <div className="pt-2">
                   <input
                     ref={heroVideoInputRef}
@@ -323,13 +330,102 @@ export default function AdminSettings() {
                   <button
                     type="button"
                     onClick={() => heroVideoInputRef.current?.click()}
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-[#fff4e9]/10 text-[#fff4e9] rounded hover:bg-[#fff4e9]/20"
+                    className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-[#fff4e9]/10 text-[#fff4e9] rounded hover:bg-[#fff4e9]/20 transition-colors font-medium"
                   >
                     <Upload className="w-4 h-4" /> Téléverser une vidéo (MP4)
                   </button>
-                  {formData.heroVideo && <p className="text-xs text-[#fff4e9]/60 truncate mt-1">Vidéo actuelle: {formData.heroVideo}</p>}
+                  {formData.heroVideo && <p className="text-[10px] text-[#fff4e9]/60 truncate mt-1">Vidéo: {formData.heroVideo}</p>}
                 </div>
               </div>
+            </div>
+          </section>
+
+          {/* Announcement Bar */}
+          <section className="bg-[--panel-bg] rounded-lg p-6 border border-[#fff4e9]/10 space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="font-display text-xl text-[#fff4e9] flex items-center gap-2">
+                <Save className="w-5 h-5 text-[#fff4e9]/60" />
+                Barre d'annonce (News)
+              </h2>
+              <button
+                type="button"
+                onClick={() => setFormData({...formData, announcementEnabled: !formData.announcementEnabled})}
+                className={`toggle-switch ${formData.announcementEnabled ? 'active' : ''}`}
+                aria-pressed={formData.announcementEnabled}
+              >
+                <span className="toggle-knob" />
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm text-[#fff4e9]/60 mb-2">Couleur de fond</label>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="color"
+                    value={formData.announcementBgColor}
+                    onChange={(e) => setFormData({ ...formData, announcementBgColor: e.target.value })}
+                    className="w-12 h-10 p-0 border border-[#fff4e9]/20 rounded bg-transparent"
+                  />
+                  <input
+                    type="text"
+                    value={formData.announcementBgColor}
+                    onChange={(e) => setFormData({ ...formData, announcementBgColor: e.target.value })}
+                    className={inputClass}
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm text-[#fff4e9]/60 mb-2">Couleur du texte</label>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="color"
+                    value={formData.announcementTextColor}
+                    onChange={(e) => setFormData({ ...formData, announcementTextColor: e.target.value })}
+                    className="w-12 h-10 p-0 border border-[#fff4e9]/20 rounded bg-transparent"
+                  />
+                  <input
+                    type="text"
+                    value={formData.announcementTextColor}
+                    onChange={(e) => setFormData({ ...formData, announcementTextColor: e.target.value })}
+                    className={inputClass}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <label className="block text-sm text-[#fff4e9]/60">Annonces (défilantes)</label>
+              {announcements.map((text, index) => (
+                <div key={index} className="flex gap-2">
+                  <input
+                    type="text"
+                    value={text}
+                    onChange={(e) => {
+                      const newAnn = [...announcements];
+                      newAnn[index] = e.target.value;
+                      setAnnouncements(newAnn);
+                    }}
+                    className={inputClass}
+                    placeholder="Votre message d'annonce..."
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setAnnouncements(announcements.filter((_, i) => i !== index))}
+                    className="p-3 bg-red-500/10 text-red-400 hover:bg-red-500/20 rounded transition-colors"
+                  >
+                    <Trash2 className="w-5 h-5" />
+                  </button>
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={() => setAnnouncements([...announcements, ""])}
+                className="w-full py-3 border border-dashed border-[#fff4e9]/20 rounded text-[#fff4e9]/60 hover:text-[#fff4e9] hover:border-[#fff4e9]/40 transition-all flex items-center justify-center gap-2"
+              >
+                <Plus className="w-5 h-5" />
+                Ajouter une annonce
+              </button>
             </div>
           </section>
 

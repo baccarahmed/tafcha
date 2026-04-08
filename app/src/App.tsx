@@ -28,6 +28,7 @@ const ProductForm = lazy(() => import('@/pages/admin/ProductForm'));
 const AdminUsers = lazy(() => import('@/pages/admin/Users'));
 const AdminSettings = lazy(() => import('@/pages/admin/Settings'));
 const AdminOrders = lazy(() => import('@/pages/admin/Orders'));
+const AdminPromotions = lazy(() => import('@/pages/admin/Promotions'));
 
 // Protected Route Component
 function ProtectedRoute({ children, requireAdmin = false }: { children: React.ReactNode; requireAdmin?: boolean }) {
@@ -159,6 +160,16 @@ function AppRoutes() {
           <ProtectedRoute requireAdmin>
             <Suspense fallback={<div className="min-h-screen bg-[--site-bg] flex items-center justify-center"><div className="w-8 h-8 border-2 border-[#fff4e9] border-t-transparent rounded-full animate-spin" /></div>}>
               <AdminOrders />
+            </Suspense>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/promotions"
+        element={
+          <ProtectedRoute requireAdmin>
+            <Suspense fallback={<div className="min-h-screen bg-[--site-bg] flex items-center justify-center"><div className="w-8 h-8 border-2 border-[#fff4e9] border-t-transparent rounded-full animate-spin" /></div>}>
+              <AdminPromotions />
             </Suspense>
           </ProtectedRoute>
         }

@@ -4,6 +4,14 @@ module.exports = {
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ['Times New Roman', 'Times', 'serif'],
+        serif: ['Times New Roman', 'Times', 'serif'],
+        display: ['Times New Roman', 'Times', 'serif'],
+        body: ['Times New Roman', 'Times', 'serif'],
+        mono: ['Times New Roman', 'Times', 'serif'],
+        script: ['Times New Roman', 'Times', 'serif'],
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",

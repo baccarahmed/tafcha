@@ -1,9 +1,10 @@
 import { useEffect, useState, useMemo, useContext } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Minus, Plus, ShoppingBag, ArrowLeft, Check, Heart } from 'lucide-react';
+import { Minus, Plus, ShoppingBag, Heart, Check, ArrowLeft } from 'lucide-react';
 import Navigation from '@/sections/Navigation';
 import Footer from '@/sections/Footer';
 import CartDrawer from '@/components/CartDrawer';
+import { MagneticButton } from '@/components/lightswind/magnetic-button';
 import { useCart } from '@/contexts/CartContext';
 import { useWishlist } from '@/contexts/WishlistContext';
 import { productsAPI } from '@/services/api';
@@ -230,19 +231,21 @@ export default function ProductDetail() {
       
       <div className="pt-32 pb-16 section-padding">
         {/* Back Button */}
-        <button
-          onClick={() => navigate(-1)}
-          className="flex items-center gap-2 text-[#fff4e9]/60 hover:text-[#fff4e9] transition-colors mb-8"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Back
-        </button>
+        <div className="flex justify-center sm:justify-start mb-8">
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center gap-2 text-[#fff4e9]/60 hover:text-[#fff4e9] transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back
+          </button>
+        </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 text-center lg:text-left">
           {/* Images */}
           <div className="space-y-4">
             {/* Main Image */}
-            <div className="aspect-square bg-[#fff4e9]/5 rounded-lg overflow-hidden">
+            <div className="aspect-square bg-[#fff4e9]/5 rounded-lg overflow-hidden flex justify-center items-center">
               <img
                 src={product.images?.[selectedImage] || '/images/placeholder.jpg'}
                 alt={`${product.name} - ${product.categoryName || 'Accessoire ou Bijou'} Tafchaa - Vue ${selectedImage + 1}`}
@@ -252,12 +255,12 @@ export default function ProductDetail() {
             
             {/* Thumbnails */}
             {product.images && product.images.length > 1 && (
-              <div className="grid grid-cols-4 gap-4">
+              <div className="grid grid-cols-4 gap-4 justify-items-center">
                 {product.images.map((img, idx) => (
                   <button
                     key={idx}
                     onClick={() => setSelectedImage(idx)}
-                    className={`aspect-square rounded-md overflow-hidden border-2 transition-all ${
+                    className={`aspect-square rounded-md overflow-hidden border-2 transition-all w-full ${
                       selectedImage === idx ? 'border-[#fff4e9]' : 'border-transparent opacity-60 hover:opacity-100'
                     }`}
                   >
@@ -273,7 +276,7 @@ export default function ProductDetail() {
           </div>
 
           {/* Info */}
-          <div className="space-y-6">
+          <div className="space-y-6 flex flex-col items-center lg:items-start">
             {/* Category */}
             {product.categoryName && (
               <button
@@ -290,7 +293,7 @@ export default function ProductDetail() {
             </h1>
 
             {/* Price */}
-            <div className="flex items-center gap-4">
+            <div className="flex items-center justify-center lg:justify-start gap-4">
               <span className="font-display text-3xl text-[#fff4e9]">
                 {formatPrice(product.price)}
               </span>
@@ -302,7 +305,7 @@ export default function ProductDetail() {
             </div>
 
             {/* Description */}
-            <div className="prose prose-invert max-w-none">
+            <div className="prose prose-invert max-w-none text-center lg:text-left">
               <p className="text-[#fff4e9]/70 leading-relaxed">
                 {product.description || `Cet accessoire ${product.categoryName || 'de luxe'} de la collection Tafchaa incarne l'élégance et le raffinement. Chaque pièce est soigneusement conçue pour sublimer votre style avec des accessoires d'exception. Découvrez l'artisanat raffiné et les matériaux précieux qui font de cet accessoire un bijou unique.`}
               </p>
@@ -312,7 +315,7 @@ export default function ProductDetail() {
             </div>
 
             {/* Stock */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center justify-center lg:justify-start gap-2">
               <div className={`w-2 h-2 rounded-full ${product.stock > 0 ? 'bg-green-400' : 'bg-red-400'}`} />
               <span className="text-sm text-[#fff4e9]/60">
                 {product.stock > 0 ? `${product.stock} in stock` : 'Out of stock'}
@@ -321,9 +324,9 @@ export default function ProductDetail() {
 
             {/* Quantity & Add to Cart */}
             {product.stock > 0 && (
-              <div className="flex flex-col sm:flex-row gap-4">
+              <div className="flex flex-col sm:flex-row gap-4 w-full">
                 {/* Quantity */}
-                <div className="flex items-center border border-[#fff4e9]/30">
+                <div className="flex items-center justify-center border border-[#fff4e9]/30">
                   <button
                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
                     className="w-12 h-12 flex items-center justify-center text-[#fff4e9] hover:bg-[#fff4e9]/10 transition-colors"
@@ -340,25 +343,30 @@ export default function ProductDetail() {
                 </div>
 
                 {/* Add to Cart */}
-                <button
-                  onClick={handleAddToCart}
-                  disabled={isAdded}
-                  className={`flex-1 py-4 px-8 inline-flex animate-shimmer items-center justify-center rounded-md border border-slate-800 bg-[linear-gradient(110deg,#000103,45%,#1e2631,55%,#000103)] bg-[length:200%_100%] font-medium text-slate-400 transition-colors focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 focus:ring-offset-slate-50 hover:text-[#fff4e9] ${
-                    isAdded ? 'opacity-50 cursor-not-allowed' : ''
-                  }`}
-                >
-                  {isAdded ? (
-                    <>
-                      <Check className="w-5 h-5 mr-2 text-green-400" />
-                      <span className="font-semibold uppercase tracking-wider">Added to Cart</span>
-                    </>
-                  ) : (
-                    <>
-                      <ShoppingBag className="w-5 h-5 mr-2" />
-                      <span className="font-semibold uppercase tracking-wider">Add to Cart</span>
-                    </>
-                  )}
-                </button>
+                <div className="flex-1">
+                  <MagneticButton
+                    onClick={handleAddToCart}
+                    disabled={isAdded}
+                    variant="shimmer"
+                    size="md"
+                    className="w-full !p-0 h-12"
+                    style={{ borderWidth: '1px', borderStyle: 'solid', borderColor: '#000000' }}
+                    containerStyle={{ display: 'flex' }}
+                    innerStyle={{ width: '170px', paddingTop: '0', paddingBottom: '0', paddingLeft: '10px', paddingRight: '10px' }}
+                  >
+                    {isAdded ? (
+                      <>
+                        <Check className="w-5 h-5 mr-2 text-green-400" />
+                        <span className="font-semibold uppercase tracking-wider" style={{ display: 'flex' }}>Added to Cart</span>
+                      </>
+                    ) : (
+                      <>
+                        <ShoppingBag className="w-5 h-5 mr-2" />
+                        <span className="font-semibold uppercase tracking-wider" style={{ display: 'flex' }}>Add to Cart</span>
+                      </>
+                    )}
+                  </MagneticButton>
+                </div>
 
                 <button
                   onClick={toggleWishlist}

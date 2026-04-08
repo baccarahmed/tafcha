@@ -187,175 +187,188 @@ export default function AdminOrders() {
         </div>
       ) : (
         <div className="bg-[#2a3a4a] rounded-lg overflow-hidden border border-[#fff4e9]/10">
-          <table className="w-full text-left">
-            <thead>
-              <tr className="border-b border-[#fff4e9]/10 bg-[#fff4e9]/5">
-                <th className="px-6 py-4 text-sm font-medium text-[#fff4e9]">Order ID</th>
-                <th className="px-6 py-4 text-sm font-medium text-[#fff4e9]">Customer</th>
-                <th className="px-6 py-4 text-sm font-medium text-[#fff4e9]">Date</th>
-                <th className="px-6 py-4 text-sm font-medium text-[#fff4e9]">Total</th>
-                <th className="px-6 py-4 text-sm font-medium text-[#fff4e9]">Status</th>
-                <th className="px-6 py-4 text-sm font-medium text-[#fff4e9] text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[#fff4e9]/10">
-              {orders.map((order) => (
-                <tr key={order.id} className="hover:bg-[#fff4e9]/5 transition-colors">
-                  <td className="px-6 py-4 text-[#fff4e9] font-mono text-xs">
-                    #{order.id.slice(0, 8).toUpperCase()}
-                  </td>
-                  <td className="px-6 py-4">
-                    <p className="text-[#fff4e9]">{order.userName || 'Customer'}</p>
-                    <p className="text-xs text-[#fff4e9]/50">{order.userEmail}</p>
-                  </td>
-                  <td className="px-6 py-4 text-[#fff4e9]/60">
-                    {formatDate(order.createdAt)}
-                  </td>
-                  <td className="px-6 py-4 text-[#fff4e9] font-medium">
-                    {formatPrice(order.total)}
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-2">
-                      {getStatusIcon(order.status)}
-                      <span className="text-xs text-[#fff4e9] capitalize">{order.status}</span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center justify-end gap-2">
-                      <button
-                        onClick={() => setSelectedId(order.id)}
-                        className="px-3 py-1 text-xs rounded border border-[#fff4e9]/30 text-[#fff4e9]/80 hover:text-[#fff4e9]"
-                      >
-                        Voir
-                      </button>
-                    </div>
-                  </td>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left">
+              <thead>
+                <tr className="border-b border-[#fff4e9]/10 bg-[#fff4e9]/5">
+                  <th className="px-6 py-4 text-sm font-medium text-[#fff4e9]">Order ID</th>
+                  <th className="px-6 py-4 text-sm font-medium text-[#fff4e9]">Customer</th>
+                  <th className="hidden md:table-cell px-6 py-4 text-sm font-medium text-[#fff4e9]">Date</th>
+                  <th className="px-6 py-4 text-sm font-medium text-[#fff4e9]">Total</th>
+                  <th className="hidden md:table-cell px-6 py-4 text-sm font-medium text-[#fff4e9]">Status</th>
+                  <th className="px-6 py-4 text-sm font-medium text-[#fff4e9] text-right">Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-[#fff4e9]/10">
+                {orders.map((order) => (
+                  <tr 
+                    key={order.id} 
+                    className="hover:bg-[#fff4e9]/5 transition-colors cursor-pointer md:cursor-default"
+                    onClick={() => {
+                      if (window.innerWidth < 768) setSelectedId(order.id);
+                    }}
+                  >
+                    <td className="px-6 py-4 text-[#fff4e9] font-mono text-xs">
+                      #{order.id.slice(0, 8).toUpperCase()}
+                    </td>
+                    <td className="px-6 py-4">
+                      <p className="text-[#fff4e9]">{order.userName || 'Customer'}</p>
+                      <p className="text-xs text-[#fff4e9]/50">{order.userEmail}</p>
+                    </td>
+                    <td className="hidden md:table-cell px-6 py-4 text-[#fff4e9]/60">
+                      {formatDate(order.createdAt)}
+                    </td>
+                    <td className="px-6 py-4 text-[#fff4e9] font-medium">
+                      {formatPrice(order.total)}
+                    </td>
+                    <td className="hidden md:table-cell px-6 py-4">
+                      <div className="flex items-center gap-2">
+                        {getStatusIcon(order.status)}
+                        <span className="text-xs text-[#fff4e9] capitalize">{order.status}</span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center justify-end gap-2">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedId(order.id);
+                          }}
+                          className="px-3 py-1 text-xs rounded border border-[#fff4e9]/30 text-[#fff4e9]/80 hover:text-[#fff4e9]"
+                        >
+                          Voir
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 
       <Dialog open={!!selectedId} onOpenChange={() => setSelectedId(null)}>
-        <DialogContent className="bg-[#2a3a4a] border-[#fff4e9]/20 max-w-3xl">
-          <DialogHeader>
+        <DialogContent className="bg-[#2a3a4a] border-[#fff4e9]/20 max-w-xl max-h-[90vh] flex flex-col p-0 overflow-hidden">
+          <DialogHeader className="p-6 pb-2">
             <DialogTitle className="text-[#fff4e9]">Détails de la commande</DialogTitle>
             <DialogDescription className="text-[#fff4e9]/60">
               Informations client, adresses et articles
             </DialogDescription>
           </DialogHeader>
-          {!selected ? (
-            <div className="h-32 flex items-center justify-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#fff4e9]" />
-            </div>
-          ) : (
-            <div className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm text-[#fff4e9]/60 mb-2">Début livraison</label>
-                  <input
-                    type="date"
-                    value={etaStart}
-                    onChange={(e) => setEtaStart(e.target.value)}
-                    className="w-full px-3 py-2 bg-transparent border border-[#fff4e9]/20 rounded text-[#fff4e9]"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm text-[#fff4e9]/60 mb-2">Fin livraison</label>
-                  <input
-                    type="date"
-                    value={etaEnd}
-                    onChange={(e) => setEtaEnd(e.target.value)}
-                    className="w-full px-3 py-2 bg-transparent border border-[#fff4e9]/20 rounded text-[#fff4e9]"
-                  />
-                </div>
+          <div className="flex-1 overflow-y-auto p-6 pt-2">
+            {!selected ? (
+              <div className="h-32 flex items-center justify-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#fff4e9]" />
               </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <section className="space-y-2">
-                  <h3 className="text-[#fff4e9] font-medium">Livraison</h3>
-                  <p className="text-sm text-[#fff4e9]">{detailAddress(selected.shippingAddress as OrderAddress)}</p>
-                  <p className="text-sm text-[#fff4e9]/70">{(selected.shippingAddress as OrderAddress)?.address}</p>
-                  <p className="text-sm text-[#fff4e9]/70">
-                    {[(selected.shippingAddress as OrderAddress)?.city, (selected.shippingAddress as OrderAddress)?.postalCode, (selected.shippingAddress as OrderAddress)?.country].filter(Boolean).join(', ')}
-                  </p>
-                  {(selected.shippingAddress as OrderAddress)?.phone && (
-                    <p className="text-sm text-[#fff4e9]/70">Tél: {(selected.shippingAddress as OrderAddress).phone}</p>
-                  )}
-                </section>
-                <section className="space-y-2">
-                  <h3 className="text-[#fff4e9] font-medium">Facturation</h3>
-                  <p className="text-sm text-[#fff4e9]">{detailAddress(selected.billingAddress as OrderAddress)}</p>
-                  <p className="text-sm text-[#fff4e9]/70">{(selected.billingAddress as OrderAddress)?.address}</p>
-                  <p className="text-sm text-[#fff4e9]/70">
-                    {[(selected.billingAddress as OrderAddress)?.city, (selected.billingAddress as OrderAddress)?.postalCode, (selected.billingAddress as OrderAddress)?.country].filter(Boolean).join(', ')}
-                  </p>
-                  {(selected.billingAddress as OrderAddress)?.phone && (
-                    <p className="text-sm text-[#fff4e9]/70">Tél: {(selected.billingAddress as OrderAddress).phone}</p>
-                  )}
-                </section>
-              </div>
-
-              <div>
-                <h3 className="text-sm text-[#fff4e9]/60 uppercase tracking-wider mb-3">Articles</h3>
-                <div className="space-y-3">
-                  {(selected.items || []).map((it: OrderItem) => (
-                    <div key={it.id} className="flex items-center gap-4">
-                      <div className="w-14 h-14 rounded bg-[#fff4e9]/5 overflow-hidden">
-                        <img src={it.images?.[0] || '/images/placeholder.jpg'} alt={it.name} className="w-full h-full object-cover" />
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-[#fff4e9]">{it.name}</p>
-                        <p className="text-xs text-[#fff4e9]/60">Qty: {it.quantity}</p>
-                      </div>
-                      <div className="text-[#fff4e9]">{formatPrice(it.price * it.quantity)}</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between border-t border-[#fff4e9]/10 pt-4">
-                <span className="text-[#fff4e9]/80">Total</span>
-                <span className="font-display text-xl text-[#fff4e9]">{formatPrice(selected.total)}</span>
-              </div>
-
-              {selected.deliveryProofUrl && (
-                <div className="pt-2">
-                  <h4 className="text-sm text-[#fff4e9]/60 uppercase tracking-wider mb-2">Preuve de livraison</h4>
-                  <div className="w-full max-w-xs rounded border border-[#fff4e9]/10 overflow-hidden">
-                    <img src={selected.deliveryProofUrl} alt="Preuve de livraison" className="w-full h-auto object-cover" />
+            ) : (
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm text-[#fff4e9]/60 mb-2">Début livraison</label>
+                    <input
+                      type="date"
+                      value={etaStart}
+                      onChange={(e) => setEtaStart(e.target.value)}
+                      className="w-full px-3 py-2 bg-transparent border border-[#fff4e9]/20 rounded text-[#fff4e9]"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm text-[#fff4e9]/60 mb-2">Fin livraison</label>
+                    <input
+                      type="date"
+                      value={etaEnd}
+                      onChange={(e) => setEtaEnd(e.target.value)}
+                      className="w-full px-3 py-2 bg-transparent border border-[#fff4e9]/20 rounded text-[#fff4e9]"
+                    />
                   </div>
                 </div>
-              )}
 
-              {(selected.deliveryWindowStart || selected.deliveryWindowEnd) && (
-                <div className="flex items-center justify-between">
-                  <span className="text-[#fff4e9]/60">Livraison estimée</span>
-                  <span className="text-[#fff4e9]">
-                    {selected.deliveryWindowStart || '—'}{selected.deliveryWindowEnd ? ` → ${selected.deliveryWindowEnd}` : ''}
-                  </span>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <section className="space-y-2">
+                    <h3 className="text-[#fff4e9] font-medium">Livraison</h3>
+                    <p className="text-sm text-[#fff4e9]">{detailAddress(selected.shippingAddress as OrderAddress)}</p>
+                    <p className="text-sm text-[#fff4e9]/70">{(selected.shippingAddress as OrderAddress)?.address}</p>
+                    <p className="text-sm text-[#fff4e9]/70">
+                      {[(selected.shippingAddress as OrderAddress)?.city, (selected.shippingAddress as OrderAddress)?.postalCode, (selected.shippingAddress as OrderAddress)?.country].filter(Boolean).join(', ')}
+                    </p>
+                    {(selected.shippingAddress as OrderAddress)?.phone && (
+                      <p className="text-sm text-[#fff4e9]/70">Tél: {(selected.shippingAddress as OrderAddress).phone}</p>
+                    )}
+                  </section>
+                  <section className="space-y-2">
+                    <h3 className="text-[#fff4e9] font-medium">Facturation</h3>
+                    <p className="text-sm text-[#fff4e9]">{detailAddress(selected.billingAddress as OrderAddress)}</p>
+                    <p className="text-sm text-[#fff4e9]/70">{(selected.billingAddress as OrderAddress)?.address}</p>
+                    <p className="text-sm text-[#fff4e9]/70">
+                      {[(selected.billingAddress as OrderAddress)?.city, (selected.billingAddress as OrderAddress)?.postalCode, (selected.billingAddress as OrderAddress)?.country].filter(Boolean).join(', ')}
+                    </p>
+                    {(selected.billingAddress as OrderAddress)?.phone && (
+                      <p className="text-sm text-[#fff4e9]/70">Tél: {(selected.billingAddress as OrderAddress).phone}</p>
+                    )}
+                  </section>
                 </div>
-              )}
 
-              <div className="flex items-center justify-end gap-3">
-                <button
-                  onClick={() => selected && rejectOrder(selected.id)}
-                  disabled={isUpdating}
-                  className="px-4 py-2 rounded border border-red-400/40 text-red-300 hover:bg-red-500/10"
-                >
-                  Rejeter
-                </button>
-                <button
-                  onClick={() => selected && confirmOrder(selected.id)}
-                  disabled={isUpdating}
-                  className="px-4 py-2 rounded bg-[#fff4e9] text-[#3d4d5d] hover:bg-[#f3e7d9]"
-                >
-                  Confirmer
-                </button>
+                <div>
+                  <h3 className="text-sm text-[#fff4e9]/60 uppercase tracking-wider mb-3">Articles</h3>
+                  <div className="space-y-3">
+                    {(selected.items || []).map((it: OrderItem) => (
+                      <div key={it.id} className="flex items-center gap-4">
+                        <div className="w-14 h-14 rounded bg-[#fff4e9]/5 overflow-hidden">
+                          <img src={it.images?.[0] || '/images/placeholder.jpg'} alt={it.name} className="w-full h-full object-cover" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-[#fff4e9]">{it.name}</p>
+                          <p className="text-xs text-[#fff4e9]/60">Qty: {it.quantity}</p>
+                        </div>
+                        <div className="text-[#fff4e9]">{formatPrice(it.price * it.quantity)}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between border-t border-[#fff4e9]/10 pt-4">
+                  <span className="text-[#fff4e9]/80">Total</span>
+                  <span className="font-display text-xl text-[#fff4e9]">{formatPrice(selected.total)}</span>
+                </div>
+
+                {selected.deliveryProofUrl && (
+                  <div className="pt-2">
+                    <h4 className="text-sm text-[#fff4e9]/60 uppercase tracking-wider mb-2">Preuve de livraison</h4>
+                    <div className="w-full max-w-xs rounded border border-[#fff4e9]/10 overflow-hidden">
+                      <img src={selected.deliveryProofUrl} alt="Preuve de livraison" className="w-full h-auto object-cover" />
+                    </div>
+                  </div>
+                )}
+
+                {(selected.deliveryWindowStart || selected.deliveryWindowEnd) && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-[#fff4e9]/60">Livraison estimée</span>
+                    <span className="text-[#fff4e9]">
+                      {selected.deliveryWindowStart || '—'}{selected.deliveryWindowEnd ? ` → ${selected.deliveryWindowEnd}` : ''}
+                    </span>
+                  </div>
+                )}
+
+                <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#fff4e9]/10">
+                  <button
+                    onClick={() => selected && rejectOrder(selected.id)}
+                    disabled={isUpdating}
+                    className="px-4 py-2 rounded border border-red-400/40 text-red-300 hover:bg-red-500/10"
+                  >
+                    Rejeter
+                  </button>
+                  <button
+                    onClick={() => selected && confirmOrder(selected.id)}
+                    disabled={isUpdating}
+                    className="px-4 py-2 rounded bg-[#fff4e9] text-[#3d4d5d] hover:bg-[#f3e7d9]"
+                  >
+                    Confirmer
+                  </button>
+                </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </DialogContent>
       </Dialog>
     </AdminLayout>

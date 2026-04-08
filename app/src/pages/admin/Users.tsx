@@ -90,7 +90,7 @@ export default function AdminUsers() {
   return (
     <>
     <AdminLayout title="Users">
-      <div className="p-8">
+      <div className="p-8 px-0 md:px-8">
           {/* Search */}
           <div className="relative mb-6">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#fff4e9]/40" />
@@ -118,68 +118,82 @@ export default function AdminUsers() {
             </div>
           ) : (
             <div className="bg-[#2a3a4a] rounded-lg overflow-hidden border border-[#fff4e9]/10">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-[#fff4e9]/10 bg-[#fff4e9]/5">
-                    <th className="text-left px-6 py-4 text-sm font-medium text-[#fff4e9]">User</th>
-                    <th className="text-left px-6 py-4 text-sm font-medium text-[#fff4e9]">Role</th>
-                    <th className="text-left px-6 py-4 text-sm font-medium text-[#fff4e9]">Joined</th>
-                    <th className="text-right px-6 py-4 text-sm font-medium text-[#fff4e9]">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredUsers.map((u) => (
-                    <tr key={u.id} className="border-b border-[#fff4e9]/10 last:border-0">
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full bg-[#fff4e9]/10 flex items-center justify-center">
-                            <User className="w-5 h-5 text-[#fff4e9]/60" />
-                          </div>
-                          <div>
-                            <p className="text-[#fff4e9]">
-                              {u.firstName || u.lastName 
-                                ? `${u.firstName || ''} ${u.lastName || ''}`
-                                : 'Unnamed User'}
-                            </p>
-                            <p className="text-xs text-[#fff4e9]/50">{u.email}</p>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs ${
-                          u.role === 'admin'
-                            ? 'bg-purple-500/20 text-purple-400'
-                            : 'bg-blue-500/20 text-blue-400'
-                        }`}>
-                          {u.role === 'admin' && <Shield className="w-3 h-3" />}
-                          {u.role}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-[#fff4e9]/60">
-                        {formatDate(u.createdAt)}
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center justify-end gap-2">
-                          <button
-                            onClick={() => setEditUser(u)}
-                            className="p-2 text-[#fff4e9]/60 hover:text-[#fff4e9] hover:bg-[#fff4e9]/10 rounded transition-colors"
-                          >
-                            <Edit2 className="w-4 h-4" />
-                          </button>
-                          {u.id !== user?.id && (
-                            <button
-                              onClick={() => setDeleteId(u.id)}
-                              className="p-2 text-red-400 hover:bg-red-500/10 rounded transition-colors"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          )}
-                        </div>
-                      </td>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-[#fff4e9]/10 bg-[#fff4e9]/5">
+                      <th className="text-left px-6 py-4 text-sm font-medium text-[#fff4e9]">User</th>
+                      <th className="hidden md:table-cell text-left px-6 py-4 text-sm font-medium text-[#fff4e9]">Role</th>
+                      <th className="hidden md:table-cell text-left px-6 py-4 text-sm font-medium text-[#fff4e9]">Joined</th>
+                      <th className="text-right px-6 py-4 text-sm font-medium text-[#fff4e9]">Actions</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {filteredUsers.map((u) => (
+                      <tr 
+                        key={u.id} 
+                        className="border-b border-[#fff4e9]/10 last:border-0 hover:bg-[#fff4e9]/5 transition-colors cursor-pointer md:cursor-default"
+                        onClick={() => {
+                          if (window.innerWidth < 768) setEditUser(u);
+                        }}
+                      >
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full bg-[#fff4e9]/10 flex items-center justify-center flex-shrink-0">
+                              <User className="w-5 h-5 text-[#fff4e9]/60" />
+                            </div>
+                            <div className="min-w-0">
+                              <p className="text-[#fff4e9] truncate">
+                                {u.firstName || u.lastName 
+                                  ? `${u.firstName || ''} ${u.lastName || ''}`
+                                  : 'Unnamed User'}
+                              </p>
+                              <p className="text-xs text-[#fff4e9]/50 truncate">{u.email}</p>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="hidden md:table-cell px-6 py-4">
+                          <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs ${
+                            u.role === 'admin'
+                              ? 'bg-purple-500/20 text-purple-400'
+                              : 'bg-blue-500/20 text-blue-400'
+                          }`}>
+                            {u.role === 'admin' && <Shield className="w-3 h-3" />}
+                            {u.role}
+                          </span>
+                        </td>
+                        <td className="hidden md:table-cell px-6 py-4 text-[#fff4e9]/60">
+                          {formatDate(u.createdAt)}
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center justify-end gap-2">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setEditUser(u);
+                              }}
+                              className="p-2 text-[#fff4e9]/60 hover:text-[#fff4e9] hover:bg-[#fff4e9]/10 rounded transition-colors"
+                            >
+                              <Edit2 className="w-4 h-4" />
+                            </button>
+                            {u.id !== user?.id && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setDeleteId(u.id);
+                                }}
+                                className="p-2 text-red-400 hover:bg-red-500/10 rounded transition-colors"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           )}
         </div>

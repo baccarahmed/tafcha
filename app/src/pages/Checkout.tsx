@@ -7,6 +7,7 @@ import { useCart } from '@/contexts/CartContext';
 import { ordersAPI } from '@/services/api';
 import { useSettings } from '@/hooks/useSettings';
 import { toast } from 'sonner';
+import SlideToConfirm from '@/components/ui/SlideToConfirm';
 
 export default function Checkout() {
   const navigate = useNavigate();
@@ -232,13 +233,20 @@ export default function Checkout() {
                     )}
                   </span>
                 </div>
-                <button
-                  onClick={handlePlaceOrder}
-                  disabled={!canPlaceOrder}
-                  className="w-full py-4 inline-flex animate-shimmer items-center justify-center rounded-md border border-slate-800 bg-[linear-gradient(110deg,#000103,45%,#1e2631,55%,#000103)] bg-[length:200%_100%] font-medium text-slate-400 transition-colors focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 focus:ring-offset-slate-50 hover:text-[#fff4e9] disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isPlacing ? 'Traitement...' : `Passer la commande (${totalItems})`}
-                </button>
+                <div className="w-full">
+                  {isPlacing ? (
+                    <div className="w-full h-16 flex items-center justify-center rounded-full bg-[#fff4e9]/10 border border-[#fff4e9]/20">
+                      <span className="w-6 h-6 border-2 border-[#fff4e9] border-t-transparent rounded-full animate-spin" />
+                    </div>
+                  ) : (
+                    <SlideToConfirm 
+                      onConfirm={handlePlaceOrder}
+                      disabled={!canPlaceOrder}
+                      text={`Glisser pour commander (${totalItems})`}
+                      confirmedText="Commande en cours..."
+                    />
+                  )}
+                </div>
               </div>
             </aside>
           </div>

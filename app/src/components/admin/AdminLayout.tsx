@@ -6,6 +6,7 @@ import {
   IconUsers, 
   IconShoppingCart, 
   IconSettings,
+  IconTag,
   IconArrowLeft 
 } from "@tabler/icons-react";
 import { useAuth } from '@/contexts/AuthContext';
@@ -80,6 +81,11 @@ export default function AdminLayout({ children, title }: AdminLayoutProps) {
       icon: <IconShoppingCart className={cn("h-5 w-5 shrink-0", location.pathname === "/admin/orders" ? "text-[#fff4e9]" : "text-[#fff4e9]/60")} />,
     },
     {
+      label: "Promotions",
+      href: "/admin/promotions",
+      icon: <IconTag className={cn("h-5 w-5 shrink-0", location.pathname === "/admin/promotions" ? "text-[#fff4e9]" : "text-[#fff4e9]/60")} />,
+    },
+    {
       label: "Site Settings",
       href: "/admin/settings",
       icon: <IconSettings className={cn("h-5 w-5 shrink-0", location.pathname === "/admin/settings" ? "text-[#fff4e9]" : "text-[#fff4e9]/60")} />,
@@ -139,12 +145,12 @@ export default function AdminLayout({ children, title }: AdminLayoutProps) {
       {/* Main Content */}
       <main className="flex-1 overflow-auto bg-[--site-bg]">
         {/* Header */}
-        <header className="bg-[--panel-bg] border-b border-[#fff4e9]/10 px-8 py-4">
+        <header className="bg-[--panel-bg] border-b border-[#fff4e9]/10 px-[5px] md:px-8 py-4">
           <h1 className="font-display text-2xl text-[#fff4e9]">{title}</h1>
         </header>
 
         {/* Content */}
-        <div className="p-8">
+        <div className="p-8 px-[5px] md:px-8">
           {children}
         </div>
       </main>

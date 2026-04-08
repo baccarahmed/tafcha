@@ -64,7 +64,7 @@ export default function Collections() {
             {'Nos Collections d\'Accessoires'.split(' ').map((word, i) => (
               <span
                 key={i}
-                className={`inline-block mr-3 transition-all duration-800 ${
+                className={`inline-block mx-1.5 transition-all duration-800 ${
                   isVisible
                     ? 'opacity-100 translate-y-0'
                     : 'opacity-0 translate-y-8'

@@ -59,11 +59,40 @@ router.put('/', authenticateToken, requireAdmin, (req, res) => {
       maintenanceMode,
       freeShippingThresholdDNR,
       shippingCostDNR,
-      smokeyColor
+      smokeyColor,
+      announcementEnabled,
+      announcementText,
+      announcementBgColor,
+      announcementTextColor
     } = req.body;
 
     const fields = [];
     const values = [];
+
+    if (announcementEnabled !== undefined) {
+      fields.push('announcementEnabled = ?');
+      values.push(announcementEnabled ? 1 : 0);
+    }
+
+    if (announcementText !== undefined) {
+      fields.push('announcementText = ?');
+      try {
+        const json = Array.isArray(announcementText) ? JSON.stringify(announcementText) : JSON.stringify([announcementText]);
+        values.push(json);
+      } catch {
+        values.push(JSON.stringify([]));
+      }
+    }
+
+    if (announcementBgColor !== undefined) {
+      fields.push('announcementBgColor = ?');
+      values.push(announcementBgColor || '#fff4e9');
+    }
+
+    if (announcementTextColor !== undefined) {
+      fields.push('announcementTextColor = ?');
+      values.push(announcementTextColor || '#3d4d5d');
+    }
 
     if (heroTitle !== undefined) {
       fields.push('heroTitle = ?');
