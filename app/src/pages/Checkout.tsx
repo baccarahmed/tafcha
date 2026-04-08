@@ -50,7 +50,7 @@ export default function Checkout() {
   }, [shipping, billing, useSameAddress, items.length, isPlacing]);
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('fr-FR', {
+    return new Intl.NumberFormat('en-US', {
       minimumFractionDigits: 0,
     }).format(price) + ' DNR';
   };
@@ -68,11 +68,11 @@ export default function Checkout() {
       };
       const res = await ordersAPI.create(payload);
       clearCart();
-      toast.success('Commande créée avec succès');
+      toast.success('Order placed successfully');
       navigate('/account/orders');
       return res;
     } catch (e: unknown) {
-      toast.error(e instanceof Error ? e.message : 'Échec de la commande');
+      toast.error(e instanceof Error ? e.message : 'Order failed');
     } finally {
       setIsPlacing(false);
     }
@@ -88,86 +88,86 @@ export default function Checkout() {
       <div className="pt-32 pb-16 section-padding">
         <div className="max-w-7xl mx-auto">
           <h1 className="font-display text-4xl sm:text-5xl text-[#fff4e9] mb-2">Checkout</h1>
-          <p className="text-[#fff4e9]/60 mb-8">Finalisez votre commande en renseignant les informations nécessaires</p>
+          <p className="text-[#fff4e9]/60 mb-8">Complete your order by providing the necessary information</p>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2 space-y-8">
               <section className={sectionClass}>
-                <h2 className="text-[#fff4e9] font-medium border-b border-[#fff4e9]/10 pb-4 mb-4">Adresse de livraison</h2>
+                <h2 className="text-[#fff4e9] font-medium border-b border-[#fff4e9]/10 pb-4 mb-4">Shipping Address</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className={labelClass}>Prénom</label>
+                    <label className={labelClass}>First Name</label>
                     <input value={shipping.firstName} onChange={e => setShipping({ ...shipping, firstName: e.target.value })} className={inputClass} />
                   </div>
                   <div>
-                    <label className={labelClass}>Nom</label>
+                    <label className={labelClass}>Last Name</label>
                     <input value={shipping.lastName} onChange={e => setShipping({ ...shipping, lastName: e.target.value })} className={inputClass} />
                   </div>
                 </div>
                 <div>
-                  <label className={labelClass}>Adresse</label>
+                  <label className={labelClass}>Address</label>
                   <input value={shipping.address} onChange={e => setShipping({ ...shipping, address: e.target.value })} className={inputClass} />
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div>
-                    <label className={labelClass}>Ville</label>
+                    <label className={labelClass}>City</label>
                     <input value={shipping.city} onChange={e => setShipping({ ...shipping, city: e.target.value })} className={inputClass} />
                   </div>
                   <div>
-                    <label className={labelClass}>Pays</label>
+                    <label className={labelClass}>Country</label>
                     <input value={shipping.country} onChange={e => setShipping({ ...shipping, country: e.target.value })} className={inputClass} />
                   </div>
                   <div>
-                    <label className={labelClass}>Code postal</label>
+                    <label className={labelClass}>Postal Code</label>
                     <input value={shipping.postalCode} onChange={e => setShipping({ ...shipping, postalCode: e.target.value })} className={inputClass} />
                   </div>
                 </div>
                 <div>
-                  <label className={labelClass}>Téléphone</label>
+                  <label className={labelClass}>Phone</label>
                   <input value={shipping.phone} onChange={e => setShipping({ ...shipping, phone: e.target.value })} className={inputClass} />
                 </div>
               </section>
 
               <section className={sectionClass}>
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-[#fff4e9] font-medium">Adresse de facturation</h2>
+                  <h2 className="text-[#fff4e9] font-medium">Billing Address</h2>
                   <label className="flex items-center gap-2 text-sm text-[#fff4e9]/80">
                     <input type="checkbox" checked={useSameAddress} onChange={e => setUseSameAddress(e.target.checked)} className="w-4 h-4" />
-                    Identique à la livraison
+                    Same as shipping
                   </label>
                 </div>
                 {!useSameAddress && (
                   <div className="space-y-4">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
-                        <label className={labelClass}>Prénom</label>
+                        <label className={labelClass}>First Name</label>
                         <input value={billing.firstName} onChange={e => setBilling({ ...billing, firstName: e.target.value })} className={inputClass} />
                       </div>
                       <div>
-                        <label className={labelClass}>Nom</label>
+                        <label className={labelClass}>Last Name</label>
                         <input value={billing.lastName} onChange={e => setBilling({ ...billing, lastName: e.target.value })} className={inputClass} />
                       </div>
                     </div>
                     <div>
-                      <label className={labelClass}>Adresse</label>
+                      <label className={labelClass}>Address</label>
                       <input value={billing.address} onChange={e => setBilling({ ...billing, address: e.target.value })} className={inputClass} />
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                       <div>
-                        <label className={labelClass}>Ville</label>
+                        <label className={labelClass}>City</label>
                         <input value={billing.city} onChange={e => setBilling({ ...billing, city: e.target.value })} className={inputClass} />
                       </div>
                       <div>
-                        <label className={labelClass}>Pays</label>
+                        <label className={labelClass}>Country</label>
                         <input value={billing.country} onChange={e => setBilling({ ...billing, country: e.target.value })} className={inputClass} />
                       </div>
                       <div>
-                        <label className={labelClass}>Code postal</label>
+                        <label className={labelClass}>Postal Code</label>
                         <input value={billing.postalCode} onChange={e => setBilling({ ...billing, postalCode: e.target.value })} className={inputClass} />
                       </div>
                     </div>
                     <div>
-                      <label className={labelClass}>Téléphone</label>
+                      <label className={labelClass}>Phone</label>
                       <input value={billing.phone} onChange={e => setBilling({ ...billing, phone: e.target.value })} className={inputClass} />
                     </div>
                   </div>
@@ -175,20 +175,20 @@ export default function Checkout() {
               </section>
 
               <section className={sectionClass}>
-                <h2 className="text-[#fff4e9] font-medium border-b border-[#fff4e9]/10 pb-4 mb-4">Paiement</h2>
+                <h2 className="text-[#fff4e9] font-medium border-b border-[#fff4e9]/10 pb-4 mb-4">Payment</h2>
                 <div className="px-4 py-3 rounded border border-[#fff4e9]/30 text-[#fff4e9]">
-                  Mode: Paiement à la livraison (COD)
+                  Method: Cash on Delivery (COD)
                 </div>
                 <div>
                   <label className={labelClass}>Notes</label>
-                  <textarea value={notes} onChange={e => setNotes(e.target.value)} rows={4} className={inputClass} placeholder="Instructions pour la livraison..." />
+                  <textarea value={notes} onChange={e => setNotes(e.target.value)} rows={4} className={inputClass} placeholder="Instructions for delivery..." />
                 </div>
               </section>
             </div>
 
             <aside className="lg:col-span-1">
               <div className="bg-[#2a3a4a] rounded-lg p-6 border border-[#fff4e9]/10 sticky top-28">
-                <h3 className="text-[#fff4e9] font-medium mb-4">Résumé</h3>
+                <h3 className="text-[#fff4e9] font-medium mb-4">Summary</h3>
                 <div className="space-y-3 mb-4 max-h-64 overflow-y-auto pr-1">
                   {items.map(i => (
                     <div key={i.id} className="flex items-center justify-between gap-3">
@@ -206,11 +206,11 @@ export default function Checkout() {
                   ))}
                 </div>
                 <div className="flex items-center justify-between text-sm text-[#fff4e9]/70 mb-1">
-                  <span>Sous-total</span>
+                  <span>Subtotal</span>
                   <span>{formatPrice(totalPrice)}</span>
                 </div>
                 <div className="flex items-center justify-between text-sm text-[#fff4e9]/70 mb-1">
-                  <span>Livraison</span>
+                  <span>Shipping</span>
                   <span>
                     {formatPrice(
                       totalPrice >= (settings?.freeShippingThresholdDNR ?? 100)
@@ -242,8 +242,8 @@ export default function Checkout() {
                     <SlideToConfirm 
                       onConfirm={handlePlaceOrder}
                       disabled={!canPlaceOrder}
-                      text={`Glisser pour commander (${totalItems})`}
-                      confirmedText="Commande en cours..."
+                      text={`   Slide to place order`}
+                      confirmedText="Placing order..."
                     />
                   )}
                 </div>

@@ -21,7 +21,7 @@ export default function CartDrawer() {
   };
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('fr-FR', {
+    return new Intl.NumberFormat('en-US', {
       minimumFractionDigits: 0,
     }).format(price) + ' DNR';
   };
@@ -144,8 +144,8 @@ export default function CartDrawer() {
               <div className="space-y-3">
                 <SlideToConfirm 
                   onConfirm={handleCheckout}
-                  text="Glisser pour commander"
-                  confirmedText="Chargement..."
+                  text="   Slide to checkout"
+                  confirmedText="Loading..."
                 />
                 <button
                   onClick={closeCart}

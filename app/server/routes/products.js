@@ -322,7 +322,7 @@ router.post('/categories', authenticateToken, requireAdmin, (req, res) => {
   try {
     const { name, description } = req.body;
     if (!name || typeof name !== 'string') {
-      return res.status(400).json({ error: 'Nom de collection requis' });
+      return res.status(400).json({ error: 'Collection name is required' });
     }
     const baseSlug = String(name).toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
     let slug = baseSlug || `cat-${Date.now()}`;
@@ -334,10 +334,10 @@ router.post('/categories', authenticateToken, requireAdmin, (req, res) => {
     db.prepare('INSERT INTO categories (id, name, slug, description, position) VALUES (?, ?, ?, ?, ?)')
       .run(id, name, slug, description || null, position);
     const cat = db.prepare('SELECT * FROM categories WHERE id = ?').get(id);
-    res.status(201).json({ message: 'Catégorie créée', category: cat });
+    res.status(201).json({ message: 'Category created', category: cat });
   } catch (error) {
     console.error('Create category error:', error);
-    res.status(500).json({ error: 'Erreur serveur' });
+    res.status(500).json({ error: 'Server error' });
   }
 });
 
@@ -346,7 +346,7 @@ router.get('/categories/:id/details', authenticateToken, requireAdmin, (req, res
   try {
     const { id } = req.params;
     const cat = db.prepare('SELECT * FROM categories WHERE id = ?').get(id);
-    if (!cat) return res.status(404).json({ error: 'Catégorie introuvable' });
+    if (!cat) return res.status(404).json({ error: 'Category not found' });
     const products = db.prepare(`
       SELECT id, name, slug, price, images
       FROM products
@@ -367,7 +367,7 @@ router.get('/categories/:id/details', authenticateToken, requireAdmin, (req, res
     res.json({ category: cat, products });
   } catch (error) {
     console.error('Get category details error:', error);
-    res.status(500).json({ error: 'Erreur serveur' });
+    res.status(500).json({ error: 'Server error' });
   }
 });
 
@@ -376,15 +376,15 @@ router.put('/categories/:id/image', authenticateToken, requireAdmin, (req, res) 
   try {
     const { id } = req.params;
     const { image } = req.body;
-    if (!image) return res.status(400).json({ error: 'Image URL manquante' });
+    if (!image) return res.status(400).json({ error: 'Image URL missing' });
     const cat = db.prepare('SELECT * FROM categories WHERE id = ?').get(id);
-    if (!cat) return res.status(404).json({ error: 'Catégorie introuvable' });
+    if (!cat) return res.status(404).json({ error: 'Category not found' });
     db.prepare('UPDATE categories SET image = ?, updatedAt = CURRENT_TIMESTAMP WHERE id = ?').run(image, id);
     const updated = db.prepare('SELECT * FROM categories WHERE id = ?').get(id);
-    res.json({ message: 'Image de catégorie mise à jour', category: updated });
+    res.json({ message: 'Category image updated', category: updated });
   } catch (error) {
     console.error('Update category image error:', error);
-    res.status(500).json({ error: 'Erreur serveur' });
+    res.status(500).json({ error: 'Server error' });
   }
 });
 
@@ -394,7 +394,7 @@ router.put('/categories/:id', authenticateToken, requireAdmin, (req, res) => {
     const { id } = req.params;
     const { name, description } = req.body;
     const cat = db.prepare('SELECT * FROM categories WHERE id = ?').get(id);
-    if (!cat) return res.status(404).json({ error: 'Catégorie introuvable' });
+    if (!cat) return res.status(404).json({ error: 'Category not found' });
     const fields = [];
     const values = [];
     if (name !== undefined) {
@@ -416,10 +416,10 @@ router.put('/categories/:id', authenticateToken, requireAdmin, (req, res) => {
     values.push(id);
     db.prepare(`UPDATE categories SET ${fields.join(', ')} WHERE id = ?`).run(...values);
     const updated = db.prepare('SELECT * FROM categories WHERE id = ?').get(id);
-    res.json({ message: 'Catégorie mise à jour', category: updated });
+    res.json({ message: 'Category updated', category: updated });
   } catch (error) {
     console.error('Update category error:', error);
-    res.status(500).json({ error: 'Erreur serveur' });
+    res.status(500).json({ error: 'Server error' });
   }
 });
 
@@ -428,16 +428,16 @@ router.delete('/categories/:id', authenticateToken, requireAdmin, (req, res) => 
   try {
     const { id } = req.params;
     const cat = db.prepare('SELECT * FROM categories WHERE id = ?').get(id);
-    if (!cat) return res.status(404).json({ error: 'Catégorie introuvable' });
+    if (!cat) return res.status(404).json({ error: 'Category not found' });
     const tx = db.transaction((cid) => {
       db.prepare('UPDATE products SET categoryId = NULL, updatedAt = CURRENT_TIMESTAMP WHERE categoryId = ?').run(cid);
       db.prepare('DELETE FROM categories WHERE id = ?').run(cid);
     });
     tx(id);
-    res.json({ message: 'Catégorie supprimée' });
+    res.json({ message: 'Category deleted' });
   } catch (error) {
     console.error('Delete category error:', error);
-    res.status(500).json({ error: 'Erreur serveur' });
+    res.status(500).json({ error: 'Server error' });
   }
 });
 
@@ -445,17 +445,17 @@ router.delete('/categories/:id', authenticateToken, requireAdmin, (req, res) => 
 router.put('/categories/order', authenticateToken, requireAdmin, (req, res) => {
   try {
     const { order } = req.body; // array of category ids in desired order
-    if (!Array.isArray(order)) return res.status(400).json({ error: 'Ordre invalide' });
+    if (!Array.isArray(order)) return res.status(400).json({ error: 'Invalid order' });
     const update = db.prepare('UPDATE categories SET position = ?, updatedAt = CURRENT_TIMESTAMP WHERE id = ?');
     const txn = db.transaction((ids) => {
       ids.forEach((id, index) => update.run(index, id));
     });
     txn(order);
     const categories = db.prepare('SELECT * FROM categories ORDER BY position ASC, name ASC').all();
-    res.json({ message: 'Ordre des catégories mis à jour', categories });
+    res.json({ message: 'Category order updated', categories });
   } catch (error) {
     console.error('Update categories order error:', error);
-    res.status(500).json({ error: 'Erreur serveur' });
+    res.status(500).json({ error: 'Server error' });
   }
 });
 

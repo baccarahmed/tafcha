@@ -98,7 +98,7 @@ export default function AdminOrders() {
       if (!selectedId) return;
       try {
         const data = await ordersAPI.getById(selectedId);
-        // Parse adresses JSON éventuelles
+        // Parse JSON addresses if any
         const o = { ...data.order } as OrderData;
         if (typeof o.shippingAddress === 'string') {
           try { o.shippingAddress = JSON.parse(o.shippingAddress); } catch (e) { console.error('Parse shipping address failed', e); }
@@ -123,7 +123,7 @@ export default function AdminOrders() {
   };
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('fr-FR', {
+    return new Intl.NumberFormat('en-US', {
       minimumFractionDigits: 0,
     }).format(price) + ' DNR';
   };
@@ -143,14 +143,14 @@ export default function AdminOrders() {
     try {
       setIsUpdating(true);
       await ordersAPI.updateStatusWithEta(id, { status: 'processing', deliveryWindowStart: etaStart || null, deliveryWindowEnd: etaEnd || null });
-      toast.success('Commande confirmée');
+      toast.success('Order confirmed');
       await fetchOrders();
       setSelectedId(null);
       setEtaStart('');
       setEtaEnd('');
     } catch (e) {
       console.error('Update status failed', e);
-      toast.error('Échec de la mise à jour');
+      toast.error('Update failed');
     } finally {
       setIsUpdating(false);
     }
@@ -160,12 +160,12 @@ export default function AdminOrders() {
     try {
       setIsUpdating(true);
       await ordersAPI.updateStatus(id, { status: 'cancelled' });
-      toast.success('Commande rejetée');
+      toast.success('Order rejected');
       await fetchOrders();
       setSelectedId(null);
     } catch (e) {
       console.error('Update status failed', e);
-      toast.error('Échec de la mise à jour');
+      toast.error('Update failed');
     } finally {
       setIsUpdating(false);
     }
@@ -236,7 +236,7 @@ export default function AdminOrders() {
                           }}
                           className="px-3 py-1 text-xs rounded border border-[#fff4e9]/30 text-[#fff4e9]/80 hover:text-[#fff4e9]"
                         >
-                          Voir
+                          View
                         </button>
                       </div>
                     </td>
@@ -251,9 +251,9 @@ export default function AdminOrders() {
       <Dialog open={!!selectedId} onOpenChange={() => setSelectedId(null)}>
         <DialogContent className="bg-[#2a3a4a] border-[#fff4e9]/20 max-w-xl max-h-[90vh] flex flex-col p-0 overflow-hidden">
           <DialogHeader className="p-6 pb-2">
-            <DialogTitle className="text-[#fff4e9]">Détails de la commande</DialogTitle>
+            <DialogTitle className="text-[#fff4e9]">Order Details</DialogTitle>
             <DialogDescription className="text-[#fff4e9]/60">
-              Informations client, adresses et articles
+              Customer info, addresses and items
             </DialogDescription>
           </DialogHeader>
           <div className="flex-1 overflow-y-auto p-6 pt-2">
@@ -265,7 +265,7 @@ export default function AdminOrders() {
               <div className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm text-[#fff4e9]/60 mb-2">Début livraison</label>
+                    <label className="block text-sm text-[#fff4e9]/60 mb-2">Delivery start</label>
                     <input
                       type="date"
                       value={etaStart}
@@ -274,7 +274,7 @@ export default function AdminOrders() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm text-[#fff4e9]/60 mb-2">Fin livraison</label>
+                    <label className="block text-sm text-[#fff4e9]/60 mb-2">Delivery end</label>
                     <input
                       type="date"
                       value={etaEnd}
@@ -286,31 +286,31 @@ export default function AdminOrders() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <section className="space-y-2">
-                    <h3 className="text-[#fff4e9] font-medium">Livraison</h3>
+                    <h3 className="text-[#fff4e9] font-medium">Shipping</h3>
                     <p className="text-sm text-[#fff4e9]">{detailAddress(selected.shippingAddress as OrderAddress)}</p>
                     <p className="text-sm text-[#fff4e9]/70">{(selected.shippingAddress as OrderAddress)?.address}</p>
                     <p className="text-sm text-[#fff4e9]/70">
                       {[(selected.shippingAddress as OrderAddress)?.city, (selected.shippingAddress as OrderAddress)?.postalCode, (selected.shippingAddress as OrderAddress)?.country].filter(Boolean).join(', ')}
                     </p>
                     {(selected.shippingAddress as OrderAddress)?.phone && (
-                      <p className="text-sm text-[#fff4e9]/70">Tél: {(selected.shippingAddress as OrderAddress).phone}</p>
+                      <p className="text-sm text-[#fff4e9]/70">Tel: {(selected.shippingAddress as OrderAddress).phone}</p>
                     )}
                   </section>
                   <section className="space-y-2">
-                    <h3 className="text-[#fff4e9] font-medium">Facturation</h3>
+                    <h3 className="text-[#fff4e9] font-medium">Billing</h3>
                     <p className="text-sm text-[#fff4e9]">{detailAddress(selected.billingAddress as OrderAddress)}</p>
                     <p className="text-sm text-[#fff4e9]/70">{(selected.billingAddress as OrderAddress)?.address}</p>
                     <p className="text-sm text-[#fff4e9]/70">
                       {[(selected.billingAddress as OrderAddress)?.city, (selected.billingAddress as OrderAddress)?.postalCode, (selected.billingAddress as OrderAddress)?.country].filter(Boolean).join(', ')}
                     </p>
                     {(selected.billingAddress as OrderAddress)?.phone && (
-                      <p className="text-sm text-[#fff4e9]/70">Tél: {(selected.billingAddress as OrderAddress).phone}</p>
+                      <p className="text-sm text-[#fff4e9]/70">Tel: {(selected.billingAddress as OrderAddress).phone}</p>
                     )}
                   </section>
                 </div>
 
                 <div>
-                  <h3 className="text-sm text-[#fff4e9]/60 uppercase tracking-wider mb-3">Articles</h3>
+                  <h3 className="text-sm text-[#fff4e9]/60 uppercase tracking-wider mb-3">Items</h3>
                   <div className="space-y-3">
                     {(selected.items || []).map((it: OrderItem) => (
                       <div key={it.id} className="flex items-center gap-4">
@@ -334,16 +334,16 @@ export default function AdminOrders() {
 
                 {selected.deliveryProofUrl && (
                   <div className="pt-2">
-                    <h4 className="text-sm text-[#fff4e9]/60 uppercase tracking-wider mb-2">Preuve de livraison</h4>
+                    <h4 className="text-sm text-[#fff4e9]/60 uppercase tracking-wider mb-2">Delivery Proof</h4>
                     <div className="w-full max-w-xs rounded border border-[#fff4e9]/10 overflow-hidden">
-                      <img src={selected.deliveryProofUrl} alt="Preuve de livraison" className="w-full h-auto object-cover" />
+                      <img src={selected.deliveryProofUrl} alt="Delivery proof" className="w-full h-auto object-cover" />
                     </div>
                   </div>
                 )}
 
                 {(selected.deliveryWindowStart || selected.deliveryWindowEnd) && (
                   <div className="flex items-center justify-between">
-                    <span className="text-[#fff4e9]/60">Livraison estimée</span>
+                    <span className="text-[#fff4e9]/60">Estimated Delivery</span>
                     <span className="text-[#fff4e9]">
                       {selected.deliveryWindowStart || '—'}{selected.deliveryWindowEnd ? ` → ${selected.deliveryWindowEnd}` : ''}
                     </span>
@@ -356,14 +356,14 @@ export default function AdminOrders() {
                     disabled={isUpdating}
                     className="px-4 py-2 rounded border border-red-400/40 text-red-300 hover:bg-red-500/10"
                   >
-                    Rejeter
+                    Reject
                   </button>
                   <button
                     onClick={() => selected && confirmOrder(selected.id)}
                     disabled={isUpdating}
                     className="px-4 py-2 rounded bg-[#fff4e9] text-[#3d4d5d] hover:bg-[#f3e7d9]"
                   >
-                    Confirmer
+                    Confirm
                   </button>
                 </div>
               </div>

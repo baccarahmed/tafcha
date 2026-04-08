@@ -1,21 +1,21 @@
-# Robots.txt pour Tafchaa - Accessoires et Bijoux de Luxe
+# Robots.txt for Tafchaa - Luxury Accessories and Jewelry
 User-agent: *
 Allow: /
 
-# Pages importantes pour le référencement des accessoires
+# Important pages for SEO
 Allow: /shop
 Allow: /shop/*
 Allow: /product/*
 Allow: /about
 Allow: /contact
 
-# Bloquer les pages admin
+# Block admin pages
 Disallow: /admin
 Disallow: /admin/*
 Disallow: /api/admin
 Disallow: /api/admin/*
 
-# Bloquer les paramètres de tri et filtres
+# Block sort and filter parameters
 Disallow: /*?sort=
 Disallow: /*?filter=
 Disallow: /*&sort=

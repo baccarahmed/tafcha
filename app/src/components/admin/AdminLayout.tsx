@@ -38,7 +38,7 @@ export default function AdminLayout({ children, title }: AdminLayoutProps) {
         const pending = data.stats?.pendingOrders ?? 0;
         if (mounted) {
           if (pendingRef.current !== null && pending > pendingRef.current) {
-            toast.info(`Nouvelle commande reçue (${pending - pendingRef.current})`);
+            toast.info(`New order received (${pending - pendingRef.current})`);
           }
           pendingRef.current = pending;
         }

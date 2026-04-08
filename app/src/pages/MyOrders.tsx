@@ -115,7 +115,7 @@ export default function MyOrders() {
   };
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('fr-FR', {
+    return new Intl.NumberFormat('en-US', {
       minimumFractionDigits: 0,
     }).format(price) + ' DNR';
   };
@@ -327,7 +327,7 @@ export default function MyOrders() {
                   <button
                     onClick={async () => {
                       if (!confirmArmed) {
-                        toast.info('Merci de confirmer la réception. Vous pouvez aussi laisser un avis et une photo (facultatif). Cliquez à nouveau pour valider.');
+                        toast.info('Please confirm receipt. You can also leave a review and a photo (optional). Click again to validate.');
                         setConfirmArmed(true);
                         return;
                       }
@@ -379,7 +379,7 @@ export default function MyOrders() {
                       {(selectedOrder.status === 'completed' || confirmArmed) && (
                         <div className="flex flex-col gap-2">
                           <div className="flex items-center gap-3">
-                            <span className="text-xs text-[#fff4e9]/60">Note</span>
+                            <span className="text-xs text-[#fff4e9]/60">Rating</span>
                             {[1,2,3,4,5].map((n) => (
                               <button
                                 key={n}
@@ -391,7 +391,7 @@ export default function MyOrders() {
                             ))}
                           </div>
                           <textarea
-                            placeholder="Votre avis (optionnel)"
+                            placeholder="Your review (optional)"
                             value={review[item.id]?.comment || ''}
                             onChange={(e) => setReview(prev => ({ ...prev, [item.id]: { ...(prev[item.id] || { rating: 0 }), comment: e.target.value } }))}
                             className="w-full px-3 py-2 bg-transparent border border-[#fff4e9]/20 rounded text-[#fff4e9] placeholder-[#fff4e9]/40"

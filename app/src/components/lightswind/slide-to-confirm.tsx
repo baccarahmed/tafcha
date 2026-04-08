@@ -100,10 +100,13 @@ export function SlideToConfirm({
       {/* Main Text */}
       <motion.span
         className={cn(
-          "absolute font-medium text-sm z-0",
+          "absolute font-medium text-sm z-0 w-full text-center pr-4",
           state === "success" ? "text-green-600 dark:text-green-400" : "text-muted-foreground"
         )}
-        style={{ opacity: state === "idle" ? textOpacity : 0 }}
+        style={{ 
+          opacity: state === "idle" ? textOpacity : 0,
+          paddingLeft: height // Add padding to avoid overlap with initial thumb position
+        }}
       >
         {text}
       </motion.span>
@@ -124,7 +127,7 @@ export function SlideToConfirm({
       {/* Draggable Thumb */}
       <motion.div
         drag={state === "idle" ? "x" : false}
-        dragConstraints={{ left: 0, right: trackWidth }}
+        dragConstraints={{ left: -1, right: trackWidth }}
         dragElastic={0.05}
         dragMomentum={false}
         onDragEnd={handleDragEnd}
