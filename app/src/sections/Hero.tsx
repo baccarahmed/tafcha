@@ -57,7 +57,7 @@ export default function Hero() {
       </div>
 
       <div className="relative z-20 section-padding mx-auto">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center my-[120px]">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center mt-[120px] mb-12">
           <div className="text-center lg:text-left">
             <h1 className="font-display text-5xl sm:text-6xl md:text-7xl lg:text-8xl text-[#fff4e9] leading-tight mb-6">
               {title.split(' ').map((word, index) => (
@@ -89,42 +89,41 @@ export default function Hero() {
             </p>
           </div>
 
-          {/* Video Player & Button Column */}
-          <div className="flex flex-col gap-8">
-            <div className={`relative aspect-video rounded-2xl overflow-hidden shadow-2xl shadow-black/30 
-                          transition-all duration-1000 ease-in-out
-                          ${isLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-90'}`}
-                 style={{ transitionDelay: '400ms' }}>
-              <video
-                ref={videoRef}
-                autoPlay
-                muted
-                loop
-                playsInline
-                controls
-                poster={settings?.heroImage || "/images/hero-poster.jpg"}
-                className="w-full h-full object-cover"
-                title="Présentation de la collection de bijoux Tafchaa"
-                aria-label="Vidéo de présentation de la joaillerie artisanale Tafchaa"
-              >
-                <source src={sideVideoSrc} type="video/mp4" />
-              </video>
-            </div>
-
-            <div
-              className={`flex justify-center lg:justify-start transition-opacity duration-500 ${
-                isLoaded ? 'opacity-100' : 'opacity-0'
-              }`}
-              style={{ transitionDelay: '1000ms' }}
+          {/* Video Player Column */}
+          <div className={`relative aspect-video rounded-2xl overflow-hidden shadow-2xl shadow-black/30 
+                        transition-all duration-1000 ease-in-out
+                        ${isLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-90'}`}
+               style={{ transitionDelay: '400ms' }}>
+            <video
+              ref={videoRef}
+              autoPlay
+              muted
+              loop
+              playsInline
+              controls
+              poster={settings?.heroImage || "/images/hero-poster.jpg"}
+              className="w-full h-full object-cover"
+              title="Présentation de la collection de bijoux Tafchaa"
+              aria-label="Vidéo de présentation de la joaillerie artisanale Tafchaa"
             >
-              <button
-                onClick={() => navigate('/shop')}
-                className="btn-primary"
-              >
-                Explorer nos Collections
-              </button>
-            </div>
+              <source src={sideVideoSrc} type="video/mp4" />
+            </video>
           </div>
+        </div>
+
+        {/* Centered Button */}
+        <div
+          className={`flex justify-center transition-opacity duration-500 mb-[100px] ${
+            isLoaded ? 'opacity-100' : 'opacity-0'
+          }`}
+          style={{ transitionDelay: '1000ms' }}
+        >
+          <button
+            onClick={() => navigate('/shop')}
+            className="btn-primary"
+          >
+            Explorer nos Collections
+          </button>
         </div>
       </div>
 
