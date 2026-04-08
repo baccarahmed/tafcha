@@ -114,6 +114,17 @@ router.get('/', (req, res) => {
   }
 });
 
+// Get categories (ordered)
+router.get('/categories/all', (req, res) => {
+  try {
+    const categories = db.prepare('SELECT * FROM categories ORDER BY position ASC, name ASC').all();
+    res.json({ categories });
+  } catch (error) {
+    console.error('Get categories error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 // Get single product
 router.get('/:slug', (req, res) => {
   try {
@@ -302,17 +313,6 @@ router.delete('/:id', authenticateToken, requireAdmin, (req, res) => {
     res.json({ message: 'Product deleted' });
   } catch (error) {
     console.error('Delete product error:', error);
-    res.status(500).json({ error: 'Server error' });
-  }
-});
-
-// Get categories (ordered)
-router.get('/categories/all', (req, res) => {
-  try {
-    const categories = db.prepare('SELECT * FROM categories ORDER BY position ASC, name ASC').all();
-    res.json({ categories });
-  } catch (error) {
-    console.error('Get categories error:', error);
     res.status(500).json({ error: 'Server error' });
   }
 });

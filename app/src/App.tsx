@@ -237,7 +237,7 @@ function App({
   const rootClassName = mounted && currentShowAnimated ? 'animated-bg-on' : (currentShowAnimated ? 'animated-bg-on' : undefined);
 
   return (
-    <div className={rootClassName}>
+    <div className={rootClassName} style={{ minHeight: '100vh' }}>
       <SmokeyBackground className="fixed inset-0 -z-10" color={smokey} backdropBlurAmount={blurAmount} />
       <div className="fixed inset-0 -z-9 pointer-events-none" style={{ background: 'transparent' }} />
       <style>
