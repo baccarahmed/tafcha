@@ -99,7 +99,7 @@ export default function AdminUsers() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search users..."
-              className="w-full pl-12 pr-4 py-3 bg-[#2a3a4a] border border-[#fff4e9]/20 rounded-lg
+              className="w-full pl-12 pr-4 py-3 bg-[#2a3a4a]/50 border border-[#fff4e9]/20 rounded-lg
                        text-[#fff4e9] placeholder-[#fff4e9]/40
                        focus:outline-none focus:border-[#fff4e9]/50"
             />
@@ -109,7 +109,7 @@ export default function AdminUsers() {
           {isLoading ? (
             <div className="space-y-4">
               {[...Array(5)].map((_, i) => (
-                <div key={i} className="h-16 bg-[#2a3a4a] rounded-lg animate-pulse" />
+                <div key={i} className="h-16 bg-[#2a3a4a]/50 rounded-lg animate-pulse" />
               ))}
             </div>
           ) : filteredUsers.length === 0 ? (
@@ -117,7 +117,7 @@ export default function AdminUsers() {
               <p className="text-[#fff4e9]/60">No users found</p>
             </div>
           ) : (
-            <div className="bg-[#2a3a4a] rounded-lg overflow-hidden border border-[#fff4e9]/10">
+            <div className="bg-[#2a3a4a]/50 rounded-lg overflow-hidden border border-[#fff4e9]/10">
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
@@ -201,7 +201,7 @@ export default function AdminUsers() {
 
       {/* Delete Confirmation */}
       <Dialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
-        <DialogContent className="bg-[#2a3a4a] border-[#fff4e9]/20">
+        <DialogContent className="bg-[#2a3a4a]/50 border-[#fff4e9]/20">
           <DialogHeader>
             <DialogTitle className="text-[#fff4e9]">Delete User</DialogTitle>
             <DialogDescription className="text-[#fff4e9]/60">
@@ -227,7 +227,7 @@ export default function AdminUsers() {
 
       {/* Edit User Dialog */}
       <Dialog open={!!editUser} onOpenChange={() => setEditUser(null)}>
-        <DialogContent className="bg-[#2a3a4a] border-[#fff4e9]/20">
+        <DialogContent className="bg-[#2a3a4a]/50 border-[#fff4e9]/20">
           <DialogHeader>
             <DialogTitle className="text-[#fff4e9]">Edit User</DialogTitle>
             <DialogDescription className="text-[#fff4e9]/60">

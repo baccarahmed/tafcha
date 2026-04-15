@@ -17,14 +17,17 @@ export default function Hero() {
 
   const title = settings?.heroTitle || 'Jewelry and Accessories That Radiate Charm';
   const subtitle = settings?.heroSubtitle || 'Discover elegant and unique jewelry and accessories, designed to enhance your daily moments and unforgettable occasions.';
-  const sideVideoSrc = settings?.heroVideo || '/uploads/vid_1772434897884_salz6b.mp4';
+  const sideVideoSrc = settings?.heroVideo || '/uploads/vid_1774549019437_rp3n2z.mp4';
 
   useEffect(() => {
     if (videoRef.current) {
       videoRef.current.load();
-      videoRef.current.play().catch(error => {
-        console.log("Video auto-play failed, likely due to browser policy:", error);
-      });
+      const playPromise = videoRef.current.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(error => {
+          console.log("Video auto-play failed, likely due to browser policy:", error);
+        });
+      }
     }
   }, [sideVideoSrc]);
   const particles = useMemo(
@@ -96,6 +99,8 @@ export default function Hero() {
                style={{ transitionDelay: '400ms' }}>
             <video
               ref={videoRef}
+              key={sideVideoSrc}
+              src={sideVideoSrc}
               autoPlay
               muted
               loop
@@ -105,9 +110,7 @@ export default function Hero() {
               className="w-full h-full object-cover"
               title="Presentation of the Tafchaa jewelry collection"
               aria-label="Presentation video of Tafchaa handcrafted jewelry"
-            >
-              <source src={sideVideoSrc} type="video/mp4" />
-            </video>
+            />
           </div>
         </div>
 

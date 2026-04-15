@@ -9,6 +9,7 @@ import { productsAPI } from '@/services/api';
 import { Helmet } from 'react-helmet-async';
 import { MagneticButton } from '@/components/lightswind/magnetic-button';
 import { PreloadedDataContext } from '@/App';
+import { getSiteUrl } from '@/lib/utils.ts';
 import {
   Select,
   SelectContent,
@@ -162,12 +163,12 @@ export default function Shop() {
         <meta property="og:title" content={shopTitle || 'Luxury Accessories and Jewelry | Tafchaa Boutique'} />
         <meta property="og:description" content={shopDescription || 'Exclusive collection of luxury accessories and jewelry: refined rings, necklaces, bracelets, earrings, and accessories. Exceptional craftsmanship for a unique style.'} />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content={`https://tafcha.com/shop${selectedCategory !== 'all' ? `/${selectedCategory}` : ''}`} />
+        <meta property="og:url" content={`${getSiteUrl()}/shop${selectedCategory !== 'all' ? `/${selectedCategory}` : ''}`} />
         <meta property="og:site_name" content="Tafchaa" />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={shopTitle || 'Luxury Accessories and Jewelry | Tafchaa Boutique'} />
         <meta name="twitter:description" content={shopDescription || 'Exclusive collection of luxury accessories and jewelry: refined rings, necklaces, bracelets, earrings, and accessories.'} />
-        <link rel="canonical" href={`https://tafcha.com/shop${selectedCategory !== 'all' ? `/${selectedCategory}` : ''}`} />
+        <link rel="canonical" href={`${getSiteUrl()}/shop${selectedCategory !== 'all' ? `/${selectedCategory}` : ''}`} />
       </Helmet>
       <Navigation />
       
@@ -224,7 +225,7 @@ export default function Shop() {
               <SelectTrigger className="w-40 bg-transparent border-[#fff4e9]/30 text-[#fff4e9]">
                 <SelectValue placeholder="Sort by" />
               </SelectTrigger>
-              <SelectContent className="bg-[#2a3a4a] border-[#fff4e9]/20">
+              <SelectContent className="bg-[#2a3a4a]/50 border-[#fff4e9]/20">
                 <SelectItem value="newest" className="text-[#fff4e9]">Newest</SelectItem>
                 <SelectItem value="price-low" className="text-[#fff4e9]">Price: Low to High</SelectItem>
                 <SelectItem value="price-high" className="text-[#fff4e9]">Price: High to Low</SelectItem>

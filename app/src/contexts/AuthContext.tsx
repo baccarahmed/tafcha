@@ -34,13 +34,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Check for stored token on mount
-    const token = localStorage.getItem('token');
-    if (token) {
-      refreshUser();
-    } else {
-      setIsLoading(false);
-    }
+    // Check if we are authenticated on mount
+    refreshUser();
   }, []);
 
   const refreshUser = async () => {
@@ -48,8 +43,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const data = await authAPI.getMe();
       setUser(data.user);
     } catch (error) {
-      console.error('Failed to refresh user:', error);
-      localStorage.removeItem('token');
+      // Don't log error for 401 as it's expected when not logged in
+      if (error instanceof Error && !error.message.includes('401')) {
+        console.error('Failed to refresh user:', error);
+      }
+      localStorage.removeItem('token'); // Clean up old token if exists
       setUser(null);
     } finally {
       setIsLoading(false);
@@ -58,6 +56,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = async (email: string, password: string) => {
     const data = await authAPI.login({ email, password });
+    // Still set token for potential legacy/other uses, but primarily using cookies now
     localStorage.setItem('token', data.token);
     setUser(data.user);
   };
@@ -68,9 +67,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(data.user);
   };
 
-  const logout = () => {
-    localStorage.removeItem('token');
-    setUser(null);
+  const logout = async () => {
+    try {
+      await authAPI.logout();
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      localStorage.removeItem('token');
+      setUser(null);
+    }
   };
 
   const updateProfile = async (profileData: Record<string, unknown>) => {

@@ -85,7 +85,7 @@ export default function AdminProducts() {
               placeholder="Search products..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 bg-[#2a3a4a] border border-[#fff4e9]/20 rounded-lg 
+              className="w-full pl-10 pr-4 py-2 bg-[#2a3a4a]/50 border border-[#fff4e9]/20 rounded-lg 
                        text-[#fff4e9] placeholder:text-[#fff4e9]/40 focus:outline-none focus:border-[#fff4e9]/40"
             />
           </div>
@@ -105,7 +105,7 @@ export default function AdminProducts() {
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#fff4e9]"></div>
           </div>
         ) : (
-          <div className="bg-[#2a3a4a] rounded-lg overflow-hidden border border-[#fff4e9]/10">
+          <div className="bg-[#2a3a4a]/50 rounded-lg overflow-hidden border border-[#fff4e9]/10">
             <div className="overflow-x-auto">
               <table className="w-full text-left">
                 <thead>
@@ -209,7 +209,7 @@ export default function AdminProducts() {
 
       {/* Delete Confirmation */}
       <Dialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
-        <DialogContent className="bg-[#2a3a4a] border-[#fff4e9]/20">
+        <DialogContent className="bg-[#2a3a4a]/50 border-[#fff4e9]/20">
           <DialogHeader>
             <DialogTitle className="text-[#fff4e9]">Delete Product</DialogTitle>
             <DialogDescription className="text-[#fff4e9]/60">

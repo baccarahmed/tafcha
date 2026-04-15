@@ -1,18 +1,31 @@
 import jwt from 'jsonwebtoken';
 import db from '../database/db.js';
 
-export const JWT_SECRET = process.env.JWT_SECRET || 'tafchaa-secret-key-2026';
+export const JWT_SECRET = process.env.JWT_SECRET;
+
+if (!JWT_SECRET && process.env.NODE_ENV === 'production') {
+  console.error('CRITICAL ERROR: JWT_SECRET environment variable is not defined!');
+  process.exit(1);
+}
+
+// Use a development-only fallback if not in production
+const effectiveSecret = JWT_SECRET || 'dev-secret-key-change-me-in-production';
 
 export const authenticateToken = (req, res, next) => {
   const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
+  let token = authHeader && authHeader.split(' ')[1];
+
+  // Also check cookies
+  if (!token && req.cookies) {
+    token = req.cookies.token;
+  }
 
   if (!token) {
     return res.status(401).json({ error: 'Access token required' });
   }
 
   try {
-    const decoded = jwt.verify(token, JWT_SECRET);
+    const decoded = jwt.verify(token, effectiveSecret);
     req.user = decoded;
     next();
   } catch (error) {
@@ -36,7 +49,7 @@ export const generateToken = (user) => {
       firstName: user.firstName,
       lastName: user.lastName
     },
-    JWT_SECRET,
+    effectiveSecret,
     { expiresIn: '7d' }
   );
 };
@@ -45,5 +58,5 @@ export default {
   authenticateToken,
   requireAdmin,
   generateToken,
-  JWT_SECRET
+  JWT_SECRET: effectiveSecret
 };

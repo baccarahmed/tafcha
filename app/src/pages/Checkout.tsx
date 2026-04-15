@@ -80,7 +80,7 @@ export default function Checkout() {
 
   const inputClass = 'w-full px-4 py-3 bg-transparent border border-[#fff4e9]/20 rounded text-[#fff4e9] placeholder-[#fff4e9]/40 focus:outline-none focus:border-[#fff4e9]/50 transition-colors';
   const labelClass = 'block text-sm text-[#fff4e9]/60 mb-2';
-  const sectionClass = 'bg-[#2a3a4a] rounded-lg p-6 border border-[#fff4e9]/10 space-y-4';
+  const sectionClass = 'bg-[#2a3a4a]/50 rounded-lg p-6 border border-[#fff4e9]/10 space-y-4';
 
   return (
     <div className="min-h-screen bg-[--site-bg]">
@@ -92,7 +92,7 @@ export default function Checkout() {
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2 space-y-8">
-              <section className={sectionClass}>
+              <section className="bg-[#2a3a4a]/50 rounded-lg p-6 border border-[#fff4e9]/10 space-y-4">
                 <h2 className="text-[#fff4e9] font-medium border-b border-[#fff4e9]/10 pb-4 mb-4">Shipping Address</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
@@ -187,7 +187,7 @@ export default function Checkout() {
             </div>
 
             <aside className="lg:col-span-1">
-              <div className="bg-[#2a3a4a] rounded-lg p-6 border border-[#fff4e9]/10 sticky top-28">
+              <div className="bg-[#2a3a4a]/50 rounded-lg p-6 border border-[#fff4e9]/10 sticky top-28">
                 <h3 className="text-[#fff4e9] font-medium mb-4">Summary</h3>
                 <div className="space-y-3 mb-4 max-h-64 overflow-y-auto pr-1">
                   {items.map(i => (

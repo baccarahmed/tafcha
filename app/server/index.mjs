@@ -1,9 +1,10 @@
 import express from 'express';
 import cors from 'cors';
+import cookieParser from 'cookie-parser';
 import path from 'path';
 import fs from 'fs';
 import { createServer as createViteServer } from 'vite';
-import db from './database/db.js';
+import prisma from './database/prisma.js';
 import { fileURLToPath } from 'url';
 import compression from 'compression';
 
@@ -25,7 +26,11 @@ const PORT = process.env.PORT || 3001;
 const isProd = process.env.NODE_ENV === 'production';
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: process.env.CLIENT_URL || true,
+  credentials: true
+}));
+app.use(cookieParser());
 app.use(express.json({ limit: '25mb' }));
 app.use(express.urlencoded({ extended: true, limit: '25mb' }));
 
@@ -47,7 +52,7 @@ if (!isProd) {
   app.use(express.static(path.resolve(__dirname, '../dist/client'), { index: false }));
 }
 
-// Static files for uploads (must be after headers middleware if any)
+// Static files for uploads
 app.use('/uploads', express.static(uploadsDir));
 
 app.use('/api/auth', authRoutes);
@@ -58,7 +63,7 @@ app.use('/api/settings', settingsRoutes);
 app.use('/api/uploads', uploadRoutes);
 app.use('/api/promotions', promotionRoutes);
 
-// Vite middleware in dev (after API routes to avoid interference)
+// Vite middleware in dev
 if (!isProd && vite) {
   app.use(vite.middlewares);
 }
@@ -87,43 +92,23 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() });
 });
 
-// Gestion spéciale pour /vite.svg - rediriger vers favicon.svg
-app.get('/vite.svg', (req, res) => {
-  res.redirect(301, '/favicon.svg');
-});
-
 // Sitemap generator
-app.get('/sitemap.xml', (req, res) => {
+app.get('/sitemap.xml', async (req, res) => {
   try {
-    const products = db.prepare('SELECT slug, updatedAt FROM products WHERE active = 1').all();
-    const categories = db.prepare('SELECT slug, name FROM categories').all();
-    const baseUrl = process.env.BASE_URL || 'https://tafcha.com';
+    const products = await prisma.product.findMany({ where: { active: true }, select: { slug: true, updatedAt: true } });
+    const categories = await prisma.category.findMany({ select: { slug: true, name: true } });
+    const baseUrl = process.env.BASE_URL || 'https://tafchaa.com';
 
     let xml = '<?xml version="1.0" encoding="UTF-8"?>\n';
     xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">\n';
+    xml += `  <url>\n    <loc>${baseUrl}</loc>\n    <changefreq>daily</changefreq>\n    <priority>1.0</priority>\n  </url>\n`;
 
-    // Page d'accueil - optimisée pour accessoires et bijoux de luxe
-    xml += `  <url>\n    <loc>${baseUrl}</loc>\n    <changefreq>daily</changefreq>\n    <priority>1.0</priority>\n    <image:image>\n      <image:loc>${baseUrl}/images/logo.png</image:loc>\n      <image:title>Accessoires et Bijoux de Luxe Tafchaa - Boutique en ligne d'exception</image:title>\n    </image:image>\n  </url>\n`;
-
-    // Pages principales optimisées pour accessoires
-    const mainPages = [
-      { path: '/shop', title: 'Boutique Accessoires et Bijoux de Luxe', priority: '0.9' },
-      { path: '/about', title: 'À Propos de Tafchaa - Accessoires Artisanaux', priority: '0.8' },
-      { path: '/contact', title: 'Contactez Tafchaa - Accessoires et Bijoux', priority: '0.8' }
-    ];
-    
-    mainPages.forEach(page => {
-      xml += `  <url>\n    <loc>${baseUrl}${page.path}</loc>\n    <changefreq>weekly</changefreq>\n    <priority>${page.priority}</priority>\n  </url>\n`;
-    });
-
-    // Catégories d'accessoires
     categories.forEach(cat => {
-      xml += `  <url>\n    <loc>${baseUrl}/shop/${cat.slug}</loc>\n    <changefreq>weekly</changefreq>\n    <priority>0.8</priority>\n    <image:image>\n      <image:loc>${baseUrl}/images/collection-${cat.slug}.jpg</image:loc>\n      <image:title>Collection ${cat.name} - Accessoires de Luxe</image:title>\n    </image:image>\n  </url>\n`;
+      xml += `  <url>\n    <loc>${baseUrl}/shop/${cat.slug}</loc>\n    <changefreq>weekly</changefreq>\n    <priority>0.8</priority>\n  </url>\n`;
     });
 
-    // Produits (accessoires et bijoux)
     products.forEach(prod => {
-      const lastMod = prod.updatedAt ? new Date(prod.updatedAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
+      const lastMod = prod.updatedAt.toISOString().split('T')[0];
       xml += `  <url>\n    <loc>${baseUrl}/product/${prod.slug}</loc>\n    <lastmod>${lastMod}</lastmod>\n    <changefreq>monthly</changefreq>\n    <priority>0.7</priority>\n  </url>\n`;
     });
 
@@ -136,24 +121,12 @@ app.get('/sitemap.xml', (req, res) => {
   }
 });
 
-// Middleware pour gérer les routes catch-all sans conflit
+// SSR Middleware
 app.use(async (req, res, next) => {
   const url = req.originalUrl;
+  if (url.includes('.') || url.startsWith('/api/') || url.startsWith('/uploads/')) return next();
   
-  // Skip if URL has a file extension or matches specific prefixes
-  if (url.includes('.') || url.startsWith('/api/') || url.startsWith('/uploads/')) {
-    return next();
-  }
-  
-  console.log(`SSR request for URL: ${url}`);
-
   try {
-    // Ensure vite is ready in dev
-    if (!isProd && !vite) {
-      console.warn('Vite not initialized, skipping SSR');
-      return res.status(503).end('Server initializing...');
-    }
-
     let template, render;
     if (!isProd) {
       template = fs.readFileSync(path.resolve(__dirname, '../index.html'), 'utf-8');
@@ -165,62 +138,38 @@ app.use(async (req, res, next) => {
       render = serverEntry.render;
     }
 
-    // Pre-fetch data for SSR
-      let preloadedData = {};
-      try {
-        preloadedData.settings = db.prepare('SELECT * FROM site_settings WHERE id = ?').get('main');
-        
-        if (url.startsWith('/product/')) {
-          const slug = url.split('/').pop();
-          const product = db.prepare('SELECT * FROM products WHERE slug = ?').get(slug);
-          if (product) {
-            const category = db.prepare('SELECT name FROM categories WHERE id = ?').get(product.categoryId);
-            product.categoryName = category?.name;
-            product.images = JSON.parse(product.images || '[]');
-            preloadedData.product = product;
-          }
-        } else if (url.startsWith('/shop')) {
-          const categories = db.prepare('SELECT * FROM categories ORDER BY position ASC').all();
-          preloadedData.categories = categories;
+    let preloadedData = {};
+    try {
+      preloadedData.settings = await prisma.siteSettings.findUnique({ where: { id: 'main' } });
+      if (url.startsWith('/product/')) {
+        const slug = url.split('/').pop();
+        const product = await prisma.product.findUnique({ where: { slug }, include: { category: true } });
+        if (product) {
+          product.categoryName = product.category?.name;
+          product.images = JSON.parse(product.images || '[]');
+          preloadedData.product = product;
         }
-      } catch (dbErr) {
-        console.error('SSR Database pre-fetch error:', dbErr);
-        // Continue with empty preloadedData if DB fails
+      } else if (url.startsWith('/shop')) {
+        preloadedData.categories = await prisma.category.findMany({ orderBy: { position: 'asc' } });
       }
+    } catch (dbErr) {
+      console.error('SSR Database pre-fetch error:', dbErr);
+    }
 
-      const { html: appHtml, helmet } = render(url, preloadedData);
-      console.log('SSR Render complete. URL:', url);
-      
-      const helmetTitle = helmet?.title?.toString() || '';
-      const helmetMeta = helmet?.meta?.toString() || '';
-      const helmetLink = helmet?.link?.toString() || '';
-      const helmetScript = helmet?.script?.toString() || '';
-
-      const html = template
-        .replace(/<!--app-head-->/, helmetTitle + helmetMeta + helmetLink + helmetScript)
-        .replace(/<!--app-html-->/, () => 
-          `<script>window.__PRELOADED_DATA__ = ${JSON.stringify(preloadedData)}</script>${appHtml}`
-        );
+    const { html: appHtml, helmet } = render(url, preloadedData);
+    const html = template
+      .replace(/<!--app-head-->/, (helmet?.title?.toString() || '') + (helmet?.meta?.toString() || ''))
+      .replace(/<!--app-html-->/, () => `<script>window.__PRELOADED_DATA__ = ${JSON.stringify(preloadedData)}</script>${appHtml}`);
 
     res.status(200).set({ 'Content-Type': 'text/html' }).end(html);
   } catch (e) {
-    if (!isProd && vite) vite.ssrFixStacktrace(e);
     console.error(e.stack);
     res.status(500).end(e.stack);
   }
 });
 
-// Error handler
-app.use((err, req, res, next) => {
-  console.error('Server error:', err);
-  res.status(500).json({ error: 'Internal server error' });
-});
-
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on port ${PORT}`);
-  console.log(`API available at http://localhost:${PORT}/api`);
 });
 
 export default app;
-
-

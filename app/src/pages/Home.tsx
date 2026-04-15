@@ -10,9 +10,11 @@ import Footer from '@/sections/Footer';
 import CartDrawer from '@/components/CartDrawer';
 import { Helmet } from 'react-helmet-async';
 import { useSettings } from '@/hooks/useSettings';
+import { getSiteUrl } from '@/lib/utils.ts';
 
 export default function Home() {
   const { settings } = useSettings();
+  const siteUrl = getSiteUrl();
   const title = settings?.heroTitle ? `${settings.heroTitle} | Tafchaa` : 'Tafchaa | Luxury Accessories and Jewelry - Exclusive Collection';
   const description = settings?.heroSubtitle || 'Exclusive collection of luxury accessories and jewelry: refined rings, necklaces, bracelets, earrings, and accessories. Exceptional craftsmanship for a unique style with elegant handcrafted pieces.';
 
@@ -25,12 +27,12 @@ export default function Home() {
         <meta property="og:title" content={title} />
         <meta property="og:description" content={description} />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://tafcha.com/" />
+        <meta property="og:url" content={siteUrl} />
         <meta property="og:site_name" content="Tafchaa" />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={title} />
         <meta name="twitter:description" content={description} />
-        <link rel="canonical" href="https://tafcha.com/" />
+        <link rel="canonical" href={siteUrl} />
         
         {/* Schema.org markup for luxury accessories and jewelry */}
         <script type="application/ld+json">
@@ -39,19 +41,19 @@ export default function Home() {
             "@type": "JewelryStore",
             "name": "Tafchaa",
             "description": "Exclusive collection of luxury accessories and jewelry: refined rings, necklaces, bracelets, earrings, and accessories",
-            "url": "https://tafcha.com",
-            "logo": "https://tafcha.com/favicon.svg",
-            "image": "https://tafcha.com/images/logo.png",
-            "telephone": "+213-XXX-XXXXXX",
-            "email": "contact@tafcha.com",
+            "url": siteUrl,
+            "logo": `${siteUrl}/favicon.svg`,
+            "image": `${siteUrl}/images/logo.png`,
+            "telephone": "+216-XXX-XXXXXX",
+            "email": `contact@${siteUrl.replace(/^https?:\/\//, '')}`,
             "address": {
               "@type": "PostalAddress",
               "streetAddress": "Artisan Street",
-              "addressLocality": "Algiers",
-              "addressCountry": "DZ"
+              "addressLocality": "Tunisie",
+              "addressCountry": "DNT"
             },
             "priceRange": "$$$",
-            "currenciesAccepted": "DZD",
+            "currenciesAccepted": "DNR",
             "paymentAccepted": "Cash, Credit Card",
             "itemCondition": "https://schema.org/NewCondition",
             "availabilityStarts": "2024-01-01T00:00:00Z",

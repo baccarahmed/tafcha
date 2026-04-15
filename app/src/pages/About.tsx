@@ -6,6 +6,7 @@ import Footer from '@/sections/Footer';
 import CartDrawer from '@/components/CartDrawer';
 import { useSettings } from '@/hooks/useSettings';
 import { Helmet } from 'react-helmet-async';
+import { getSiteUrl } from '@/lib/utils.ts';
 
 const values = [
   {
@@ -69,8 +70,8 @@ export default function About() {
         <meta property="og:title" content="About | Our Story & Values | Tafchaa" />
         <meta property="og:description" content="The story behind our exceptional jewelry and our commitment to quality." />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://tafcha.com/about" />
-        <link rel="canonical" href="https://tafcha.com/about" />
+        <meta property="og:url" content={`${getSiteUrl()}/about`} />
+        <link rel="canonical" href={`${getSiteUrl()}/about`} />
       </Helmet>
       <Navigation />
       

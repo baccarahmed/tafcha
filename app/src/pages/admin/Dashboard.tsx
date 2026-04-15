@@ -62,7 +62,7 @@ export default function AdminDashboard() {
       {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         {/* Revenue */}
-        <div className="bg-[#2a3a4a] rounded-lg p-6">
+        <div className="bg-[#2a3a4a]/50 rounded-lg p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="w-12 h-12 rounded-lg bg-green-500/20 flex items-center justify-center">
               <DollarSign className="w-6 h-6 text-green-400" />
@@ -78,7 +78,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* Orders */}
-        <div className="bg-[#2a3a4a] rounded-lg p-6">
+        <div className="bg-[#2a3a4a]/50 rounded-lg p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="w-12 h-12 rounded-lg bg-blue-500/20 flex items-center justify-center">
               <IconShoppingCart className="w-6 h-6 text-blue-400" />
@@ -94,7 +94,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* Users */}
-        <div className="bg-[#2a3a4a] rounded-lg p-6">
+        <div className="bg-[#2a3a4a]/50 rounded-lg p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="w-12 h-12 rounded-lg bg-purple-500/20 flex items-center justify-center">
               <IconUsers className="w-6 h-6 text-purple-400" />
@@ -110,7 +110,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* Growth */}
-        <div className="bg-[#2a3a4a] rounded-lg p-6">
+        <div className="bg-[#2a3a4a]/50 rounded-lg p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="w-12 h-12 rounded-lg bg-orange-500/20 flex items-center justify-center">
               <TrendingUp className="w-6 h-6 text-orange-400" />
@@ -130,7 +130,7 @@ export default function AdminDashboard() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Link
           to="/admin/products/new"
-          className="bg-[#2a3a4a] rounded-lg p-6 flex items-center gap-4 hover:bg-[#2a3a4a]/80 transition-colors group"
+          className="bg-[#2a3a4a]/50 rounded-lg p-6 flex items-center gap-4 hover:bg-[#2a3a4a]/80 transition-colors group"
         >
           <div className="w-14 h-14 rounded-lg bg-[#fff4e9]/10 flex items-center justify-center group-hover:bg-[#fff4e9]/20 transition-colors">
             <PackagePlus className="w-7 h-7 text-[#fff4e9]" />
@@ -143,7 +143,7 @@ export default function AdminDashboard() {
 
         <Link
           to="/admin/users"
-          className="bg-[#2a3a4a] rounded-lg p-6 flex items-center gap-4 hover:bg-[#2a3a4a]/80 transition-colors group"
+          className="bg-[#2a3a4a]/50 rounded-lg p-6 flex items-center gap-4 hover:bg-[#2a3a4a]/80 transition-colors group"
         >
           <div className="w-14 h-14 rounded-lg bg-[#fff4e9]/10 flex items-center justify-center group-hover:bg-[#fff4e9]/20 transition-colors">
             <UserPlus className="w-7 h-7 text-[#fff4e9]" />

@@ -6,6 +6,7 @@ import CartDrawer from '@/components/CartDrawer';
 import { useSettings } from '@/hooks/useSettings';
 import { toast } from 'sonner';
 import { Helmet } from 'react-helmet-async';
+import { getSiteUrl } from '@/lib/utils.ts';
 
 export default function Contact() {
   const { settings } = useSettings();
@@ -33,8 +34,8 @@ export default function Contact() {
     {
       icon: Mail,
       label: 'Email',
-      value: settings?.contactEmail || 'hello@tafcha.com',
-      href: `mailto:${settings?.contactEmail || 'hello@tafcha.com'}`,
+      value: settings?.contactEmail || `hello@${getSiteUrl().replace(/^https?:\/\//, '')}`,
+      href: `mailto:${settings?.contactEmail || `hello@${getSiteUrl().replace(/^https?:\/\//, '')}`}`,
     },
     {
       icon: Phone,
@@ -58,8 +59,8 @@ export default function Contact() {
         <meta property="og:title" content="Contact | Tafchaa" />
         <meta property="og:description" content="Contact the Tafchaa team for any questions about our jewelry or your orders." />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://tafcha.com/contact" />
-        <link rel="canonical" href="https://tafcha.com/contact" />
+        <meta property="og:url" content={`${getSiteUrl()}/contact`} />
+        <link rel="canonical" href={`${getSiteUrl()}/contact`} />
       </Helmet>
       <Navigation />
       

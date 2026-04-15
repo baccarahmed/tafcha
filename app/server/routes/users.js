@@ -1,36 +1,50 @@
 import express from 'express';
 import bcrypt from 'bcryptjs';
-import db from '../database/db.js';
+import prisma from '../database/prisma.js';
 import { authenticateToken, requireAdmin } from '../middleware/auth.js';
 
 const router = express.Router();
 
 // Get all users (admin only)
-router.get('/', authenticateToken, requireAdmin, (req, res) => {
+router.get('/', authenticateToken, requireAdmin, async (req, res) => {
   try {
     const { search, role, limit = 50, offset = 0 } = req.query;
     
-    let query = `
-      SELECT id, email, firstName, lastName, role, phone, address, city, country, createdAt
-      FROM users
-      WHERE 1=1
-    `;
-    const params = [];
-
+    const where = {};
+    
     if (search) {
-      query += ' AND (email LIKE ? OR firstName LIKE ? OR lastName LIKE ?)';
-      params.push(`%${search}%`, `%${search}%`, `%${search}%`);
+      where.OR = [
+        { email: { contains: search, mode: 'insensitive' } },
+        { firstName: { contains: search, mode: 'insensitive' } },
+        { lastName: { contains: search, mode: 'insensitive' } },
+      ];
     }
 
     if (role) {
-      query += ' AND role = ?';
-      params.push(role);
+      where.role = role.toUpperCase();
     }
 
-    query += ' ORDER BY createdAt DESC LIMIT ? OFFSET ?';
-    params.push(parseInt(limit), parseInt(offset));
+    const users = await prisma.user.findMany({
+      where,
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        role: true,
+        phone: true,
+        address: true,
+        city: true,
+        country: true,
+        createdAt: true,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+      take: parseInt(limit),
+      skip: parseInt(offset),
+    });
 
-    const users = db.prepare(query).all(...params);
     res.json({ users });
   } catch (error) {
     console.error('Get users error:', error);
@@ -39,14 +53,26 @@ router.get('/', authenticateToken, requireAdmin, (req, res) => {
 });
 
 // Get single user (admin only)
-router.get('/:id', authenticateToken, requireAdmin, (req, res) => {
+router.get('/:id', authenticateToken, requireAdmin, async (req, res) => {
   try {
     const { id } = req.params;
     
-    const user = db.prepare(`
-      SELECT id, email, firstName, lastName, role, phone, address, city, country, postalCode, createdAt
-      FROM users WHERE id = ?
-    `).get(id);
+    const user = await prisma.user.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        role: true,
+        phone: true,
+        address: true,
+        city: true,
+        country: true,
+        postalCode: true,
+        createdAt: true,
+      },
+    });
 
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
@@ -60,26 +86,42 @@ router.get('/:id', authenticateToken, requireAdmin, (req, res) => {
 });
 
 // Update user (admin only)
-router.put('/:id', authenticateToken, requireAdmin, (req, res) => {
+router.put('/:id', authenticateToken, requireAdmin, async (req, res) => {
   try {
     const { id } = req.params;
     const { firstName, lastName, role, phone, address, city, country, postalCode } = req.body;
 
-    const user = db.prepare('SELECT * FROM users WHERE id = ?').get(id);
-    if (!user) {
+    const existingUser = await prisma.user.findUnique({ where: { id } });
+    if (!existingUser) {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    db.prepare(`
-      UPDATE users 
-      SET firstName = ?, lastName = ?, role = ?, phone = ?, address = ?, city = ?, country = ?, postalCode = ?, updatedAt = CURRENT_TIMESTAMP
-      WHERE id = ?
-    `).run(firstName, lastName, role, phone, address, city, country, postalCode, id);
-
-    const updatedUser = db.prepare(`
-      SELECT id, email, firstName, lastName, role, phone, address, city, country, postalCode, createdAt
-      FROM users WHERE id = ?
-    `).get(id);
+    const updatedUser = await prisma.user.update({
+      where: { id },
+      data: {
+        firstName,
+        lastName,
+        role: role ? role.toUpperCase() : undefined,
+        phone,
+        address,
+        city,
+        country,
+        postalCode,
+      },
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        role: true,
+        phone: true,
+        address: true,
+        city: true,
+        country: true,
+        postalCode: true,
+        createdAt: true,
+      },
+    });
 
     res.json({ message: 'User updated', user: updatedUser });
   } catch (error) {
@@ -89,7 +131,7 @@ router.put('/:id', authenticateToken, requireAdmin, (req, res) => {
 });
 
 // Delete user (admin only)
-router.delete('/:id', authenticateToken, requireAdmin, (req, res) => {
+router.delete('/:id', authenticateToken, requireAdmin, async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -98,12 +140,12 @@ router.delete('/:id', authenticateToken, requireAdmin, (req, res) => {
       return res.status(400).json({ error: 'Cannot delete your own account' });
     }
 
-    const user = db.prepare('SELECT * FROM users WHERE id = ?').get(id);
+    const user = await prisma.user.findUnique({ where: { id } });
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    db.prepare('DELETE FROM users WHERE id = ?').run(id);
+    await prisma.user.delete({ where: { id } });
 
     res.json({ message: 'User deleted' });
   } catch (error) {
@@ -113,15 +155,23 @@ router.delete('/:id', authenticateToken, requireAdmin, (req, res) => {
 });
 
 // Get user stats (admin only)
-router.get('/stats/overview', authenticateToken, requireAdmin, (req, res) => {
+router.get('/stats/overview', authenticateToken, requireAdmin, async (req, res) => {
   try {
-    const totalUsers = db.prepare('SELECT COUNT(*) as count FROM users').get().count;
-    const customers = db.prepare('SELECT COUNT(*) as count FROM users WHERE role = ?').get('customer').count;
-    const admins = db.prepare('SELECT COUNT(*) as count FROM users WHERE role = ?').get('admin').count;
-    const newThisMonth = db.prepare(`
-      SELECT COUNT(*) as count FROM users 
-      WHERE createdAt >= datetime('now', 'start of month')
-    `).get().count;
+    const totalUsers = await prisma.user.count();
+    const customers = await prisma.user.count({ where: { role: 'CUSTOMER' } });
+    const admins = await prisma.user.count({ where: { role: 'ADMIN' } });
+    
+    const startOfMonth = new Date();
+    startOfMonth.setDate(1);
+    startOfMonth.setHours(0, 0, 0, 0);
+
+    const newThisMonth = await prisma.user.count({
+      where: {
+        createdAt: {
+          gte: startOfMonth,
+        },
+      },
+    });
 
     res.json({
       stats: {

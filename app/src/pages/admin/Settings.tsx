@@ -240,8 +240,9 @@ export default function AdminSettings() {
     }
   };
 
-  const inputClass = "w-full px-4 py-3 bg-[#2a3a4a] border border-[#fff4e9]/20 rounded text-[#fff4e9] \
-                      placeholder-[#fff4e9]/40 focus:outline-none focus:border-[#fff4e9]/50 transition-colors";
+  const inputClass = 'w-full px-4 py-2 bg-[#2a3a4a]/50 border border-[#fff4e9]/20 rounded-lg text-[#fff4e9] placeholder-[#fff4e9]/40 focus:outline-none focus:border-[#fff4e9]/50 transition-colors';
+  const labelClass = 'block text-sm font-medium text-[#fff4e9]/60 mb-1.5';
+  const sectionClass = 'bg-[#2a3a4a]/50 rounded-lg p-6 border border-[#fff4e9]/10 space-y-6';
 
   return (
     <AdminLayout title="Site Settings">
@@ -865,7 +866,7 @@ export default function AdminSettings() {
           </Dialog>
 
           {/* Contact Information */}
-          <section className="bg-[#2a3a4a] rounded-lg p-6 border border-[#fff4e9]/10">
+          <section className="bg-[#2a3a4a]/50 rounded-lg p-6 border border-[#fff4e9]/10">
             <h2 className="font-display text-xl text-[#fff4e9] mb-6 flex items-center gap-2">
               <Mail className="w-5 h-5 text-[#fff4e9]/60" />
               Contact Details
@@ -908,7 +909,7 @@ export default function AdminSettings() {
           </section>
 
           {/* Social Media */}
-          <section className="bg-[#2a3a4a] rounded-lg p-6 border border-[#fff4e9]/10">
+          <section className="bg-[#2a3a4a]/50 rounded-lg p-6 border border-[#fff4e9]/10">
             <h2 className="font-display text-xl text-[#fff4e9] mb-6 flex items-center gap-2">
               <Instagram className="w-5 h-5 text-[#fff4e9]/60" />
               Social Media Links

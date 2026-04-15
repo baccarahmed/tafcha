@@ -158,7 +158,7 @@ export default function ProductForm() {
     }
   };
 
-  const inputClass = "w-full px-4 py-3 bg-[#2a3a4a] border border-[#fff4e9]/20 rounded-lg text-[#fff4e9] \
+  const inputClass = "w-full px-4 py-3 bg-[#2a3a4a]/50 border border-[#fff4e9]/20 rounded-lg text-[#fff4e9] \
                       placeholder-[#fff4e9]/40 focus:outline-none focus:border-[#fff4e9]/50 transition-colors";
 
   return (
@@ -176,7 +176,7 @@ export default function ProductForm() {
           )}
 
           {/* Basic Info */}
-          <section className="bg-[#2a3a4a] rounded-lg p-6 border border-[#fff4e9]/10 space-y-4">
+          <section className="bg-[#2a3a4a]/50 rounded-lg p-6 border border-[#fff4e9]/10 space-y-4">
             <div>
               <label className="block text-sm text-[#fff4e9]/60 mb-2">Product Name</label>
               <input
@@ -203,7 +203,7 @@ export default function ProductForm() {
 
           {/* Pricing & Inventory */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <section className="bg-[#2a3a4a] rounded-lg p-6 border border-[#fff4e9]/10 space-y-4">
+            <section className="bg-[#2a3a4a]/50 rounded-lg p-6 border border-[#fff4e9]/10 space-y-4">
               <h3 className="text-[#fff4e9] font-medium border-b border-[#fff4e9]/10 pb-4 mb-4">Pricing</h3>
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -230,7 +230,7 @@ export default function ProductForm() {
               </div>
             </section>
 
-            <section className="bg-[#2a3a4a] rounded-lg p-6 border border-[#fff4e9]/10 space-y-4">
+            <section className="bg-[#2a3a4a]/50 rounded-lg p-6 border border=[#fff4e9]/10 space-y-4">
               <h3 className="text-[#fff4e9] font-medium border-b border-[#fff4e9]/10 pb-4 mb-4">Inventory</h3>
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -259,7 +259,7 @@ export default function ProductForm() {
           </div>
 
           {/* Organization */}
-          <section className="bg-[#2a3a4a] rounded-lg p-6 border border-[#fff4e9]/10 space-y-4">
+          <section className="bg-[#2a3a4a]/50 rounded-lg p-6 border border-[#fff4e9]/10 space-y-4">
             <h3 className="text-[#fff4e9] font-medium border-b border-[#fff4e9]/10 pb-4 mb-4">Organization</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
@@ -282,7 +282,7 @@ export default function ProductForm() {
                   id="featured"
                   checked={formData.featured}
                   onChange={(e) => setFormData({ ...formData, featured: e.target.checked })}
-                  className="w-5 h-5 rounded border-[#fff4e9]/20 bg-[#2a3a4a] text-[#fff4e9] focus:ring-0"
+                  className="w-5 h-5 rounded border-[#fff4e9]/20 bg-[#2a3a4a]/50 text-[#fff4e9] focus:ring-0"
                 />
                 <label htmlFor="featured" className="text-sm text-[#fff4e9]/80 cursor-pointer">
                   Featured Product
@@ -292,7 +292,7 @@ export default function ProductForm() {
           </section>
 
           {/* Images */}
-          <section className="bg-[#2a3a4a] rounded-lg p-6 border border-[#fff4e9]/10 space-y-4">
+          <section className="bg-[#2a3a4a]/50 rounded-lg p-6 border border-[#fff4e9]/10 space-y-4">
             <h3 className="text-[#fff4e9] font-medium border-b border-[#fff4e9]/10 pb-4 mb-4">Images</h3>
             <div className="flex flex-col gap-3">
               {uploadError && (

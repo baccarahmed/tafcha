@@ -181,12 +181,12 @@ export default function AdminOrders() {
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#fff4e9]"></div>
         </div>
       ) : orders.length === 0 ? (
-        <div className="text-center py-16 bg-[#2a3a4a] rounded-lg border border-[#fff4e9]/10">
+        <div className="text-center py-16 bg-[#2a3a4a]/50 rounded-lg border border-[#fff4e9]/10">
           <IconPackage className="w-12 h-12 text-[#fff4e9]/20 mx-auto mb-4" />
           <p className="text-[#fff4e9]/60">No orders found</p>
         </div>
       ) : (
-        <div className="bg-[#2a3a4a] rounded-lg overflow-hidden border border-[#fff4e9]/10">
+        <div className="bg-[#2a3a4a]/50 rounded-lg overflow-hidden border border-[#fff4e9]/10">
           <div className="overflow-x-auto">
             <table className="w-full text-left">
               <thead>
@@ -249,7 +249,7 @@ export default function AdminOrders() {
       )}
 
       <Dialog open={!!selectedId} onOpenChange={() => setSelectedId(null)}>
-        <DialogContent className="bg-[#2a3a4a] border-[#fff4e9]/20 max-w-xl max-h-[90vh] flex flex-col p-0 overflow-hidden">
+        <DialogContent className="bg-[#2a3a4a]/50 border-[#fff4e9]/20 max-w-xl max-h-[90vh] flex flex-col p-0 overflow-hidden">
           <DialogHeader className="p-6 pb-2">
             <DialogTitle className="text-[#fff4e9]">Order Details</DialogTitle>
             <DialogDescription className="text-[#fff4e9]/60">

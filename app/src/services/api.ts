@@ -1,10 +1,26 @@
 const API_URL = import.meta.env.VITE_API_URL || '';
+const DEFAULT_TIMEOUT = 10000; // 10 seconds
+
+export class APIError extends Error {
+  status?: number;
+  data?: any;
+
+  constructor(message: string, status?: number, data?: any) {
+    super(message);
+    this.status = status;
+    this.data = data;
+    this.name = 'APIError';
+    
+    // Fix for built-in classes when targeting ES5 or older
+    Object.setPrototypeOf(this, APIError.prototype);
+  }
+}
 
 // Helper to get auth token
 const getToken = () => localStorage.getItem('token');
 
-// Generic fetch wrapper
-async function fetchAPI(endpoint: string, options: RequestInit = {}) {
+// Generic fetch wrapper with timeout and retries
+async function fetchAPI(endpoint: string, options: RequestInit = {}, retries = 2) {
   const url = `${API_URL}/api${endpoint}`;
   
   const headers: Record<string, string> = {
@@ -16,19 +32,49 @@ async function fetchAPI(endpoint: string, options: RequestInit = {}) {
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
   }
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT);
   
-  const response = await fetch(url, {
-    ...options,
-    headers,
-  });
-  
-  const data = await response.json();
-  
-  if (!response.ok) {
-    throw new Error(data.error || 'Something went wrong');
+  try {
+    const response = await fetch(url, {
+      ...options,
+      headers,
+      signal: controller.signal,
+      credentials: 'include', // Send cookies
+    });
+    
+    clearTimeout(timeoutId);
+
+    const contentType = response.headers.get('content-type');
+    const isJson = contentType && contentType.includes('application/json');
+    const data = isJson ? await response.json() : await response.text();
+    
+    if (!response.ok) {
+      throw new APIError(
+        (isJson ? data.error : data) || `Request failed with status ${response.status}`,
+        response.status,
+        data
+      );
+    }
+    
+    return data;
+  } catch (error: any) {
+    clearTimeout(timeoutId);
+    
+    if (error.name === 'AbortError') {
+      throw new APIError('Request timed out', 408);
+    }
+
+    // Retry on network errors
+    if (retries > 0 && (error instanceof TypeError || error.name === 'APIError' && error.status && error.status >= 500)) {
+      console.warn(`Retrying API call to ${endpoint}... (${retries} left)`);
+      return fetchAPI(endpoint, options, retries - 1);
+    }
+
+    if (error instanceof APIError) throw error;
+    throw new APIError(error.message || 'Something went wrong');
   }
-  
-  return data;
 }
 
 // Auth API
@@ -39,6 +85,9 @@ export const authAPI = {
   login: (credentials: { email: string; password: string }) =>
     fetchAPI('/auth/login', { method: 'POST', body: JSON.stringify(credentials) }),
   
+  logout: () =>
+    fetchAPI('/auth/logout', { method: 'POST' }),
+
   getMe: () =>
     fetchAPI('/auth/me'),
   

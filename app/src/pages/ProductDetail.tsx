@@ -11,6 +11,7 @@ import { productsAPI } from '@/services/api';
 import { useSettings } from '@/hooks/useSettings';
 import { Helmet } from 'react-helmet-async';
 import { PreloadedDataContext } from '@/App';
+import { getSiteUrl } from '@/lib/utils.ts';
 
 interface Product {
   id: string;
@@ -52,19 +53,20 @@ export default function ProductDetail() {
 
   const jsonLd = useMemo(() => {
     if (!product) return null;
+    const siteUrl = getSiteUrl();
     return {
       "@context": "https://schema.org/",
       "@type": ["Product", "Jewelry"],
       "name": product.name,
       "description": product.description,
-      "image": product.images.map(img => img.startsWith('http') ? img : `https://tafcha.com${img}`),
+      "image": product.images.map(img => img.startsWith('http') ? img : `${siteUrl}${img}`),
       "sku": product.id,
       "mpn": product.id,
       "brand": {
         "@type": "Brand",
         "name": "Tafchaa",
-        "url": "https://tafcha.com",
-        "logo": "https://tafcha.com/favicon.svg"
+        "url": siteUrl,
+        "logo": `${siteUrl}/favicon.svg`
       },
       "category": product.categoryName || "Luxury Accessories and Jewelry",
       "material": "Gold, Precious Stones",
@@ -72,14 +74,14 @@ export default function ProductDetail() {
       "itemCondition": "https://schema.org/NewCondition",
       "offers": {
         "@type": "Offer",
-        "url": `https://tafcha.com/product/${product.slug}`,
+        "url": `${siteUrl}/product/${product.slug}`,
         "priceCurrency": "DZD",
         "price": product.price,
         "availability": product.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
         "seller": {
           "@type": "Organization",
           "name": "Tafchaa",
-          "url": "https://tafcha.com"
+          "url": siteUrl
         },
         "priceValidUntil": "2025-12-31"
       },

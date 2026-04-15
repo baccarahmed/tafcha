@@ -60,7 +60,7 @@ export default defineConfig(({ isSsrBuild }) => ({
             '@radix-ui/react-tooltip',
           ],
           'icons': ['lucide-react', '@tabler/icons-react'],
-          'utils': ['date-fns', 'clsx', 'tailwind-merge', 'zod'],
+          'vendor-utils': ['date-fns', 'clsx', 'tailwind-merge', 'zod'],
         },
       },
     },

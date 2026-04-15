@@ -42,14 +42,29 @@ export default function Collections() {
   const collections = (() => {
     let base = cats;
     if (featuredIds.length > 0) {
-      base = cats.filter(c => featuredIds.includes(c.id));
+      // Follow the order of featuredIds if provided
+      base = featuredIds
+        .map(id => cats.find(c => c.id === id))
+        .filter((c): c is typeof cats[0] => !!c);
     }
+    
     const picked = base.slice(0, limit);
-    return picked.map((c, idx) => ({
-      ...c,
-      rotation: idx === 0 ? -3 : idx === 1 ? 0 : 3,
-      image: c.image || (idx === 0 ? '/images/collection-minimalist.jpg' : idx === 1 ? '/images/collection-bridal.jpg' : '/images/collection-classic.jpg'),
-    }));
+    return picked.map((c, idx) => {
+      // Map default images based on slug/name instead of index
+      let defaultImage = '/images/collection-minimalist.jpg';
+      if (c.slug.includes('bridal')) defaultImage = '/images/collection-bridal.jpg';
+      else if (c.slug.includes('classic')) defaultImage = '/images/collection-classic.jpg';
+      else if (c.slug.includes('minimalist')) defaultImage = '/images/collection-minimalist.jpg';
+      // fallback for other categories based on index to keep some variety
+      else if (idx === 1) defaultImage = '/images/collection-bridal.jpg';
+      else if (idx === 2) defaultImage = '/images/collection-classic.jpg';
+
+      return {
+        ...c,
+        rotation: idx === 0 ? -3 : idx === 1 ? 0 : 3,
+        image: c.image || defaultImage,
+      };
+    });
   })();
 
   return (

@@ -22,5 +22,5 @@ Disallow: /*&sort=
 Disallow: /*&filter=
 
 # Sitemap
-Sitemap: https://tafcha.com/sitemap.xml
-Sitemap: https://www.tafcha.com/sitemap.xml
+Sitemap: https://tafchaa.com/sitemap.xml
+Sitemap: https://www.tafchaa.com/sitemap.xml
