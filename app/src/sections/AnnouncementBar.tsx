@@ -64,11 +64,11 @@ export default function AnnouncementBar() {
     let base: string[] = [];
     if (settings?.announcementText) {
       try {
-        const parsed = JSON.parse(settings.announcementText);
+        const parsed = JSON.parse(settings.announcementText as string);
         if (Array.isArray(parsed)) base = parsed;
-        else base = [settings.announcementText];
+        else base = [settings.announcementText as string];
       } catch (e) {
-        base = [settings.announcementText];
+        base = [settings.announcementText as string];
       }
     }
 

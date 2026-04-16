@@ -45,11 +45,11 @@ export default function SlideToConfirm({
 
   const handleDragEnd = async () => {
     const finalX = x.get();
-    const containerWidth = containerRef.current?.offsetWidth || 0;
+    const currentWidth = containerWidth;
     
-    if (finalX > containerWidth * 0.7) {
+    if (finalX > currentWidth * 0.7) {
       // Confirmed!
-      await controls.start({ x: containerWidth - 64 });
+      await controls.start({ x: currentWidth - 64 });
       setIsConfirmed(true);
       onConfirm();
     } else {
