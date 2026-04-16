@@ -1,0 +1,31 @@
+# Buildpack Configuration for Railway
+# Optimized for faster builds
+
+[build]
+  skip-nix-install = true
+  
+[build.environment]
+  NODE_ENV = "production"
+  NPM_CONFIG_PRODUCTION = "true"
+  NPM_CONFIG_LEGACY_PEER_DEPS = "true"
+  NODE_VERSION = "22.14.0"
+  NPM_VERSION = "10.9.0"
+
+[build.nix]
+  # Use pre-built packages to avoid compilation
+  packages = [
+    "nodejs_22",
+    "npm-10_x"
+  ]
+
+[deploy]
+  # Increase timeout for initial deployment
+  timeout = 600
+  
+  # Health check configuration
+  [[deploy.http_checks]]
+    grace_period = 30
+    interval = 30
+    method = "GET"
+    path = "/api/health"
+    timeout = 10

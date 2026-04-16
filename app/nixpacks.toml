@@ -1,14 +1,29 @@
 [variables]
 NIXPACKS_NODE_VERSION = "22.14.0"
+NODE_ENV = "production"
+NPM_CONFIG_PRODUCTION = "true"
+NPM_CONFIG_LEGACY_PEER_DEPS = "true"
 
 [phases.setup]
-aptPkgs = ["python3", "build-essential"]
+aptPkgs = ["python3", "build-essential", "ca-certificates"]
+nixPkgs = ["nodejs_22", "npm-10_x"]
 
 [phases.install]
-cmds = ["npm install"]
+cmds = [
+  "npm ci --production=false --legacy-peer-deps",
+  "npx prisma generate"
+]
 
 [phases.build]
-cmds = ["npm run build"]
+cmds = [
+  "npm run build:client",
+  "npm run build:server"
+]
+dependsOn = ["install"]
 
 [start]
 cmd = "npm run server"
+
+[deploy]
+restartPolicy = "ON_FAILURE"
+maxRetries = 3
