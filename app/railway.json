@@ -1,12 +1,8 @@
 {
-  "$schema": "https://railway.app/schema.json",
   "build": {
     "builder": "NIXPACKS",
     "buildCommand": "npm install --legacy-peer-deps && npm run postinstall && npm run build",
-    "startCommand": "npm run start",
-    "node": {
-      "version": "22.14.0"
-    }
+    "startCommand": "npm run start"
   },
   "deploy": {
     "numReplicas": 1,
