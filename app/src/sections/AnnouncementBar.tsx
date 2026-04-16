@@ -61,27 +61,26 @@ export default function AnnouncementBar() {
   }, [activePromos]);
 
   const announcements = useMemo(() => {
-    let base = [];
+    let base: string[] = [];
     if (settings?.announcementText) {
       try {
-        const parsed = typeof settings.announcementText === 'string' 
-          ? JSON.parse(settings.announcementText) 
-          : settings.announcementText;
-        base = Array.isArray(parsed) ? parsed : [parsed];
+        const parsed = JSON.parse(settings.announcementText);
+        if (Array.isArray(parsed)) base = parsed;
+        else base = [settings.announcementText];
       } catch (e) {
-        console.error('Failed to parse announcements:', e);
+        base = [settings.announcementText];
       }
     }
 
-    // Add promotion announcements
-    activePromos.forEach(p => {
-      if (p.announcementText) {
-        base.push(p.announcementText);
-      }
-    });
-
+    if (activePromos && activePromos.length > 0) {
+      const promoTexts = activePromos
+        .map((p: any) => p.announcementText || `${p.name} - ${p.percentage}% OFF!`)
+        .filter(Boolean);
+      base = [...base, ...promoTexts];
+    }
+    
     return base;
-  }, [settings?.announcementText, activePromos]);
+  }, [settings, activePromos]);
 
   if ((settings?.announcementEnabled === 0 || settings?.announcementEnabled === false) && !activePromos.length) {
     return null;

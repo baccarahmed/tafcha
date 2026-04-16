@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { motion, useMotionValue, useTransform, useAnimation } from 'framer-motion';
 import { ChevronRight, Check } from 'lucide-react';
 
@@ -32,8 +32,16 @@ export default function SlideToConfirm({
     }
   }, []);
 
+  const [containerWidth, setContainerWidth] = useState(300);
+
+  useEffect(() => {
+    if (containerRef.current) {
+      setContainerWidth(containerRef.current.offsetWidth);
+    }
+  }, []);
+
   const opacity = useTransform(x, [0, 150], [1, 0]);
-  const fillWidth = useTransform(x, [0, containerRef.current?.offsetWidth || 300], ["0%", "100%"]);
+  const fillWidth = useTransform(x, [0, containerWidth], ["0%", "100%"]);
 
   const handleDragEnd = async () => {
     const finalX = x.get();
