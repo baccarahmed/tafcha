@@ -102,7 +102,7 @@ export default function Shop() {
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-US', {
       minimumFractionDigits: 0,
-    }).format(price) + ' DNR';
+    }).format(price) + ' DNT';
   };
 
   const sortedProducts = useMemo(() => {
@@ -121,12 +121,12 @@ export default function Shop() {
   }, [products, sortBy]);
 
   const shopTitle = useMemo(() => {
-    return categoryName ? `${categoryName} Accessories | Luxury Jewelry and Accessories | Tafchaa` : 'Luxury Accessories and Jewelry | Tafchaa Boutique';
+    return categoryName ? `${categoryName} | ETHNIC DECO` : 'Shop | ETHNIC DECO';
   }, [categoryName]);
 
   const shopDescription = useMemo(() => {
     return categoryName 
-      ? `Discover our exceptional ${categoryName} accessories: elegant jewelry, refined accessories, and unique pieces to enhance your style. Tafchaa luxury collection.`       : "Exclusive collection of luxury accessories and jewelry: refined rings, necklaces, bracelets, earrings, and accessories. Exceptional craftsmanship for a unique style.";
+      ? `Discover our exceptional ${categoryName} accessories: elegant jewelry, refined accessories, and unique pieces to enhance your style. ETHNIC DECO luxury collection.`       : "Exclusive collection of luxury accessories and jewelry: refined rings, necklaces, bracelets, earrings, and accessories. Exceptional craftsmanship for a unique style.";
   }, [categoryName]);
 
   const categorySEOContent = useMemo(() => {
@@ -134,20 +134,20 @@ export default function Shop() {
     
     const content: Record<string, { title: string, text: string }> = {
       'shop_root': {
-        title: "Tafchaa: Exceptional Accessories and Jewelry",
-        text: "Welcome to the world of Tafchaa, your destination of choice for exceptional accessories and jewelry blending traditional craftsmanship with modern aesthetics. Our online boutique offers a rigorous selection of rings, necklaces, bracelets, earrings, and other accessories, each designed to tell a unique story. Whether you're looking for a memorable gift or a centerpiece for your own collection, our comprehensive catalog will seduce you with its diversity and impeccable quality. We are committed to using only the finest materials, from pure gold to certified gemstones, to ensure the longevity and brilliance of each creation. Explore our different collections, from sleek minimalism to timeless classics, and discover why Tafchaa has become the symbol of refined elegance. Our passion for perfection is reflected in every detail, ensuring an online shopping experience worthy of the exclusivity of our accessories and jewelry."
+        title: "ETHNIC DECO: Exceptional Accessories and Jewelry",
+        text: "Welcome to the world of ETHNIC DECO, your destination of choice for exceptional accessories and jewelry blending traditional craftsmanship with modern aesthetics. Our online boutique offers a rigorous selection of rings, necklaces, bracelets, earrings, and other accessories, each designed to tell a unique story. Whether you're looking for a memorable gift or a centerpiece for your own collection, our comprehensive catalog will seduce you with its diversity and impeccable quality. We are committed to using only the finest materials, from pure gold to certified gemstones, to ensure the longevity and brilliance of each creation. Explore our different collections, from sleek minimalism to timeless classics, and discover why ETHNIC DECO has become the symbol of refined elegance. Our passion for perfection is reflected in every detail, ensuring an online shopping experience worthy of the exclusivity of our accessories and jewelry."
       },
       'Minimalist Elegance': {
-        title: "Luxury Minimalist Accessories - Pure Elegance | Tafchaa",
+        title: "Luxury Minimalist Accessories - Pure Elegance | ETHNIC DECO",
         text: "Discover our collection of luxury minimalist accessories, designed for those who appreciate beauty in simplicity. Each accessory in our 'Minimalist Elegance' range is a celebration of clean lines and timeless designs. Whether you're looking for delicate accessories for everyday use or subtle pieces for a touch of sophistication, our selection will meet your expectations. Our master jewelers put all their expertise into creating accessories that don't dominate your style but accentuate it with natural grace. Using the highest quality materials, we guarantee that each accessory remains a classic in your collection for years to come. Minimalist elegance is not just a trend; it's a lifestyle that prioritizes the quality of accessories over quantity."
       },
       'Bridal Bliss': {
         title: "Bridal Brilliance: Jewelry for the Most Precious Day",
-        text: "Your wedding day deserves uncompromising perfection. Our 'Bridal Bliss' collection offers exquisite wedding jewelry, ranging from sparkling engagement rings to refined ceremonial sets. Each diamond and gemstone is selected with meticulous attention to ensure incomparable brilliance under the spotlight of your big day. We understand that bridal jewelry is more than just accessories; they are symbols of eternal love and memories that will be passed down from generation to generation. Explore our classic and contemporary designs, created to complement every dress style and wedding theme. From the fineness of pearls to the majesty of platinum, let Tafchaa add a touch of magic and luxury to your celebration of love."
+        text: "Your wedding day deserves uncompromising perfection. Our 'Bridal Bliss' collection offers exquisite wedding jewelry, ranging from sparkling engagement rings to refined ceremonial sets. Each diamond and gemstone is selected with meticulous attention to ensure incomparable brilliance under the spotlight of your big day. We understand that bridal jewelry is more than just accessories; they are symbols of eternal love and memories that will be passed down from generation to generation. Explore our classic and contemporary designs, created to complement every dress style and wedding theme. From the fineness of pearls to the majesty of platinum, let ETHNIC DECO add a touch of magic and luxury to your celebration of love."
       },
       'Timeless Classics': {
         title: "Timeless Classics: Jewelry that Transcends Eras",
-        text: "Some pieces never go out of style. Our 'Timeless Classics' collection pays tribute to iconic designs that have defined jewelry across decades. These pieces are the pillars of any serious collection, offering versatility that suits both gala evenings and professional meetings. By investing in a timeless classic from Tafchaa, you choose a piece whose aesthetic relevance is guaranteed for centuries to come. We revisit traditional shapes with a modern touch, ensuring a perfect balance between heritage and innovation. Each bracelet, earring, or pendant in this collection tells a story of enduring sophistication. Discover the assurance that only a true classic can offer and make elegance your permanent signature."
+        text: "Some pieces never go out of style. Our 'Timeless Classics' collection pays tribute to iconic designs that have defined jewelry across decades. These pieces are the pillars of any serious collection, offering versatility that suits both gala evenings and professional meetings. By investing in a timeless classic from ETHNIC DECO, you choose a piece whose aesthetic relevance is guaranteed for centuries to come. We revisit traditional shapes with a modern touch, ensuring a perfect balance between heritage and innovation. Each bracelet, earring, or pendant in this collection tells a story of enduring sophistication. Discover the assurance that only a true classic can offer and make elegance your permanent signature."
       }
     };
 
@@ -157,16 +157,16 @@ export default function Shop() {
   return (
     <div className="min-h-screen bg-[--site-bg]">
       <Helmet>
-        <title>{shopTitle || 'Luxury Accessories and Jewelry | Tafchaa Boutique'}</title>
+        <title>{shopTitle || 'Luxury Accessories and Jewelry | ETHNIC DECO Boutique'}</title>
         <meta name="description" content={shopDescription || 'Exclusive collection of luxury accessories and jewelry: refined rings, necklaces, bracelets, earrings, and accessories. Exceptional craftsmanship for a unique style.'} />
-        <meta name="keywords" content="accessories, jewelry, luxury, rings, necklaces, bracelets, earrings, fine jewelry, fashion accessories, handcrafted jewelry, Tafchaa" />
-        <meta property="og:title" content={shopTitle || 'Luxury Accessories and Jewelry | Tafchaa Boutique'} />
+        <meta name="keywords" content="accessories, jewelry, luxury, rings, necklaces, bracelets, earrings, fine jewelry, fashion accessories, handcrafted jewelry, ETHNIC DECO" />
+        <meta property="og:title" content={shopTitle || 'Luxury Accessories and Jewelry | ETHNIC DECO Boutique'} />
         <meta property="og:description" content={shopDescription || 'Exclusive collection of luxury accessories and jewelry: refined rings, necklaces, bracelets, earrings, and accessories. Exceptional craftsmanship for a unique style.'} />
         <meta property="og:type" content="website" />
         <meta property="og:url" content={`${getSiteUrl()}/shop${selectedCategory !== 'all' ? `/${selectedCategory}` : ''}`} />
-        <meta property="og:site_name" content="Tafchaa" />
+        <meta property="og:site_name" content="ETHNIC DECO" />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content={shopTitle || 'Luxury Accessories and Jewelry | Tafchaa Boutique'} />
+        <meta name="twitter:title" content={shopTitle || 'Luxury Accessories and Jewelry | ETHNIC DECO Boutique'} />
         <meta name="twitter:description" content={shopDescription || 'Exclusive collection of luxury accessories and jewelry: refined rings, necklaces, bracelets, earrings, and accessories.'} />
         <link rel="canonical" href={`${getSiteUrl()}/shop${selectedCategory !== 'all' ? `/${selectedCategory}` : ''}`} />
       </Helmet>
@@ -294,7 +294,7 @@ export default function Shop() {
                 <div className={`relative overflow-hidden bg-[#fff4e9]/5 rounded-lg mb-4 ${viewMode === 'list' ? 'w-48 h-48 mb-0 flex-shrink-0' : 'aspect-[3/4]'}`}>
                   <img
                     src={product.images[0] || '/images/placeholder.jpg'}
-                    alt={`${product.name} - ${product.categoryName || 'Bijou'} Tafchaa`}
+                    alt={`${product.name} - ${product.categoryName || 'Bijou'} ETHNIC DECO`}
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                   />
                   {/* Hover Overlay */}
@@ -319,7 +319,7 @@ export default function Shop() {
                 </div>
 
                 {/* Info */}
-                <div className={`flex-1 ${viewMode === 'list' ? 'flex flex-col justify-center' : ''}`}>
+                <div className={`flex-1 ${viewMode === 'list' ? 'flex flex-col justify-center' : 'text-center'}`}>
                   {product.categoryName && (
                     <p className="text-xs text-[#fff4e9]/50 uppercase tracking-wider mb-1">
                       {product.categoryName}
@@ -328,7 +328,7 @@ export default function Shop() {
                   <h3 className="font-display text-lg text-[#fff4e9] group-hover:text-[#f3e7d9] transition-colors mb-2">
                     {product.name}
                   </h3>
-                  <div className="flex items-center gap-2 mb-4">
+                  <div className={`flex items-center gap-2 mb-4 ${viewMode === 'list' ? '' : 'justify-center'}`}>
                     <span className="text-[#fff4e9] font-medium">
                       {formatPrice(product.price)}
                     </span>

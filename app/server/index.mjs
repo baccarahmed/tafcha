@@ -97,7 +97,7 @@ app.get('/sitemap.xml', async (req, res) => {
   try {
     const products = await prisma.product.findMany({ where: { active: true }, select: { slug: true, updatedAt: true } });
     const categories = await prisma.category.findMany({ select: { slug: true, name: true } });
-    const baseUrl = process.env.BASE_URL || 'https://tafchaa.com';
+    const baseUrl = process.env.BASE_URL || 'https://ethnicdeco.com';
 
     let xml = '<?xml version="1.0" encoding="UTF-8"?>\n';
     xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">\n';
@@ -138,7 +138,13 @@ app.use(async (req, res, next) => {
       render = serverEntry.render;
     }
 
-    let preloadedData = {};
+    const protocol = req.headers['x-forwarded-proto'] || req.protocol;
+    const host = req.headers['host'];
+    const currentBaseUrl = `${protocol}://${host}`;
+
+    let preloadedData = {
+      baseUrl: currentBaseUrl
+    };
     try {
       preloadedData.settings = await prisma.siteSettings.findUnique({ where: { id: 'main' } });
       if (url.startsWith('/product/')) {

@@ -45,7 +45,7 @@ export default function ProductDetail() {
   const { settings } = useSettings();
 
   const seoDescription = useMemo(() => {
-    if (!product?.description) return "Discover this exclusive accessory or jewelry on Tafchaa.";
+    if (!product?.description) return "Discover this exclusive accessory or jewelry on ETHNIC DECO.";
     // Limit to 150-160 characters as requested
     const desc = product.description.replace(/<[^>]*>?/gm, ''); // Remove any HTML tags if present
     return desc.substring(0, 155).trim() + (desc.length > 155 ? '...' : '');
@@ -64,7 +64,7 @@ export default function ProductDetail() {
       "mpn": product.id,
       "brand": {
         "@type": "Brand",
-        "name": "Tafchaa",
+        "name": "ETHNIC DECO",
         "url": siteUrl,
         "logo": `${siteUrl}/favicon.svg`
       },
@@ -75,12 +75,12 @@ export default function ProductDetail() {
       "offers": {
         "@type": "Offer",
         "url": `${siteUrl}/product/${product.slug}`,
-        "priceCurrency": "DZD",
+        "priceCurrency": "DNT",
         "price": product.price,
         "availability": product.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
         "seller": {
           "@type": "Organization",
-          "name": "Tafchaa",
+          "name": "ETHNIC DECO",
           "url": siteUrl
         },
         "priceValidUntil": "2025-12-31"
@@ -104,7 +104,7 @@ export default function ProductDetail() {
         {
           "@type": "PropertyValue",
           "name": "Collection",
-          "value": "Tafchaa Luxury Accessories"
+          "value": "ETHNIC DECO Luxury Accessories"
         }
       ]
     };
@@ -174,15 +174,15 @@ export default function ProductDetail() {
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-US', {
       minimumFractionDigits: 0,
-    }).format(price) + ' DNR';
+    }).format(price) + ' DNT';
   };
 
   if (isLoading) {
     return (
       <div className="min-h-screen bg-[--site-bg]">
         <Helmet>
-          <title>Loading... | Tafchaa</title>
-          <meta name="description" content="Discover our exceptional jewelry on Tafchaa." />
+          <title>Loading... | ETHNIC DECO</title>
+          <meta name="description" content="Discover our exceptional jewelry on ETHNIC DECO." />
         </Helmet>
         <Navigation />
         <div className="pt-32 section-padding">
@@ -206,27 +206,30 @@ export default function ProductDetail() {
   return (
     <div className="min-h-screen bg-[--site-bg]">
       <Helmet>
-        <title>{`${product.name} - Luxury Accessory | ${product.categoryName || 'Jewelry'} | Tafchaa`}</title>
+        <title>{`${product.name} - Luxury Accessory | ${product.categoryName || 'Jewelry'} | ETHNIC DECO`}</title>
         <meta name="description" content={seoDescription} />
-        <meta name="keywords" content={`${product.name}, accessories, jewelry, luxury, ${product.categoryName || 'accessory'}, Tafchaa, fine jewelry, fashion accessory`} />
-        <meta property="og:title" content={`${product.name} - Luxury Accessory | ${product.categoryName || 'Jewelry'} | Tafchaa`} />
+        <meta name="keywords" content={`${product.name}, accessories, jewelry, luxury, ${product.categoryName || 'accessory'}, ETHNIC DECO, fine jewelry, fashion accessory`} />
+        <meta property="og:title" content={`${product.name} - Luxury Accessory | ${product.categoryName || 'Jewelry'} | ETHNIC DECO`} />
         <meta property="og:description" content={seoDescription} />
         <meta property="og:image" content={product.images?.[0]} />
-        <meta property="og:url" content={`https://tafcha.com/product/${product.slug}`} />
+        <meta property="og:url" content={`${getSiteUrl()}/product/${product.slug}`} />
         <meta property="og:type" content="product" />
-        <meta property="og:site_name" content="Tafchaa" />
+        <meta property="og:site_name" content="ETHNIC DECO" />
         <meta property="product:price:amount" content={product.price.toString()} />
-        <meta property="product:price:currency" content="DZD" />
+        <meta property="product:price:currency" content="DNT" />
         <meta property="product:availability" content={product.stock > 0 ? "in stock" : "out of stock"} />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content={`${product.name} - Luxury Accessory | Tafchaa`} />
+        <meta name="twitter:title" content={`${product.name} - Luxury Accessory | ETHNIC DECO`} />
         <meta name="twitter:description" content={seoDescription} />
         <meta name="twitter:image" content={product.images?.[0]} />
-        <link rel="canonical" href={`https://tafcha.com/product/${product.slug}`} />
+        <link rel="canonical" href={`${getSiteUrl()}/product/${product.slug}`} />
         {jsonLd && (
-          <script type="application/ld+json">
-            {JSON.stringify(jsonLd)}
-          </script>
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify(jsonLd)
+            }}
+          />
         )}
       </Helmet>
       <Navigation />
@@ -250,7 +253,7 @@ export default function ProductDetail() {
             <div className="aspect-square bg-[#fff4e9]/5 rounded-lg overflow-hidden flex justify-center items-center">
               <img
                 src={product.images?.[selectedImage] || '/images/placeholder.jpg'}
-                alt={`${product.name} - ${product.categoryName || 'Accessory or Jewelry'} Tafchaa - View ${selectedImage + 1}`}
+                alt={`${product.name} - ${product.categoryName || 'Accessory or Jewelry'} ETHNIC DECO - View ${selectedImage + 1}`}
                 className="w-full h-full object-cover"
               />
             </div>
@@ -309,7 +312,7 @@ export default function ProductDetail() {
             {/* Description */}
             <div className="prose prose-invert max-w-none text-center lg:text-left">
               <p className="text-[#fff4e9]/70 leading-relaxed">
-                {product.description || `This ${product.categoryName || 'luxury'} accessory from the Tafchaa collection embodies elegance and refinement. Each piece is carefully designed to enhance your style with exceptional accessories. Discover the refined craftsmanship and precious materials that make this accessory a unique jewel.`}
+                {product.description || `This ${product.categoryName || 'luxury'} accessory from the ETHNIC DECO collection embodies elegance and refinement. Each piece is carefully designed to enhance your style with exceptional accessories. Discover the refined craftsmanship and precious materials that make this accessory a unique jewel.`}
               </p>
               <p className="text-[#fff4e9]/60 text-sm mt-4">
                 {`This ${product.categoryName || 'luxury'} accessory is part of our exclusive collection of handcrafted accessories and jewelry. Each piece is unique and designed for those who appreciate refined accessories and timeless elegance.`}
@@ -385,7 +388,7 @@ export default function ProductDetail() {
             {/* Features */}
             <div className="pt-6 border-t border-[#fff4e9]/10">
               <div className="grid grid-cols-2 gap-4 text-sm text-[#fff4e9]/60">
-                <div>✓ Free shipping over {(settings?.freeShippingThresholdDNR ?? 100)} DNR</div>
+                <div>✓ Free shipping over {(settings?.freeShippingThresholdDNT ?? 100)} DNT</div>
                 <div>✓ 30-day returns</div>
                 <div>✓ Secure checkout</div>
                 <div>✓ Gift packaging</div>

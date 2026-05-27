@@ -7,7 +7,7 @@ const pngData =
 
 async function loginAsAdmin() {
   const res = await request(app).post('/api/auth/login').send({
-    email: 'admin@tafchaa.com',
+    email: 'admin@ethnicdeco.com',
     password: 'admin123',
   })
   return res.body.token

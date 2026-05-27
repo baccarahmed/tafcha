@@ -207,24 +207,24 @@ export default function ProductForm() {
               <h3 className="text-[#fff4e9] font-medium border-b border-[#fff4e9]/10 pb-4 mb-4">Pricing</h3>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm text-[#fff4e9]/60 mb-2">Price (DNR)</label>
+                  <label className="block text-sm text-[#fff4e9]/60 mb-2">Price (DNT)</label>
                   <input
                     type="number"
                     required
                     value={formData.price}
                     onChange={(e) => setFormData({ ...formData, price: e.target.value })}
                     className={inputClass}
-                    placeholder="0 DNR"
+                    placeholder="0 DNT"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm text-[#fff4e9]/60 mb-2">Compare Price (DNR)</label>
+                  <label className="block text-sm text-[#fff4e9]/60 mb-2">Compare Price (DNT)</label>
                   <input
                     type="number"
                     value={formData.comparePrice}
                     onChange={(e) => setFormData({ ...formData, comparePrice: e.target.value })}
                     className={inputClass}
-                    placeholder="0 DNR"
+                    placeholder="0 DNT"
                   />
                 </div>
               </div>

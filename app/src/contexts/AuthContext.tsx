@@ -1,12 +1,12 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
-import { authAPI } from '@/services/api';
+import { authAPI, APIError } from '@/services/api';
 
 interface User {
   id: string;
   email: string;
   firstName?: string;
   lastName?: string;
-  role: 'customer' | 'admin';
+  role: 'CUSTOMER' | 'ADMIN';
   phone?: string;
   address?: string;
   city?: string;
@@ -44,7 +44,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(data.user);
     } catch (error) {
       // Don't log error for 401 as it's expected when not logged in
-      if (error instanceof Error && !error.message.includes('401')) {
+      const isAuthError = (error instanceof APIError && error.status === 401) || 
+                          (error instanceof Error && (error.message.includes('401') || error.message.includes('Access token required')));
+      
+      if (!isAuthError) {
         console.error('Failed to refresh user:', error);
       }
       localStorage.removeItem('token'); // Clean up old token if exists
@@ -91,7 +94,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     user,
     isLoading,
     isAuthenticated: !!user,
-    isAdmin: user?.role === 'admin',
+    isAdmin: user?.role === 'ADMIN',
     login,
     register,
     logout,

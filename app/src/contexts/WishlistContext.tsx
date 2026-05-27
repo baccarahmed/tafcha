@@ -20,7 +20,7 @@ interface WishlistContextType {
 
 const WishlistContext = createContext<WishlistContextType | undefined>(undefined);
 
-const WISHLIST_STORAGE_KEY = 'tafchaa-wishlist';
+const WISHLIST_STORAGE_KEY = 'ethnicdeco-wishlist';
 
 export function WishlistProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<WishlistItem[]>(() => {

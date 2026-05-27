@@ -86,8 +86,9 @@ export default function Footer() {
             <Link to="/" className="inline-block mb-6">
               <img
                 src="/images/logo.png"
-                alt="Tafchaa"
-                className="h-12 w-auto object-contain"
+                alt="ETHNIC DECO"
+                className="object-contain"
+                style={{ height: '220px', width: '366px' }}
               />
             </Link>
             <p className="text-[#fff4e9]/60 text-sm mb-6 max-w-xs mx-auto md:mx-0">
@@ -247,7 +248,7 @@ export default function Footer() {
           style={{ transitionDelay: '800ms' }}
         >
           <p className="text-[#fff4e9]/40 text-sm">
-            © {new Date().getFullYear()} Tafchaa. Made with{' '}
+            © {new Date().getFullYear()} ETHNIC DECO. Made with{' '}
             <span className="text-red-400">♥</span> for elegant moments.
           </p>
         </div>

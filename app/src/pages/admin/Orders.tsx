@@ -125,7 +125,7 @@ export default function AdminOrders() {
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-US', {
       minimumFractionDigits: 0,
-    }).format(price) + ' DNR';
+    }).format(price) + ' DNT';
   };
 
   const formatDate = (date: string) => {

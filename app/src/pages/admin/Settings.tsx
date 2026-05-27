@@ -28,8 +28,8 @@ export default function AdminSettings() {
     socialFacebook: '',
     socialTwitter: '',
     socialYoutube: '',
-    freeShippingThresholdDNR: 100,
-    shippingCostDNR: 10,
+    freeShippingThresholdDNT: 100,
+    shippingCostDNT: 10,
     announcementEnabled: true,
     announcementBgColor: '#fff4e9',
     announcementTextColor: '#3d4d5d',
@@ -116,8 +116,8 @@ export default function AdminSettings() {
         socialFacebook: settings.socialFacebook || '',
         socialTwitter: settings.socialTwitter || '',
         socialYoutube: settings.socialYoutube || '',
-        freeShippingThresholdDNR: settings.freeShippingThresholdDNR ?? 100,
-        shippingCostDNR: settings.shippingCostDNR ?? 10,
+        freeShippingThresholdDNT: settings.freeShippingThresholdDNT ?? 100,
+        shippingCostDNT: settings.shippingCostDNT ?? 10,
         announcementEnabled: Boolean(settings.announcementEnabled ?? true),
         announcementBgColor: settings.announcementBgColor || '#fff4e9',
         announcementTextColor: settings.announcementTextColor || '#3d4d5d',
@@ -694,22 +694,22 @@ export default function AdminSettings() {
             <h2 className="font-display text-xl text-[#fff4e9] mb-2">Shipping</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm text-[#fff4e9]/60 mb-2">Free shipping threshold (DNR)</label>
+                <label className="block text-sm text-[#fff4e9]/60 mb-2">Free shipping threshold (DNT)</label>
                 <input
                   type="number"
-                  value={formData.freeShippingThresholdDNR}
-                  onChange={(e) => setFormData({ ...formData, freeShippingThresholdDNR: Number(e.target.value) })}
+                  value={formData.freeShippingThresholdDNT}
+                  onChange={(e) => setFormData({ ...formData, freeShippingThresholdDNT: Number(e.target.value) })}
                   className={inputClass}
                   placeholder="100"
                   min={0}
                 />
               </div>
               <div>
-                <label className="block text-sm text-[#fff4e9]/60 mb-2">Shipping cost (DNR)</label>
+                <label className="block text-sm text-[#fff4e9]/60 mb-2">Shipping cost (DNT)</label>
                 <input
                   type="number"
-                  value={formData.shippingCostDNR}
-                  onChange={(e) => setFormData({ ...formData, shippingCostDNR: Number(e.target.value) })}
+                  value={formData.shippingCostDNT}
+                  onChange={(e) => setFormData({ ...formData, shippingCostDNT: Number(e.target.value) })}
                   className={inputClass}
                   placeholder="10"
                   min={0}

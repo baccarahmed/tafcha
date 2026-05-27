@@ -14,14 +14,14 @@ const testimonials = [
     name: 'Emma Thompson',
     avatar: '/images/avatar-2.jpg',
     rating: 5,
-    text: 'Tafchaa made my wedding day even more special. The bridal collection is breathtaking, and the customer service was exceptional. Highly recommend!',
+    text: 'ETHNIC DECO made my wedding day even more special. The bridal collection is breathtaking, and the customer service was exceptional. Highly recommend!',
   },
   {
     id: 3,
     name: 'Olivia Chen',
     avatar: '/images/avatar-3.jpg',
     rating: 5,
-    text: 'I\'ve been searching for timeless pieces that don\'t break the bank, and Tafchaa delivered. The packaging is beautiful too - perfect for gifting!',
+    text: 'I\'ve been searching for timeless pieces that don\'t break the bank, and ETHNIC DECO delivered. The packaging is beautiful too - perfect for gifting!',
   },
   {
     id: 4,
@@ -35,7 +35,7 @@ const testimonials = [
     name: 'Sophie Williams',
     avatar: '/images/avatar-5.jpg',
     rating: 5,
-    text: 'The attention to detail in every piece is remarkable. You can tell these are crafted with love and care. Tafchaa has become my go-to for all jewelry gifts.',
+    text: 'The attention to detail in every piece is remarkable. You can tell these are crafted with love and care. ETHNIC DECO has become my go-to for all jewelry gifts.',
   },
 ];
 
@@ -148,7 +148,7 @@ export default function Testimonials() {
                       <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-[#fff4e9]/30">
                         <img
                           src={testimonial.avatar}
-                          alt={`Témoignage client Tafchaa - ${testimonial.name}`}
+                          alt={`Témoignage client ETHNIC DECO - ${testimonial.name}`}
                           className="w-full h-full object-cover"
                         />
                       </div>

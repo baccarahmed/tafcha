@@ -164,13 +164,13 @@ const Logo = () => {
       to="/"
       className="relative z-20 flex items-center space-x-2 py-1 text-sm font-normal"
     >
-      <img src="/images/logo.png" alt="Tafchaa" className="h-10 w-auto" />
+      <img src="/images/logo.png" alt="ETHNIC DECO" className="h-16 w-auto" />
       <motion.span
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         className="font-display text-xl text-[#fff4e9] whitespace-pre"
       >
-        Tafchaa
+        ETHNIC DECO
       </motion.span>
     </Link>
   );
@@ -182,7 +182,7 @@ const LogoIcon = () => {
       to="/"
       className="relative z-20 flex items-center space-x-2 py-1 text-sm font-normal"
     >
-      <img src="/images/logo.png" alt="Tafchaa" className="h-8 w-auto" />
+      <img src="/images/logo.png" alt="ETHNIC DECO" className="h-12 w-auto" />
     </Link>
   );
 };

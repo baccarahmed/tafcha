@@ -20,7 +20,7 @@ export default function Wishlist() {
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('fr-FR', {
       minimumFractionDigits: 0,
-    }).format(price) + ' DNR';
+    }).format(price) + ' DNT';
   };
 
   const handleAddToCart = (productId: string) => {

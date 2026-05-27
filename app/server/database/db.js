@@ -8,7 +8,7 @@ import { v4 as uuidv4 } from 'uuid';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const dbPath = path.join(__dirname, 'tafchaa.db');
+const dbPath = path.join(__dirname, 'ethnicdeco.db');
 console.log(`Attempting to open database at: ${dbPath}`);
 let db;
 try {
@@ -146,7 +146,7 @@ function initDatabase() {
   db.exec(`
     CREATE TABLE IF NOT EXISTS site_settings (
       id TEXT PRIMARY KEY DEFAULT 'main',
-      heroTitle TEXT DEFAULT 'Jewelries That Radiates Charm',
+      heroTitle TEXT DEFAULT 'Luxury Design With Stones',
       heroSubtitle TEXT DEFAULT 'Discover elegant, one-of-a-kind jewelry crafted to elevate your everyday moments and unforgettable occasions.',
       heroVideo TEXT,
       heroImage TEXT,
@@ -165,7 +165,7 @@ function initDatabase() {
       newsletterEnabled BOOLEAN DEFAULT 1,
       maintenanceMode BOOLEAN DEFAULT 0,
       announcementEnabled BOOLEAN DEFAULT 1,
-      announcementText TEXT DEFAULT '["✨ Free delivery on orders over 10,000 DZD!","💎 New collection available now"]',
+      announcementText TEXT DEFAULT '["✨ Free delivery on orders over 10,000 DNT!","💎 New collection available now"]',
       announcementBgColor TEXT DEFAULT '#fff4e9',
       announcementTextColor TEXT DEFAULT '#3d4d5d',
       updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP
@@ -180,8 +180,8 @@ function initDatabase() {
     const hasLimit = info.some(c => c.name === 'featuredLimit');
     const hasAnimated = info.some(c => c.name === 'animatedBackground');
     const hasAnimatedBlur = info.some(c => c.name === 'animatedBlur');
-    const hasFreeShip = info.some(c => c.name === 'freeShippingThresholdDNR');
-    const hasShipCost = info.some(c => c.name === 'shippingCostDNR');
+    const hasFreeShip = info.some(c => c.name === 'freeShippingThresholdDNR' || c.name === 'freeShippingThresholdDNT');
+    const hasShipCost = info.some(c => c.name === 'shippingCostDNR' || c.name === 'shippingCostDNT');
     const hasSmokey = info.some(c => c.name === 'smokeyColor');
     const hasAnnounceEnabled = info.some(c => c.name === 'announcementEnabled');
     const hasAnnounceText = info.some(c => c.name === 'announcementText');
@@ -207,10 +207,10 @@ function initDatabase() {
       db.exec(`ALTER TABLE site_settings ADD COLUMN animatedBlur TEXT DEFAULT 'sm'`);
     }
     if (!hasFreeShip) {
-      db.exec(`ALTER TABLE site_settings ADD COLUMN freeShippingThresholdDNR REAL DEFAULT 100`);
+      db.exec(`ALTER TABLE site_settings ADD COLUMN freeShippingThresholdDNT REAL DEFAULT 100`);
     }
     if (!hasShipCost) {
-      db.exec(`ALTER TABLE site_settings ADD COLUMN shippingCostDNR REAL DEFAULT 10`);
+      db.exec(`ALTER TABLE site_settings ADD COLUMN shippingCostDNT REAL DEFAULT 10`);
     }
     if (!hasSmokey) {
       db.exec(`ALTER TABLE site_settings ADD COLUMN smokeyColor TEXT`);
@@ -219,7 +219,7 @@ function initDatabase() {
       db.exec(`ALTER TABLE site_settings ADD COLUMN announcementEnabled BOOLEAN DEFAULT 1`);
     }
     if (!hasAnnounceText) {
-      db.exec(`ALTER TABLE site_settings ADD COLUMN announcementText TEXT DEFAULT '["✨ Free delivery on orders over 10,000 DZD!","💎 New collection available now"]'`);
+      db.exec(`ALTER TABLE site_settings ADD COLUMN announcementText TEXT DEFAULT '["✨ Free delivery on orders over 10,000 DNT!","💎 New collection available now"]'`);
     }
     if (!hasAnnounceBg) {
       db.exec(`ALTER TABLE site_settings ADD COLUMN announcementBgColor TEXT DEFAULT '#fff4e9'`);
@@ -281,14 +281,14 @@ function initDatabase() {
   `);
 
   // Insert default admin user if not exists
-  const adminExists = db.prepare('SELECT * FROM users WHERE email = ?').get('admin@tafcha.com');
+  const adminExists = db.prepare('SELECT * FROM users WHERE email = ?').get('admin@ethnicdeco.com');
   if (!adminExists) {
     const hashedPassword = bcrypt.hashSync('admin123', 10);
     db.prepare(`
       INSERT INTO users (id, email, password, firstName, lastName, role)
       VALUES (?, ?, ?, ?, ?, ?)
-    `).run(uuidv4(), 'admin@tafcha.com', hashedPassword, 'Admin', 'Tafchaa', 'admin');
-    console.log('Default admin created: admin@tafcha.com / admin123');
+    `).run(uuidv4(), 'admin@ethnicdeco.com', hashedPassword, 'Admin', 'ETHNIC DECO', 'admin');
+    console.log('Default admin created: admin@ethnicdeco.com / admin123');
   }
 
   // Insert default site settings if not exists
@@ -301,7 +301,7 @@ function initDatabase() {
       'main',
       'Jewelry That Radiates Charm',
       'Discover elegant, one-of-a-kind jewelry crafted to elevate your everyday moments and unforgettable occasions.',
-      'hello@tafcha.com',
+      'hello@ethnicdeco.com',
       '+216 99 888 777',
       '#3d4d5d',
       '#2a3a4a',

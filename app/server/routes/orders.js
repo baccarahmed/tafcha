@@ -43,8 +43,8 @@ router.post('/', authenticateToken, async (req, res) => {
     }
 
     const settings = await prisma.siteSettings.findUnique({ where: { id: 'main' } });
-    const threshold = settings?.freeShippingThresholdDNR ?? 100;
-    const shipCost = settings?.shippingCostDNR ?? 10;
+    const threshold = settings?.freeShippingThresholdDNT ?? 100;
+    const shipCost = settings?.shippingCostDNT ?? 10;
     const shipping = subtotal >= threshold ? 0 : shipCost;
     const tax = subtotal * 0.1;
     const total = subtotal + shipping + tax;

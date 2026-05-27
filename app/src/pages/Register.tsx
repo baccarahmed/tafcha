@@ -62,7 +62,7 @@ export default function Register() {
               Create Account
             </h1>
             <p className="text-[#fff4e9]/60">
-              Join the Tafchaa family
+              Join the ETHNIC DECO family
             </p>
           </div>
 

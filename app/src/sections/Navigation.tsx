@@ -19,11 +19,13 @@ import {
 
 export default function Navigation() {
   const [isScrolled, setIsScrolled] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const { user, isAuthenticated, isAdmin, logout } = useAuth();
   const { totalItems, toggleCart } = useCart();
   const location = useLocation();
 
   useEffect(() => {
+    setMounted(true);
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 50);
     };
@@ -50,7 +52,7 @@ export default function Navigation() {
     >
       <AnnouncementBar />
       <nav className="section-padding">
-        <div className="flex items-center justify-between h-20">
+        <div className="flex items-center justify-between h-32">
           {/* Logo */}
           <Link 
             to="/" 
@@ -60,8 +62,9 @@ export default function Navigation() {
           >
             <img 
               src="/images/logo.png" 
-              alt="Tafchaa" 
-              className="h-full w-auto object-contain py-2"
+              alt="ETHNIC DECO" 
+              className="object-contain py-1"
+              style={{ height: '110px', width: '160px' }}
             />
           </Link>
 
@@ -98,7 +101,7 @@ export default function Navigation() {
               aria-label="Open cart"
             >
               <ShoppingBag className="w-5 h-5" />
-              {totalItems > 0 && (
+              {mounted && totalItems > 0 && (
                 <span className="absolute -top-1 -right-1 w-5 h-5 bg-[#fff4e9] text-[#5b8bfb] text-xs font-bold rounded-full flex items-center justify-center animate-scale-in">
                   {totalItems}
                 </span>
@@ -166,8 +169,9 @@ export default function Navigation() {
                 <div className="flex flex-col gap-8 mt-8">
                   <img 
                     src="/images/logo.png" 
-                    alt="Tafchaa" 
-                    className="h-12 w-auto object-contain"
+                    alt="ETHNIC DECO" 
+                    className="object-contain"
+                    style={{ height: '110px', width: '160px' }}
                   />
                   <nav className="flex flex-col gap-4">
                     {navLinks.map((link, index) => (

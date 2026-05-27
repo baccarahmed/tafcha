@@ -5,7 +5,7 @@ const tinyMp4 = 'data:video/mp4;base64,AAAA'
 
 async function loginAsAdmin() {
   const res = await request(app).post('/api/auth/login').send({
-    email: 'admin@tafchaa.com',
+    email: 'admin@ethnicdeco.com',
     password: 'admin123',
   })
   return res.body.token

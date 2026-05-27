@@ -34,7 +34,7 @@ export default function SEOContent() {
         
         <div className={`space-y-6 text-[#fff4e9]/70 leading-relaxed transition-all duration-1000 delay-300 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
           <p>
-            At <strong>Tafchaa</strong>, we believe every detail counts. Our collection of <strong>fashion accessories</strong> and <strong>luxury jewelry</strong> is carefully selected to bring a touch of elegance and distinction to your style. Whether you're looking for a sparkling ring, a refined necklace, or unique handcrafted accessories, our online boutique offers exceptional pieces that blend tradition and modernity.
+            At <strong>ETHNIC DECO</strong>, we believe every detail counts. Our collection of <strong>fashion accessories</strong> and <strong>luxury jewelry</strong> is carefully selected to bring a touch of elegance and distinction to your style. Whether you're looking for a sparkling ring, a refined necklace, or unique handcrafted accessories, our online boutique offers exceptional pieces that blend tradition and modernity.
           </p>
           
           <p>

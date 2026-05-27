@@ -54,10 +54,10 @@ export default function Contact() {
   return (
     <div className="min-h-screen bg-[--site-bg]">
       <Helmet>
-        <title>Contact | Tafchaa</title>
-        <meta name="description" content="Contact the Tafchaa team for any questions about our jewelry or your orders." />
-        <meta property="og:title" content="Contact | Tafchaa" />
-        <meta property="og:description" content="Contact the Tafchaa team for any questions about our jewelry or your orders." />
+        <title>Contact Us | ETHNIC DECO</title>
+        <meta name="description" content="Get in touch with ETHNIC DECO for any inquiries, custom orders, or assistance with your purchase." />
+        <meta property="og:title" content="Contact Us | ETHNIC DECO" />
+        <meta property="og:description" content="Get in touch with ETHNIC DECO for any inquiries, custom orders, or assistance with your purchase." />
         <meta property="og:type" content="website" />
         <meta property="og:url" content={`${getSiteUrl()}/contact`} />
         <link rel="canonical" href={`${getSiteUrl()}/contact`} />

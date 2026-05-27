@@ -5,7 +5,7 @@ const features = [
   {
     icon: Truck,
     title: 'Fast Delivery',
-    description: 'Free delivery on orders over 10,000 DZD',
+    description: 'Free delivery on orders over 10,000 DNT',
   },
   {
     icon: Shield,

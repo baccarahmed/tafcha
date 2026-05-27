@@ -32,7 +32,7 @@ const values = [
 ];
 
 const milestones = [
-  { year: '2018', title: 'The Beginning', description: 'Tafchaa was founded with the vision of creating meaningful jewelry.' },
+  { year: '2018', title: 'The Beginning', description: 'ETHNIC DECO was founded with the vision of creating meaningful jewelry.' },
   { year: '2019', title: 'First Collection', description: 'Launch of our signature Minimalist Elegance collection.' },
   { year: '2020', title: 'Global Expansion', description: 'Extending delivery to over 30 countries worldwide.' },
   { year: '2022', title: 'Bridal Line', description: 'Introduction of our Bridal Bliss collection for special moments.' },
@@ -65,13 +65,11 @@ export default function About() {
   return (
     <div className="min-h-screen bg-[--site-bg]">
       <Helmet>
-        <title>About | Our Story & Values | Tafchaa</title>
-        <meta name="description" content="Discover the story of Tafchaa, our passion for handcrafted jewelry and our commitment to excellence, sustainability, and timeless design." />
-        <meta property="og:title" content="About | Our Story & Values | Tafchaa" />
-        <meta property="og:description" content="The story behind our exceptional jewelry and our commitment to quality." />
-        <meta property="og:type" content="website" />
+        <title>About Us | ETHNIC DECO</title>
+        <meta name="description" content="Discover the story behind ETHNIC DECO, our values, and our commitment to creating exceptional jewelry." />
+        <meta property="og:title" content="About Us | ETHNIC DECO" />
+        <meta property="og:description" content="Discover the story behind ETHNIC DECO, our values, and our commitment to creating exceptional jewelry." />
         <meta property="og:url" content={`${getSiteUrl()}/about`} />
-        <link rel="canonical" href={`${getSiteUrl()}/about`} />
       </Helmet>
       <Navigation />
       
@@ -82,7 +80,7 @@ export default function About() {
             Our Story
           </h1>
           <p className="text-xl text-[#fff4e9]/70 max-w-2xl mx-auto leading-relaxed">
-            {siteSettings?.aboutText || "At Tafchaa, we believe jewelry is more than just an accessory—it's a keepsake of moments, love, and individuality."}
+            {siteSettings?.aboutText || "At ETHNIC DECO, we believe jewelry is more than just an accessory—it's a keepsake of moments, love, and individuality."}
           </p>
         </div>
       </div>
@@ -100,7 +98,7 @@ export default function About() {
               <div className="aspect-[4/5] rounded-lg overflow-hidden w-full max-w-md lg:max-w-none">
                 <img
                   src="/images/collection-minimalist.jpg"
-                  alt="Jewelry artisan at work - Excellence of Tafchaa handcrafted production"
+                  alt="Jewelry artisan at work - Excellence of ETHNIC DECO handcrafted production"
                   className="w-full h-full object-cover"
                 />
               </div>
@@ -121,12 +119,12 @@ export default function About() {
               </h2>
               <div className="space-y-4 text-[#fff4e9]/70 leading-relaxed">
                 <p>
-                  Founded in 2018, Tafchaa began with a simple mission: to create jewelry that tells a story. 
+                  Founded in 2018, ETHNIC DECO began with a simple mission: to create jewelry that tells a story. 
                   We believe that every piece should hold meaning, whether it's a gift for a loved one or 
                   a treat for yourself.
                 </p>
                 <p>
-                  Our name, "Tafchaa," embodies the essence of finding that perfect piece—the little 
+                  Our name, "ETHNIC DECO," embodies the essence of finding that perfect piece—the little 
                   something that completes your look and captures your unique style. Each design is 
                   thoughtfully created to be both timeless and contemporary.
                 </p>
@@ -235,7 +233,7 @@ export default function About() {
       <section className="py-24 border-t border-[#fff4e9]/10">
         <div className="section-padding text-center">
           <h2 className="font-display text-4xl sm:text-5xl text-[#fff4e9] mb-6">
-            Join the Tafchaa Family
+            Join the ETHNIC DECO Family
           </h2>
           <p className="text-[#fff4e9]/60 max-w-xl mx-auto mb-8">
             Discover jewelry that speaks to your soul. Every piece tells a story—let yours begin today.

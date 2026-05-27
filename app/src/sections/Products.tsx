@@ -69,7 +69,7 @@ export default function Products() {
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-US', {
       minimumFractionDigits: 0,
-    }).format(price) + ' DNR';
+    }).format(price) + ' DNT';
   };
 
   return (
@@ -164,7 +164,7 @@ export default function Products() {
                 </div>
 
                 {/* Product Info */}
-                <div className="space-y-1">
+                <div className="space-y-1 text-center">
                   {product.categoryName && (
                     <p className="text-xs text-[#fff4e9]/50 uppercase tracking-wider">
                       {product.categoryName}
@@ -175,7 +175,7 @@ export default function Products() {
                       {product.name}
                     </h3>
                   </Link>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center justify-center gap-2">
                     <span className="text-[#fff4e9] font-medium">
                       {formatPrice(product.price)}
                     </span>

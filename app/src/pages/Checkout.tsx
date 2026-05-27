@@ -52,7 +52,7 @@ export default function Checkout() {
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-US', {
       minimumFractionDigits: 0,
-    }).format(price) + ' DNR';
+    }).format(price) + ' DNT';
   };
 
   const handlePlaceOrder = async () => {
@@ -212,24 +212,17 @@ export default function Checkout() {
                 <div className="flex items-center justify-between text-sm text-[#fff4e9]/70 mb-1">
                   <span>Shipping</span>
                   <span>
-                    {formatPrice(
-                      totalPrice >= (settings?.freeShippingThresholdDNR ?? 100)
-                        ? 0
-                        : (settings?.shippingCostDNR ?? 10)
-                    )}
+                    {totalPrice >= (settings?.freeShippingThresholdDNT ?? 100)
+                      ? 'FREE'
+                      : formatPrice(settings?.shippingCostDNT ?? 10)}
                   </span>
                 </div>
-                <div className="flex items-center justify-between text-sm text-[#fff4e9]/70 mb-4">
-                  <span>Taxes</span>
-                  <span>{formatPrice(totalPrice * 0.1)}</span>
-                </div>
-                <div className="flex items-center justify-between border-t border-[#fff4e9]/10 pt-4 mb-6">
-                  <span className="text-[#fff4e9]/80">Total</span>
-                  <span className="font-display text-2xl text-[#fff4e9]">
+                <div className="flex justify-between text-lg font-display text-[#fff4e9] pt-4 border-t border-[#fff4e9]/10 mb-6">
+                  <span>Total</span>
+                  <span>
                     {formatPrice(
                       totalPrice
-                      + (totalPrice >= (settings?.freeShippingThresholdDNR ?? 100) ? 0 : (settings?.shippingCostDNR ?? 10))
-                      + totalPrice * 0.1
+                      + (totalPrice >= (settings?.freeShippingThresholdDNT ?? 100) ? 0 : (settings?.shippingCostDNT ?? 10))
                     )}
                   </span>
                 </div>

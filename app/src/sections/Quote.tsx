@@ -22,7 +22,7 @@ export default function Quote() {
     return () => observer.disconnect();
   }, []);
 
-  const quote = "At Tafchaa, we craft jewelry to be more than an accessory—it's a keepsake of moments, love, and individuality, blending timeless craftsmanship with meaningful design.";
+  const quote = "At ETHNIC DECO, we craft jewelry to be more than an accessory—it's a keepsake of moments, love, and individuality, blending timeless craftsmanship with meaningful design.";
   const words = quote.split(' ');
 
   return (
@@ -94,7 +94,7 @@ export default function Quote() {
                   Mahdi Zekri
                 </span>
                 <span className="text-[#fff4e9]/60 ml-2">
-                  — CEO Tafchaa
+                  — CEO ETHNIC DECO
                 </span>
               </cite>
               <div className="w-12 h-px bg-[#fff4e9]/30" />

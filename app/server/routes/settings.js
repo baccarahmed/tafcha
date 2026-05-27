@@ -70,12 +70,11 @@ router.put('/', authenticateToken, requireAdmin, async (req, res) => {
       data.featuredLimit = Math.max(1, Math.min(12, parseInt(updates.featuredLimit) || 3));
     }
 
-    if (updates.freeShippingThresholdDNR !== undefined) {
-      data.freeShippingThresholdDNR = Math.max(0, parseFloat(updates.freeShippingThresholdDNR) || 100);
+    if (updates.freeShippingThresholdDNT !== undefined) {
+      data.freeShippingThresholdDNT = Math.max(0, parseFloat(updates.freeShippingThresholdDNT) || 100);
     }
-
-    if (updates.shippingCostDNR !== undefined) {
-      data.shippingCostDNR = Math.max(0, parseFloat(updates.shippingCostDNR) || 10);
+    if (updates.shippingCostDNT !== undefined) {
+      data.shippingCostDNT = Math.max(0, parseFloat(updates.shippingCostDNT) || 10);
     }
 
     const settings = await prisma.siteSettings.update({

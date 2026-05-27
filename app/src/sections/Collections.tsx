@@ -120,7 +120,7 @@ export default function Collections() {
                 <div className="absolute inset-0 overflow-hidden">
                   <img
                     src={collection.image}
-                    alt={`Collection ${collection.name} - Exceptional Tafchaa Jewelry`}
+                    alt={`Collection ${collection.name} - Exceptional ETHNIC DECO Jewelry`}
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                   />
                 </div>

@@ -15,7 +15,7 @@ export default function Hero() {
     return () => clearTimeout(timer);
   }, []);
 
-  const title = settings?.heroTitle || 'Jewelry and Accessories That Radiate Charm';
+  const title = settings?.heroTitle || 'Luxury Design With Stones';
   const subtitle = settings?.heroSubtitle || 'Discover elegant and unique jewelry and accessories, designed to enhance your daily moments and unforgettable occasions.';
   const sideVideoSrc = settings?.heroVideo || '/uploads/vid_1774549019437_rp3n2z.mp4';
 
@@ -108,8 +108,8 @@ export default function Hero() {
               controls
               poster={settings?.heroImage || "/images/hero-poster.jpg"}
               className="w-full h-full object-cover"
-              title="Presentation of the Tafchaa jewelry collection"
-              aria-label="Presentation video of Tafchaa handcrafted jewelry"
+              title="Presentation of the ETHNIC DECO jewelry collection"
+              aria-label="Presentation video of ETHNIC DECO handcrafted jewelry"
             />
           </div>
         </div>

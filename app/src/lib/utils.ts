@@ -6,14 +6,22 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function getSiteUrl() {
+  // 1. Check if set in environment (build time)
   const siteUrl = import.meta.env.VITE_SITE_URL;
   if (siteUrl) return siteUrl.replace(/\/$/, '');
 
+  // 2. Check for preloaded data from SSR (prevents hydration mismatch)
+  if (typeof window !== 'undefined' && (window as any).__PRELOADED_DATA__?.baseUrl) {
+    return (window as any).__PRELOADED_DATA__.baseUrl;
+  }
+
+  // 3. Fallback to current location on client
   if (typeof window !== 'undefined' && window.location) {
     return window.location.origin;
   }
 
-  return 'https://tafchaa.com';
+  // 4. Default fallback (server-side without request context)
+  return 'https://ethnicdeco.com';
 }
 
 // Utility function to format a number with currency

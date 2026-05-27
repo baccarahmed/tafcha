@@ -23,8 +23,8 @@ interface SiteSettings {
   socialFacebook: string | null;
   socialTwitter: string | null;
   socialYoutube: string | null;
-  freeShippingThresholdDNR?: number | null;
-  shippingCostDNR?: number | null;
+  freeShippingThresholdDNT?: number | null;
+  shippingCostDNT?: number | null;
   newsletterEnabled: boolean;
   maintenanceMode: boolean;
   announcementEnabled?: boolean | number | null;

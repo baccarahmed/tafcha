@@ -25,13 +25,13 @@
     --ring: 36 56% 95%;
     --radius: 0.5rem;
     
-    /* Custom Tafchaa colors */
-    --tafchaa-navy: #3d4d5d;
-    --tafchaa-navy-dark: #2a3a4a;
-    --tafchaa-cream: #fff4e9;
-    --tafchaa-cream-light: #f3e7d9;
-    --tafchaa-border: rgba(255, 244, 233, 0.2);
-    --tafchaa-hover: rgba(255, 244, 233, 0.1);
+    /* Custom ETHNIC DECO colors */
+    --ethnic-navy: #3d4d5d;
+    --ethnic-navy-dark: #2a3a4a;
+    --ethnic-cream: #fff4e9;
+    --ethnic-cream-light: #f3e7d9;
+    --ethnic-border: rgba(255, 244, 233, 0.2);
+    --ethnic-hover: rgba(255, 244, 233, 0.1);
     
     /* Animation easings */
     --ease-dramatic: cubic-bezier(0.87, 0, 0.13, 1);
