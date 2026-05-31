@@ -176,6 +176,49 @@ router.get('/', authenticateToken, requireAdmin, async (req, res) => {
   }
 });
 
+// Get order stats (admin only)
+router.get('/stats/overview', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const totalOrders = await prisma.order.count();
+    const pendingOrders = await prisma.order.count({ where: { status: 'PENDING' } });
+    
+    const revenueResult = await prisma.order.aggregate({
+      _sum: { total: true }
+    });
+    const totalRevenue = revenueResult._sum.total || 0;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const todayOrders = await prisma.order.count({
+      where: {
+        createdAt: { gte: today }
+      }
+    });
+
+    const todayRevenueResult = await prisma.order.aggregate({
+      where: {
+        createdAt: { gte: today }
+      },
+      _sum: { total: true }
+    });
+    const todayRevenue = todayRevenueResult._sum.total || 0;
+
+    res.json({
+      stats: {
+        totalOrders,
+        pendingOrders,
+        totalRevenue,
+        todayOrders,
+        todayRevenue
+      }
+    });
+  } catch (error) {
+    console.error('Get order stats error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 // Get single order
 router.get('/:id', authenticateToken, async (req, res) => {
   try {
