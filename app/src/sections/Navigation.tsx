@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { ShoppingBag, Menu, User, LogOut } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCart } from '@/contexts/CartContext';
+import { useSettings } from '@/hooks/useSettings';
 import AnnouncementBar from './AnnouncementBar';
 import {
   Sheet,
@@ -22,6 +23,7 @@ export default function Navigation() {
   const [mounted, setMounted] = useState(false);
   const { user, isAuthenticated, isAdmin, logout } = useAuth();
   const { totalItems, toggleCart } = useCart();
+  const { settings } = useSettings();
   const location = useLocation();
 
   useEffect(() => {
@@ -42,6 +44,10 @@ export default function Navigation() {
 
   const isActive = (path: string) => location.pathname === path;
 
+  // Use the same smokey color logic as in App.tsx
+  const panel = settings?.sitePanelColor || '#2a3a4a';
+  const smokeyColor = (settings?.smokeyColor || panel || '#2a3a4a').slice(0, 7);
+
   return (
     <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
@@ -49,6 +55,7 @@ export default function Navigation() {
           ? 'glass-effect border-b border-[#fff4e9]/20'
           : 'bg-transparent'
       }`}
+      style={isScrolled ? { backgroundColor: `${smokeyColor}E6` } : undefined}
     >
       <AnnouncementBar />
       <nav className="section-padding">
