@@ -207,8 +207,8 @@ model SiteSettings {
   announcementTextColor      String?   @map("announcement_text_color")
   animatedBackground        Boolean   @default(false) @map("animated_background")
   animatedBlur               String?   @map("animated_blur")
-  freeShippingThresholdDNT  Float?    @map("free_shipping_threshold_dnr")
-  shippingCostDNT            Float?    @map("shipping_cost_dnr")
+  freeShippingThresholdDNT  Float?    @map("free_shipping_threshold_dnt")
+  shippingCostDNT            Float?    @map("shipping_cost_dnt")
   smokeyColor                String?   @map("smokey_color")
   updatedAt                  DateTime  @updatedAt @map("updated_at")
 

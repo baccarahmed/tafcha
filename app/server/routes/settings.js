@@ -22,6 +22,15 @@ router.get('/', async (req, res) => {
     // Fetch from database
     const settings = await prisma.siteSettings.findUnique({ where: { id: 'main' } });
     
+    if (settings) {
+      try {
+        if (settings.featuredCategories) settings.featuredCategories = JSON.parse(settings.featuredCategories);
+        if (settings.announcementText) settings.announcementText = JSON.parse(settings.announcementText);
+      } catch (e) {
+        console.error('Error parsing settings JSON fields:', e);
+      }
+    }
+
     // Cache the result
     settingsCache = settings;
     cacheTimestamp = now;
@@ -77,10 +86,27 @@ router.put('/', authenticateToken, requireAdmin, async (req, res) => {
       data.shippingCostDNT = Math.max(0, parseFloat(updates.shippingCostDNT) || 10);
     }
 
-    const settings = await prisma.siteSettings.update({
+    console.log('Updating settings with data:', JSON.stringify(data, null, 2));
+
+    const settings = await prisma.siteSettings.upsert({
       where: { id: 'main' },
-      data,
+      update: data,
+      create: {
+        id: 'main',
+        ...data
+      },
     });
+
+    if (settings) {
+      try {
+        if (settings.featuredCategories && typeof settings.featuredCategories === 'string') 
+          settings.featuredCategories = JSON.parse(settings.featuredCategories);
+        if (settings.announcementText && typeof settings.announcementText === 'string') 
+          settings.announcementText = JSON.parse(settings.announcementText);
+      } catch (e) {
+        console.error('Error parsing updated settings JSON fields:', e);
+      }
+    }
 
     // Invalidate cache after update
     settingsCache = null;
