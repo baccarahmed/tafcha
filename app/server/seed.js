@@ -1,17 +1,72 @@
 import prisma from './database/prisma.js';
 import { v4 as uuidv4 } from 'uuid';
+import bcrypt from 'bcryptjs';
 
-async function seedProducts() {
-  console.log('Seeding products...');
+async function seed() {
+  console.log('Starting seeding...');
 
   try {
-    // Get categories
-    const categories = await prisma.category.findMany();
-    const categoryMap = {};
-    categories.forEach(cat => {
-      categoryMap[cat.slug] = cat.id;
-    });
+    // 1. Seed Categories
+    console.log('Seeding categories...');
+    const categoriesData = [
+      { name: 'Minimalist Elegance', slug: 'minimalist-elegance', description: 'Clean, simple designs for everyday wear' },
+      { name: 'Bridal Bliss', slug: 'bridal-bliss', description: 'Elegant pieces for your special day' },
+      { name: 'Timeless Classics', slug: 'timeless-classics', description: 'Vintage-inspired jewelry that never goes out of style' }
+    ];
 
+    const categoryMap = {};
+    for (const cat of categoriesData) {
+      const existing = await prisma.category.findUnique({ where: { slug: cat.slug } });
+      if (!existing) {
+        const created = await prisma.category.create({ data: cat });
+        categoryMap[cat.slug] = created.id;
+        console.log(`Created category: ${cat.name}`);
+      } else {
+        categoryMap[cat.slug] = existing.id;
+      }
+    }
+
+    // 2. Seed Admin User
+    console.log('Seeding admin user...');
+    const adminEmail = 'admin@ethnicdeco.com';
+    const adminExists = await prisma.user.findUnique({ where: { email: adminEmail } });
+    if (!adminExists) {
+      const hashedPassword = bcrypt.hashSync('admin123', 10);
+      await prisma.user.create({
+        data: {
+          id: uuidv4(),
+          email: adminEmail,
+          password: hashedPassword,
+          firstName: 'Admin',
+          lastName: 'ETHNIC DECO',
+          role: 'ADMIN',
+        }
+      });
+      console.log('Default admin created: admin@ethnicdeco.com / admin123');
+    }
+
+    // 3. Seed Site Settings
+    console.log('Seeding site settings...');
+    const settingsExist = await prisma.siteSettings.findUnique({ where: { id: 'main' } });
+    if (!settingsExist) {
+      await prisma.siteSettings.create({
+        data: {
+          id: 'main',
+          heroTitle: 'Jewelry That Radiates Charm',
+          heroSubtitle: 'Discover elegant, one-of-a-kind jewelry crafted to elevate your everyday moments and unforgettable occasions.',
+          contactEmail: 'hello@ethnicdeco.com',
+          contactPhone: '+216 99 888 777',
+          siteBgColor: '#3d4d5d',
+          sitePanelColor: '#2a3a4a',
+          featuredCategories: JSON.stringify([]),
+          featuredLimit: 3
+        }
+      });
+      console.log('Default site settings created');
+    }
+
+    // 4. Seed Products
+    console.log('Seeding products...');
     const products = [
       {
         name: 'Double Pendant Necklace',
@@ -105,6 +160,7 @@ async function seedProducts() {
     }
 
     console.log(`Added ${added} products`);
+    console.log('Seeding complete!');
   } catch (error) {
     console.error('Seeding error:', error);
   } finally {
@@ -113,4 +169,4 @@ async function seedProducts() {
 }
 
 // Run seed
-seedProducts().then(() => console.log('Seeding complete!'));
+seed();
