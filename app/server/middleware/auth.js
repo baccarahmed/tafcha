@@ -1,5 +1,4 @@
 import jwt from 'jsonwebtoken';
-import db from '../database/db.js';
 
 export const JWT_SECRET = process.env.JWT_SECRET;
 

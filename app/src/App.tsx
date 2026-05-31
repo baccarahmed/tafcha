@@ -213,6 +213,11 @@ function App({
   RouterComponent?: React.ComponentType<{ children: React.ReactNode }>;
   preloadedData?: PreloadedData;
 }) {
+  // Set site URL globally to avoid hydration mismatch
+  if (preloadedData?.baseUrl) {
+    (globalThis as any).__SITE_URL__ = preloadedData.baseUrl;
+  }
+
   const resolvedPreloadedData = preloadedData || (typeof window !== 'undefined' ? (window as { __PRELOADED_DATA__?: PreloadedData }).__PRELOADED_DATA__ || null : null);
   const { settings: fetchedSettings } = useSettings();
   const settings = resolvedPreloadedData?.settings || fetchedSettings;

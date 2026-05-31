@@ -6,21 +6,25 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function getSiteUrl() {
-  // 1. Check if set in environment (build time)
-  const siteUrl = import.meta.env.VITE_SITE_URL;
-  if (siteUrl) return siteUrl.replace(/\/$/, '');
+  // 1. Check for preloaded data from SSR/Global (prevents hydration mismatch)
+  const globalSiteUrl = (globalThis as any).__SITE_URL__;
+  if (globalSiteUrl) return globalSiteUrl.replace(/\/$/, '');
 
-  // 2. Check for preloaded data from SSR (prevents hydration mismatch)
+  // 2. Check if set in environment (build time)
+  const envSiteUrl = import.meta.env.VITE_SITE_URL;
+  if (envSiteUrl) return envSiteUrl.replace(/\/$/, '');
+
+  // 3. Check for preloaded data from window (client-side fallback)
   if (typeof window !== 'undefined' && (window as any).__PRELOADED_DATA__?.baseUrl) {
     return (window as any).__PRELOADED_DATA__.baseUrl;
   }
 
-  // 3. Fallback to current location on client
+  // 4. Fallback to current location on client
   if (typeof window !== 'undefined' && window.location) {
     return window.location.origin;
   }
 
-  // 4. Default fallback (server-side without request context)
+  // 5. Default fallback
   return 'https://ethnicdeco.com';
 }
 

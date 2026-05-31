@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import Navigation from '@/sections/Navigation';
 import Hero from '@/sections/Hero';
 import Features from '@/sections/Features';
@@ -15,8 +16,56 @@ import { getSiteUrl } from '@/lib/utils.ts';
 export default function Home() {
   const { settings } = useSettings();
   const siteUrl = getSiteUrl();
+  const siteDomain = siteUrl.replace(/^https?:\/\//, '').replace(/\/$/, '');
+  
   const title = settings?.heroTitle ? `${settings.heroTitle} | ETHNIC DECO` : 'ETHNIC DECO | Luxury Accessories and Jewelry - Exclusive Collection';
   const description = settings?.heroSubtitle || 'Exclusive collection of luxury accessories and jewelry: refined rings, necklaces, bracelets, earrings, and accessories. Exceptional craftsmanship for a unique style with elegant handcrafted pieces.';
+
+  const jsonLd = useMemo(() => ({
+    "@context": "https://schema.org",
+    "@type": "JewelryStore",
+    "name": "ETHNIC DECO",
+    "description": "Exclusive collection of luxury accessories and jewelry: refined rings, necklaces, bracelets, earrings, and accessories",
+    "url": siteUrl,
+    "logo": `${siteUrl}/favicon.svg`,
+    "image": `${siteUrl}/images/logo.png`,
+    "telephone": "+216-XXX-XXXXXX",
+    "email": `contact@${siteDomain}`,
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "Artisan Street",
+      "addressLocality": "Tunisie",
+      "addressCountry": "DNT"
+    },
+    "priceRange": "$$$",
+    "currenciesAccepted": "DNT",
+    "paymentAccepted": "Cash, Credit Card",
+    "itemCondition": "https://schema.org/NewCondition",
+    "availabilityStarts": "2024-01-01T00:00:00Z",
+    "availabilityEnds": "2025-12-31T23:59:59Z",
+    "hasOfferCatalog": {
+      "@type": "OfferCatalog",
+      "name": "Luxury Accessories and Jewelry Collection",
+      "itemListElement": [
+        {
+          "@type": "Product",
+          "name": "Luxury Accessories",
+          "description": "Exclusive collection of refined accessories and elegant jewelry",
+          "category": "Fashion Accessories"
+        },
+        {
+          "@type": "Product", 
+          "name": "Handcrafted Jewelry",
+          "description": "Unique handcrafted pieces in gold and precious stones",
+          "category": "Fine Jewelry"
+        }
+      ]
+    },
+    "sameAs": [
+      "https://www.instagram.com/ethnicdeco",
+      "https://www.facebook.com/ethnicdeco"
+    ]
+  }), [siteUrl, siteDomain]);
 
   return (
     <div className="min-h-screen bg-[--site-bg]">
@@ -33,56 +82,11 @@ export default function Home() {
         <meta name="twitter:title" content={title} />
         <meta name="twitter:description" content={description} />
         <link rel="canonical" href={siteUrl} />
-        
         {/* Schema.org markup for luxury accessories and jewelry */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "JewelryStore",
-              "name": "ETHNIC DECO",
-              "description": "Exclusive collection of luxury accessories and jewelry: refined rings, necklaces, bracelets, earrings, and accessories",
-              "url": siteUrl,
-              "logo": `${siteUrl}/favicon.svg`,
-              "image": `${siteUrl}/images/logo.png`,
-              "telephone": "+216-XXX-XXXXXX",
-              "email": `contact@${siteUrl.replace(/^https?:\/\//, '')}`,
-              "address": {
-                "@type": "PostalAddress",
-                "streetAddress": "Artisan Street",
-                "addressLocality": "Tunisie",
-                "addressCountry": "DNT"
-              },
-              "priceRange": "$$$",
-              "currenciesAccepted": "DNT",
-              "paymentAccepted": "Cash, Credit Card",
-              "itemCondition": "https://schema.org/NewCondition",
-              "availabilityStarts": "2024-01-01T00:00:00Z",
-              "availabilityEnds": "2025-12-31T23:59:59Z",
-              "hasOfferCatalog": {
-                "@type": "OfferCatalog",
-                "name": "Luxury Accessories and Jewelry Collection",
-                "itemListElement": [
-                  {
-                    "@type": "Product",
-                    "name": "Luxury Accessories",
-                    "description": "Exclusive collection of refined accessories and elegant jewelry",
-                    "category": "Fashion Accessories"
-                  },
-                  {
-                    "@type": "Product", 
-                    "name": "Handcrafted Jewelry",
-                    "description": "Unique handcrafted pieces in gold and precious stones",
-                    "category": "Fine Jewelry"
-                  }
-                ]
-              },
-              "sameAs": [
-                "https://www.instagram.com/ethnicdeco",
-                "https://www.facebook.com/ethnicdeco"
-              ]
-            })
+            __html: JSON.stringify(jsonLd)
           }}
         />
       </Helmet>

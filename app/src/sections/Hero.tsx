@@ -106,6 +106,7 @@ export default function Hero() {
               loop
               playsInline
               controls
+              preload="metadata"
               poster={settings?.heroImage || "/images/hero-poster.jpg"}
               className="w-full h-full object-cover"
               title="Presentation of the ETHNIC DECO jewelry collection"
