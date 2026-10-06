@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { Link } from '@/i18n/navigation';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -70,7 +70,7 @@ export function CartDrawer({
               transition={springTransition}
               className="flex h-full flex-col"
             >
-              {/* Header du drawer : même chrome noir que la navbar */}
+              {/* Header du drawer : mÃªme chrome noir que la navbar */}
               <div className="flex items-center justify-between border-b border-white/10 bg-black px-6 py-5">
                 <div className="flex items-center gap-3">
                   <Drawer.Title className="text-xl font-extrabold tracking-tight text-[#f6f4ef]">
@@ -127,7 +127,7 @@ export function CartDrawer({
                           initial={{ opacity: 0, x: 20 }}
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: 0.05 * index, ...springTransition }}
-                          className="group flex gap-4 rounded-lg border border-[var(--q2m-line-soft)] bg-[var(--q2m-bg)] p-3 transition-colors hover:border-[var(--q2m-line)]"
+                          className="group flex gap-4 rounded-lg border border-[var(--q2m-line-soft)] bg-[var(--q2m-bg)] p-3 transition-colors hover:border-[var(--q2m-accent-text)]"
                         >
                           <Link
                             href={`/product/${item.slug}`}
@@ -175,7 +175,7 @@ export function CartDrawer({
                                       item.size
                                     )
                                   }
-                                  className="flex h-7 w-7 items-center justify-center rounded-md text-[var(--q2m-ink-stone)] transition-colors hover:bg-[var(--q2m-bone)] hover:text-[var(--q2m-ink)]"
+                                  className="flex h-7 w-7 items-center justify-center rounded-md text-[var(--q2m-ink-stone)] transition-colors hover:bg-[var(--q2m-bone)] hover:text-[var(--q2m-accent-text)]"
                                 >
                                   <Minus className="h-3.5 w-3.5" strokeWidth={2} />
                                 </button>
@@ -192,7 +192,7 @@ export function CartDrawer({
                                       item.size
                                     )
                                   }
-                                  className="flex h-7 w-7 items-center justify-center rounded-md text-[var(--q2m-ink-stone)] transition-colors hover:bg-[var(--q2m-bone)] hover:text-[var(--q2m-ink)]"
+                                  className="flex h-7 w-7 items-center justify-center rounded-md text-[var(--q2m-ink-stone)] transition-colors hover:bg-[var(--q2m-bone)] hover:text-[var(--q2m-accent-text)]"
                                 >
                                   <Plus className="h-3.5 w-3.5" strokeWidth={2} />
                                 </button>

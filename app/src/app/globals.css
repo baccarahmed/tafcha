@@ -165,17 +165,19 @@
     @apply mx-auto w-full max-w-[1440px] px-12 sm:px-14 lg:px-14;
   }
 
+  /* Bandeau promo : noir chrome aligné sur le header, texte or. */
   .q2m-promo {
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 32px;
-    background: var(--q2m-accent);
-    color: var(--q2m-on-accent);
+    background: #000000;
+    color: var(--q2m-accent);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     padding: 14px 48px;
     font-weight: 700;
     font-size: 10px;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.2em;
     text-transform: uppercase;
     font-family: 'Inter', sans-serif;
   }

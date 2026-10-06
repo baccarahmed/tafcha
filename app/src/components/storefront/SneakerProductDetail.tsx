@@ -295,7 +295,7 @@ export default function SneakerProductDetail({
                     style={{
                       background: selected ? Q2M.bgDark : Q2M.bgElevated,
                       color: selected ? '#FFFFFF' : Q2M.inkMute,
-                      border: `1px solid ${Q2M.lineStrong}`,
+                      border: `1px solid ${selected ? Q2M.accent : Q2M.lineStrong}`,
                     }}
                   >
                     {size}
@@ -324,8 +324,7 @@ export default function SneakerProductDetail({
             type="button"
             onClick={handleAddToCart}
             disabled={!selectedSize || product.isSoldOut}
-            className="flex h-[54px] w-full items-center justify-center gap-2.5 text-xs font-bold uppercase tracking-[0.16em] transition-opacity disabled:cursor-not-allowed disabled:opacity-40"
-            style={{ background: Q2M.bgDark, color: '#FFFFFF' }}
+            className="q2m-btn-primary h-[54px] w-full disabled:cursor-not-allowed disabled:opacity-40"
           >
             <ShoppingBag size={15} strokeWidth={1.5} />
             {product.isSoldOut

@@ -74,18 +74,19 @@ export function StorefrontNavbar({ genders = [] }: { genders?: string[] }) {
 
   return (
     <>
-      {/* Promo bar — Figma: gold bg, black uppercase 10px tracking */}
+      {/* Promo bar — noir chrome aligné sur le header, texte or (liseré blanc 8% pour séparer les deux barres noires) */}
       <div
         className="w-full flex items-center justify-center gap-8 px-12 py-3.5 text-center"
         style={{
-          background: Q2M.accent,
-          color: Q2M.onAccent,
+          background: "#000000",
+          color: "var(--q2m-accent)",
           fontFamily: Q2M_FONT,
+          borderBottom: "1px solid rgba(255, 255, 255, 0.08)",
         }}
         role="region"
         aria-label={t("promo")}
       >
-        <span className="text-[10px] font-bold tracking-[0.16em] uppercase whitespace-nowrap">
+        <span className="text-[10px] font-bold tracking-[0.2em] uppercase whitespace-nowrap">
           {t("promo")}
         </span>
       </div>
@@ -111,11 +112,11 @@ export function StorefrontNavbar({ genders = [] }: { genders?: string[] }) {
             <Image
               src={logoSrc}
               alt={`${Q2M.brand} — ${Q2M.brandFull}`}
-              width={48}
-              height={48}
+              width={52}
+              height={52}
               priority
               unoptimized
-              className="h-12 w-12 object-contain"
+              className="h-[52px] w-[52px] object-contain"
             />
           </Link>
 
