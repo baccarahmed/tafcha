@@ -1,0 +1,143 @@
+'use server'
+
+import { revalidatePath } from 'next/cache'
+import { getSessionUser } from '@/lib/session'
+import {
+  createProduct,
+  ProductValidationError,
+  type ProductInput,
+} from '@/lib/admin-products'
+import { analyzeProductImage, AiConfigError, type ProductDraft } from '@/lib/gemini'
+import {
+  uploadProductImage,
+  deleteProductImage,
+  ImageUploadError,
+  ALLOWED_IMAGE_MIME,
+  MAX_IMAGE_BYTES,
+} from '@/lib/admin-storage'
+import { slugify } from '@/lib/utils'
+
+export type CreateProductResult =
+  | { ok: true; slug: string }
+  | { ok: false; field: string }
+
+/**
+ * Cree un produit depuis le back-office.
+ *
+ * Le role est relu en base a chaque appel : le layout du dashboard n'est qu'un
+ * garde de rendu, la vraie autorisation doit tenir ici, sur le chemin d'ecriture.
+ *
+ * L'action renvoie un resultat structure au lieu de lever : le formulaire doit
+ * pouvoir afficher une erreur de validation a cote du champ concerne.
+ */
+export async function createProductAction(
+  input: ProductInput,
+  images?: { base64: string; mimeType: string }[]
+): Promise<CreateProductResult> {
+  const user = await getSessionUser()
+
+  if (!user || user.role !== 'ADMIN') {
+    return { ok: false, field: 'forbidden' }
+  }
+
+  try {
+    const uploadedKeys: string[] = []
+
+    try {
+      let urls = input.images
+
+      // Le dossier du bucket porte le slug final pour que l'URL reste devinable
+      // et que les visuels d'un produit restent regroupes.
+      if (images?.length) {
+        const slug = slugify(input.slug || input.name)
+
+        urls = []
+
+        for (const image of images) {
+          const uploaded = await uploadProductImage(image, slug)
+
+          uploadedKeys.push(uploaded.key)
+          urls.push(uploaded.url)
+        }
+      }
+
+      const created = await createProduct({ ...input, images: urls })
+
+      revalidatePath('/', 'layout')
+
+      return { ok: true, slug: created.slug }
+    } catch (error) {
+      // Les photos ne doivent pas survivre a une fiche rejetee : slug deja
+      // pris, prix incoherent, erreur SQL. Sans ce retrait, le bucket garde des
+      // objets que personne ne reference.
+      if (uploadedKeys.length > 0) {
+        await Promise.all(uploadedKeys.map((key) => deleteProductImage(key))).catch(
+          () => undefined
+        )
+      }
+
+      throw error
+    }
+  } catch (error) {
+    if (error instanceof ProductValidationError) {
+      return { ok: false, field: error.field }
+    }
+
+    if (error instanceof ImageUploadError) {
+      return { ok: false, field: error.reason }
+    }
+
+    throw error
+  }
+}
+
+export type AnalyzeError =
+  | 'forbidden'
+  | 'notConfigured'
+  | 'tooLarge'
+  | 'unsupported'
+  | 'failed'
+
+export type AnalyzeResult =
+  | { ok: true; draft: ProductDraft }
+  | { ok: false; error: AnalyzeError }
+
+/**
+ * Pre-remplit la fiche produit a partir d'une photo.
+ *
+ * La cle Gemini reste ici : l'action est le seul point d'appel cote serveur.
+ * Aucun produit n'est cree ni aucune image televersee a cette etape : la photo
+ * reste cote navigateur et n'est hebergee qu'a la creation, une fois le slug
+ * valide. L'admin valide le formulaire entre les deux.
+ */
+export async function analyzeProductImageAction(
+  image: { base64: string; mimeType: string },
+  locale: string,
+): Promise<AnalyzeResult> {
+  const user = await getSessionUser()
+
+  if (!user || user.role !== 'ADMIN') {
+    return { ok: false, error: 'forbidden' }
+  }
+
+  if (!ALLOWED_IMAGE_MIME.has(image.mimeType)) {
+    return { ok: false, error: 'unsupported' }
+  }
+
+  // Le base64 pese ~33% de plus que le binaire.
+  if (image.base64.length * 0.75 > MAX_IMAGE_BYTES) {
+    return { ok: false, error: 'tooLarge' }
+  }
+
+  try {
+    return { ok: true, draft: await analyzeProductImage(image, locale) }
+  } catch (error) {
+    if (error instanceof AiConfigError) return { ok: false, error: 'notConfigured' }
+
+    // Une panne du fournisseur ne doit pas casser la page : le
+    // formulaire reste utilisable a la main.
+    console.error('analyse ia :', error)
+
+    return { ok: false, error: 'failed' }
+  }
+}

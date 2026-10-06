@@ -26,7 +26,7 @@ export function HoverBorderGradient({
       <Comp
         {...rest}
         className={cn(
-          "rounded-full px-12 py-5 bg-[#fff4e9] text-[#3d4d5d] dark:bg-black dark:text-white flex items-center gap-2",
+          "rounded-full px-12 py-5 bg-[#fff4e9] text-[#3d4d5d] dark:bg-black dark:text-ink flex items-center gap-2",
           className
         )}
       >

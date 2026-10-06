@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900" width="1200" height="900" role="img" aria-label="Drop">
+  <defs>
+    <radialGradient id="glow" cx="50%" cy="50%" r="60%">
+      <stop offset="0%" stop-color="#c9a45c" stop-opacity="0.26"/>
+      <stop offset="100%" stop-color="#c9a45c" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1200" height="900" fill="#0b0b0b"/>
+  <ellipse cx="600" cy="430" rx="480" ry="340" fill="url(#glow)"/>
+  <g transform="translate(600 470) scale(3.1) translate(-120 -110)" opacity="0.95">
+    <path d="M12 96c0-10 4-18 12-24l46-34c9-7 14-12 14-20 0-6-3-11-9-14l-20-10c-6-3-9-8-9-14V8c0-5 4-9 9-9h30c6 0 11 3 14 8l16 26c8 13 21 24 36 30l74 30c16 6 27 18 31 34l3 12c3 12-6 23-19 23H20C15 162 12 156 12 148z" fill="#f6f4ef" fill-opacity="0.12" stroke="#c9a45c" stroke-opacity="0.6" stroke-width="2"/>
+    <path d="M18 150h206" stroke="#c9a45c" stroke-width="3" fill="none"/>
+  </g>
+</svg>

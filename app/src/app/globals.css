@@ -1,0 +1,464 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 36 28% 95%;
+    --foreground: 0 0% 4%;
+    --card: 36 28% 96%;
+    --card-foreground: 0 0% 4%;
+    --popover: 36 28% 96%;
+    --popover-foreground: 0 0% 4%;
+    --primary: 36 41% 57%;
+    --primary-foreground: 0 0% 4%;
+    --secondary: 36 14% 30%;
+    --secondary-foreground: 36 28% 96%;
+    --muted: 36 14% 88%;
+    --muted-foreground: 36 6% 33%;
+    --accent: 36 41% 57%;
+    --accent-foreground: 0 0% 4%;
+    --destructive: 14 76% 52%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 20%;
+    --input: 0 0% 20%;
+    --ring: 36 41% 57%;
+    --radius: 0.25rem;
+
+    --sidebar-background: 0 0% 4%;
+    --sidebar-foreground: 36 28% 96%;
+    --sidebar-primary: 36 41% 57%;
+    --sidebar-primary-foreground: 0 0% 4%;
+    --sidebar-accent: 36 41% 57%;
+    --sidebar-accent-foreground: 0 0% 4%;
+    --sidebar-border: 0 0% 20%;
+    --sidebar-ring: 36 41% 57%;
+
+    /* Q2M Tunis semantic surface tokens.
+       The palette is a warm cream + ink black base with a luxurious gold accent.
+       Text ramp: every step below clears WCAG AA (4.5:1) on its intended surface. */
+    --q2m-bg: #f6f4ef;
+    --q2m-bg-elevated: #ffffff;
+    --q2m-bg-dark: #090909;
+    --q2m-ink: #000000;
+    --q2m-ink-soft: #24211e;
+    --q2m-ink-mute: #55514b;
+    --q2m-ink-stone: #64605a;
+    --q2m-line: #343434;
+    --q2m-line-soft: #d6d2c9;
+    /* Interactive borders (inputs, selects) need 3:1 — decorative hairlines do not. */
+    --q2m-line-strong: #24211e;
+    --q2m-accent: #c9a45c;
+    --q2m-accent-soft: #e2c891;
+    --q2m-accent-text: #6f4f1d;
+    --q2m-on-accent: #0f0f0f;
+    --q2m-alert: #b3311a;
+    --q2m-bone: #e9e4da;
+    --q2m-bone-soft: #e4e0d8;
+    --q2m-on-dark: #e9e4da;
+    --q2m-on-dark-soft: #b8b3a9;
+    --q2m-status-open: #1a6b45;
+    --q2m-status-open-bg: rgba(26, 107, 69, 0.1);
+    --q2m-status-soon: #8f5310;
+    --q2m-status-soon-bg: rgba(143, 83, 16, 0.1);
+    --q2m-status-neutral: #4f4c47;
+    --q2m-status-neutral-bg: rgba(79, 76, 71, 0.1);
+  }
+
+  .dark {
+    --q2m-bg: #0a0a0a;
+    --q2m-bg-elevated: #141414;
+    --q2m-bg-dark: #050505;
+    --q2m-ink: #f6f4ef;
+    --q2m-ink-soft: #d6d2c9;
+    --q2m-ink-mute: #aaa59c;
+    --q2m-ink-stone: #8a867e;
+    --q2m-line: #343434;
+    --q2m-line-soft: #1f1f1f;
+    --q2m-line-strong: #6e6a64;
+    --q2m-accent: #c9a45c;
+    --q2m-accent-soft: #d8b670;
+    --q2m-accent-text: #c9a45c;
+    --q2m-on-accent: #0a0a0a;
+    --q2m-alert: #ff4d2e;
+    --q2m-bone: #1a1a1a;
+    --q2m-bone-soft: #141414;
+    --q2m-on-dark: #e9e4da;
+    --q2m-on-dark-soft: #b8b3a9;
+    --q2m-status-open: #5fd39b;
+    --q2m-status-open-bg: rgba(95, 211, 155, 0.14);
+    --q2m-status-soon: #e9a04a;
+    --q2m-status-soon-bg: rgba(233, 160, 74, 0.14);
+    --q2m-status-neutral: #b8b3a9;
+    --q2m-status-neutral-bg: rgba(184, 179, 169, 0.14);
+    color-scheme: dark;
+  }
+
+  :root:not(.dark) {
+    color-scheme: light;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    font-feature-settings: "rlig" 1, "calt" 1, "cv11" 1;
+    background-color: var(--q2m-bg);
+    color: var(--q2m-ink);
+    overflow-x: hidden;
+    transition: background-color 0.25s ease, color 0.25s ease;
+  }
+
+  ::selection {
+    background-color: var(--q2m-accent);
+    color: var(--q2m-on-accent);
+  }
+
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: var(--q2m-bg);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--q2m-accent);
+    border-radius: 2px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--q2m-accent-soft);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@layer components {
+  .container-q2m {
+    @apply mx-auto w-full max-w-[1440px] px-12 sm:px-14 lg:px-14;
+  }
+
+  .q2m-promo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 32px;
+    background: var(--q2m-accent);
+    color: var(--q2m-on-accent);
+    padding: 14px 48px;
+    font-weight: 700;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-family: 'Inter', sans-serif;
+  }
+
+  .hairline-border {
+    border: 1px solid var(--q2m-line);
+  }
+
+  .hairline-border-soft {
+    border: 1px solid var(--q2m-line-soft);
+  }
+
+  /* Logo Q2M : un seul PNG (`public/images/q2m/logo q2m.png`) sert des deux
+     thèmes. Le visuel est tracé en traits sombres sur fond transparent : sur
+     les surfaces noires du mode sombre on le reduit en silhouette claire et on
+     laisse un halo or rappeler la palette de marque. Ajuster la variable
+     ci-dessous suffit pour changer le rendu sans retoucher les composants. */
+  .q2m-logo {
+    filter: none;
+  }
+
+  .dark .q2m-logo {
+    filter: brightness(0) invert(1) drop-shadow(0 0 10px rgba(201, 164, 92, 0.35));
+  }
+
+  .q2m-btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 0 20px;
+    height: 44px;
+    background: var(--q2m-accent);
+    color: var(--q2m-on-accent);
+    border: 1px solid var(--q2m-accent);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: transform 0.15s ease, background 0.15s ease, color 0.15s ease;
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .q2m-btn-primary:hover {
+    background: var(--q2m-on-accent);
+    color: var(--q2m-accent);
+    border-color: var(--q2m-on-accent);
+  }
+
+  .q2m-btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 0 20px;
+    height: 44px;
+    background: var(--q2m-on-accent);
+    color: var(--q2m-accent);
+    border: 1px solid var(--q2m-on-accent);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: transform 0.15s ease, background 0.15s ease, color 0.15s ease;
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .q2m-btn-secondary:hover {
+    background: var(--q2m-accent);
+    color: var(--q2m-on-accent);
+  }
+
+  .q2m-btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 0 20px;
+    height: 44px;
+    background: var(--q2m-bone);
+    color: var(--q2m-ink);
+    border: 1px solid var(--q2m-line);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: transform 0.15s ease, background 0.15s ease, color 0.15s ease;
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .q2m-btn-ghost:hover {
+    background: var(--q2m-ink);
+    color: var(--q2m-bg);
+  }
+
+  .q2m-card {
+    background: var(--q2m-bone);
+    border-radius: 8px;
+    overflow: hidden;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .q2m-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 36px rgba(0, 0, 0, 0.16);
+  }
+
+  .q2m-tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 0 9px;
+    height: 25px;
+    background: var(--q2m-accent);
+    color: var(--q2m-on-accent);
+    border-radius: 4px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 800;
+    font-size: 9px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .q2m-tag-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 0 12px;
+    height: 24px;
+    border-radius: 999px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 800;
+    font-size: 9px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .q2m-section {
+    padding: 64px 56px;
+  }
+
+  .q2m-eyebrow {
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    font-size: 10px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--q2m-accent-text);
+  }
+
+  .q2m-display {
+    font-family: 'Inter', sans-serif;
+    font-weight: 900;
+    font-size: 42px;
+    line-height: 1.21;
+    letter-spacing: -0.01em;
+    text-transform: uppercase;
+    color: var(--q2m-ink);
+  }
+
+  .q2m-mega {
+    font-family: 'Inter', sans-serif;
+    font-weight: 900;
+    font-size: 82px;
+    line-height: 0.86;
+    text-transform: uppercase;
+    letter-spacing: -0.02em;
+    color: var(--q2m-ink);
+  }
+
+  .q2m-label {
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    font-size: 10px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+
+  .q2m-body {
+    font-family: 'Inter', sans-serif;
+    font-weight: 400;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--q2m-ink-soft);
+  }
+
+  .q2m-input {
+    width: 100%;
+    height: 44px;
+    padding: 0 14px;
+    background: var(--q2m-bg-elevated);
+    border: 1px solid var(--q2m-line-strong);
+    border-radius: 4px;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    color: var(--q2m-ink);
+    transition: border-color 0.15s ease;
+  }
+
+  .q2m-input:focus {
+    outline: none;
+    border-color: var(--q2m-accent);
+  }
+
+  .q2m-input::placeholder {
+    color: var(--q2m-ink-stone);
+  }
+}
+
+@layer utilities {
+  /* Semantic surface utilities — the only colour API components should use. */
+  .bg-surface {
+    background-color: var(--q2m-bg);
+  }
+  .bg-elevated {
+    background-color: var(--q2m-bg-elevated);
+  }
+  .bg-dark {
+    background-color: var(--q2m-bg-dark);
+  }
+  .bg-bone {
+    background-color: var(--q2m-bone);
+  }
+  .bg-bone-soft {
+    background-color: var(--q2m-bone-soft);
+  }
+  .bg-accent {
+    background-color: var(--q2m-accent);
+  }
+  .text-ink {
+    color: var(--q2m-ink);
+  }
+  .text-ink-soft {
+    color: var(--q2m-ink-soft);
+  }
+  .text-ink-mute {
+    color: var(--q2m-ink-mute);
+  }
+  .text-ink-stone {
+    color: var(--q2m-ink-stone);
+  }
+  .text-accent {
+    color: var(--q2m-accent);
+  }
+  .text-on-accent {
+    color: var(--q2m-on-accent);
+  }
+  .text-alert {
+    color: var(--q2m-alert);
+  }
+  .border-line {
+    border-color: var(--q2m-line);
+  }
+  .border-line-soft {
+    border-color: var(--q2m-line-soft);
+  }
+  .border-accent {
+    border-color: var(--q2m-accent);
+  }
+
+  .hairline {
+    border: 1px solid var(--q2m-line);
+  }
+  .hairline-soft {
+    border: 1px solid var(--q2m-line-soft);
+  }
+  .hairline-bone {
+    border: 1px solid var(--q2m-bone);
+  }
+  .overlay-dark-left {
+    background-image: linear-gradient(
+      90deg,
+      rgba(0, 0, 0, 0.91) 0%,
+      rgba(0, 0, 0, 0.27) 65%,
+      rgba(0, 0, 0, 0.07) 100%
+    );
+  }
+  .overlay-dark-bottom {
+    background-image: linear-gradient(
+      180deg,
+      rgba(0, 0, 0, 0.02) 0%,
+      rgba(0, 0, 0, 0.4) 60%,
+      rgba(0, 0, 0, 0.82) 100%
+    );
+  }
+
+  .text-shadow-soft {
+    text-shadow: 0 1px 14px rgba(0, 0, 0, 0.4);
+  }
+}
