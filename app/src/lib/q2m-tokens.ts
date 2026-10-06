@@ -92,7 +92,11 @@ const IMG = (prompt: string, size: string) =>
   `https://coresg-normal.trae.ai/api/ide/v1/text_to_image?prompt=${encodeURIComponent(prompt)}&image_size=${size}`;
 
 export const Q2M_BRAND_IMAGES = {
+  /** PNG transparent — surfaces thématisées (clair/sombre), classe `.q2m-logo`. */
   logo: '/images/q2m/logo q2m.png',
+  /** JPG sur fond noir — chrome noir `#000000` (navbar, footer, drawer) : le
+   *  carré noir se fond dans la barre, aucune retouche de filtre nécessaire. */
+  logoOnBlack: '/images/q2m/logo q2m.jpg',
   heroMain: IMG(
     'Luxury streetwear hero banner, cinematic low angle shot, premium white high top sneakers with gold Q logo details, dramatic crimson red neon rim light from left, warm gold accent light from right, dark moody wet urban asphalt background with subtle reflections, floating dust particles, generous empty copy space on left side, luxury fashion campaign photography, hyperrealistic, wide composition, shallow depth of field',
     'landscape_16_9',

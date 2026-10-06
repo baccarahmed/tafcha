@@ -40,14 +40,12 @@ Thème par défaut : **clair**. Le script inline de `src/app/[locale]/layout.tsx
 
 ## Logo
 
-Fichier unique : `public/images/q2m/logo q2m.png` (460×471, fond transparent, traits sombres + or), exposé via `Q2M_BRAND_IMAGES.logo`.
+Deux fichiers, deux contextes :
 
-Classes dans `globals.css` :
+- `Q2M_BRAND_IMAGES.logo` — `public/images/q2m/logo q2m.png` (460×471, fond transparent, traits sombres + or). Surfaces thématisées (login, dashboard…) : classe `.q2m-logo`, qui inverse le tracé en mode sombre (`filter` dans `globals.css`).
+- `Q2M_BRAND_IMAGES.logoOnBlack` — `public/images/q2m/logo q2m.jpg` (1254×1254, marque sur fond noir). Chrome noir (navbar, footer, drawer) : le carré noir se fond dans le fond `#000000`, aucune classe de filtre requise.
 
-- `.q2m-logo` — rendu normal (mode clair).
-- `.dark .q2m-logo` — `filter: brightness(0) invert(1)` + or en `drop-shadow` : le tracé sombre devient clair sur fond noir sans second fichier.
-
-Les quatre emplacements (storefront navbar, footer, dashboard shell, page login) utilisent `className="q2m-logo"` sur `<Image>`.
+Les deux sont des assets locaux (`public/images/q2m/`), jamais de hotlink.
 
 ## Typographie
 

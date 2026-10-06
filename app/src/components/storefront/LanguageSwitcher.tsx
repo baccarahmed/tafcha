@@ -50,7 +50,7 @@ export function LanguageSwitcher() {
         aria-label={t('label')}
         aria-expanded={open}
         aria-haspopup="listbox"
-        className="flex h-10 items-center gap-1.5 rounded-full border border-line px-3 text-ink-soft transition-colors hover:bg-overlay-hover hover:text-accent"
+        className="flex h-10 items-center gap-1.5 rounded-sm border border-white/15 px-3 text-[var(--q2m-on-dark-soft)] transition-colors hover:border-[var(--q2m-accent)] hover:text-[var(--q2m-accent)] focus-visible:border-[var(--q2m-accent)]"
       >
         <Languages size={16} strokeWidth={1.75} />
         <span className="text-[11px] font-extrabold tracking-[0.08em]">{current.native}</span>
@@ -65,7 +65,7 @@ export function LanguageSwitcher() {
         <ul
           role="listbox"
           aria-label={t('label')}
-          className="absolute end-0 top-[calc(100%+0.5rem)] z-50 min-w-[10rem] overflow-hidden rounded-xl border border-line bg-elevated py-1 shadow-xl"
+          className="absolute end-0 top-[calc(100%+0.5rem)] z-50 min-w-[10rem] overflow-hidden rounded-sm border border-white/10 bg-black py-1 shadow-2xl"
         >
           {routing.locales.map((code) => {
             const item = LOCALE_LABELS[code]
@@ -80,15 +80,15 @@ export function LanguageSwitcher() {
                   lang={code}
                   className={`flex w-full items-center gap-2.5 px-3.5 py-2.5 text-start text-sm transition-colors ${
                     active
-                      ? 'bg-overlay-soft text-accent'
-                      : 'text-ink-soft hover:bg-overlay-hover hover:text-ink'
+                      ? 'bg-white/5 text-[var(--q2m-accent)]'
+                      : 'text-[var(--q2m-on-dark-soft)] hover:bg-white/5 hover:text-[var(--q2m-on-dark)]'
                   }`}
                 >
                   <span aria-hidden className="text-base leading-none">
                     {item.flag}
                   </span>
                   <span className="flex-1 font-medium">{item.label}</span>
-                  {active && <Check size={14} className="text-accent" />}
+                  {active && <Check size={14} className="text-[var(--q2m-accent)]" />}
                 </button>
               </li>
             )

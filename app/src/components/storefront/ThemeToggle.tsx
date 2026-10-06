@@ -29,7 +29,7 @@ export function ThemeToggle() {
       aria-label={label}
       title={label}
       suppressHydrationWarning
-      className="relative flex h-10 w-10 items-center justify-center rounded-full border border-line text-ink-soft transition-colors hover:bg-overlay-hover hover:text-accent"
+      className="relative flex h-10 w-10 items-center justify-center rounded-sm border border-white/15 text-[var(--q2m-on-dark-soft)] transition-colors hover:border-[var(--q2m-accent)] hover:text-[var(--q2m-accent)] focus-visible:border-[var(--q2m-accent)]"
     >
       <Sun
         size={17}

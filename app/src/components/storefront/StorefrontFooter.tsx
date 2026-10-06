@@ -3,16 +3,15 @@
 import Image from "next/image";
 import { Link } from "@/i18n/navigation";
 import { useLocale, useTranslations } from "next-intl";
-import { useTheme } from "next-themes";
 import { Q2M, Q2M_FONT, Q2M_BRAND_IMAGES } from "@/lib/q2m-tokens";
 import { STORE_CURRENCY } from "@/lib/utils";
 
 export function StorefrontFooter() {
   const t = useTranslations("footer");
   const locale = useLocale();
-  const { resolvedTheme } = useTheme();
-  const isDark = resolvedTheme === "dark";
-  const logoSrc = Q2M_BRAND_IMAGES.logo;
+  // Footer noir dans les deux modes : cadrage sombre du site + lisibilité
+  // garantie des libellés crème (qui seraient invisibles sur fond clair).
+  const logoSrc = Q2M_BRAND_IMAGES.logoOnBlack;
 
   // Les libelles sont des cles : le footer suit la langue active au lieu
   // d'afficher du francais quel que soit le choix de l'utilisateur.
@@ -49,7 +48,8 @@ export function StorefrontFooter() {
     <footer
       className="w-full"
       style={{
-        background: isDark ? "#000000" : undefined,
+        background: "#000000",
+        borderTop: "1px solid rgba(255, 255, 255, 0.08)",
         color: Q2M.onDark,
         fontFamily: Q2M_FONT,
       }}
@@ -66,7 +66,7 @@ export function StorefrontFooter() {
                 width={56}
                 height={56}
                 unoptimized
-                className="q2m-logo h-[56px] w-[56px] object-contain object-[50%_25%]"
+                className="h-14 w-14 object-contain"
               />
             </Link>
             <p

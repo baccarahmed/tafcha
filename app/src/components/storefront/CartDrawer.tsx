@@ -70,9 +70,10 @@ export function CartDrawer({
               transition={springTransition}
               className="flex h-full flex-col"
             >
-              <div className="flex items-center justify-between border-b border-[var(--q2m-line-soft)] px-6 py-5">
+              {/* Header du drawer : même chrome noir que la navbar */}
+              <div className="flex items-center justify-between border-b border-white/10 bg-black px-6 py-5">
                 <div className="flex items-center gap-3">
-                  <Drawer.Title className="text-xl font-extrabold tracking-tight text-[var(--q2m-ink)]">
+                  <Drawer.Title className="text-xl font-extrabold tracking-tight text-[#f6f4ef]">
                     {t('title')}
                   </Drawer.Title>
                   {totalItems > 0 && (
@@ -85,7 +86,7 @@ export function CartDrawer({
                   type="button"
                   aria-label={t('close')}
                   onClick={closeCart}
-                  className="flex h-9 w-9 items-center justify-center rounded-full text-[var(--q2m-ink-stone)] transition-colors hover:bg-[var(--q2m-bone)] hover:text-[var(--q2m-ink)]"
+                  className="flex h-9 w-9 items-center justify-center rounded-full text-[var(--q2m-on-dark-soft)] transition-colors hover:bg-white/10 hover:text-[var(--q2m-accent)]"
                 >
                   <X className="h-5 w-5" strokeWidth={1.75} />
                 </button>

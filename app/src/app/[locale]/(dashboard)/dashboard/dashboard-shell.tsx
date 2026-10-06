@@ -176,13 +176,14 @@ export function DashboardShell({
       </motion.aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-20 border-b border-[var(--q2m-line-soft)] bg-[var(--q2m-bg)]/90 px-4 py-4 backdrop-blur-xl md:px-8">
+        {/* Topbar noir #000000 dans les deux modes — même chrome que la vitrine */}
+        <header className="sticky top-0 z-20 border-b border-white/10 bg-black px-4 py-4 md:px-8">
           <div className="flex items-center justify-between gap-4">
             <div className="flex min-w-0 items-center gap-4">
               <button
                 onClick={() => setMobileOpen(!mobileOpen)}
                 aria-label={t('openNavigationMenu')}
-                className="p-2 text-[var(--q2m-ink-mute)] lg:hidden"
+                className="p-2 text-[var(--q2m-on-dark-soft)] transition-colors hover:text-[var(--q2m-accent)] lg:hidden"
               >
                 <Menu className="h-5 w-5" />
               </button>
@@ -193,10 +194,10 @@ export function DashboardShell({
                 transition={{ duration: 0.3 }}
                 className="min-w-0"
               >
-                <h1 className="truncate text-xl font-semibold text-[var(--q2m-ink)] md:text-2xl">
+                <h1 className="truncate text-xl font-semibold text-[#f6f4ef] md:text-2xl">
                   {current ? t(current.key) : t('title')}
                 </h1>
-                <p className="truncate text-xs text-[var(--q2m-ink-stone)]">
+                <p className="truncate text-xs text-[var(--q2m-on-dark-soft)]">
                   {t('signedInAs', { email: user.email })}
                 </p>
               </motion.div>
@@ -204,7 +205,7 @@ export function DashboardShell({
 
             <Link
               href="/"
-              className="shrink-0 rounded-sm border border-[var(--q2m-line-strong)] px-3 py-2 text-xs font-medium text-[var(--q2m-ink-soft)] transition-colors hover:border-[var(--q2m-ink)] hover:text-[var(--q2m-ink)]"
+              className="shrink-0 rounded-sm border border-white/20 px-3 py-2 text-xs font-medium text-[var(--q2m-on-dark-soft)] transition-colors hover:border-[var(--q2m-accent)] hover:text-[var(--q2m-accent)]"
             >
               {t('backToStore')}
             </Link>
