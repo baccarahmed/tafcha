@@ -68,9 +68,9 @@ export function Q2MProductCard({ product }: { product: CatalogProduct }) {
       className="group relative"
     >
       <Link href={`/product/${product.slug}`} className="block">
-        {/* Image card — bone bg, padded inner frame */}
+        {/* Image card — bone bg, padded inner frame, liseré or au survol */}
         <div
-          className="relative aspect-[319/300] w-full overflow-hidden p-3.5"
+          className="relative aspect-[319/300] w-full overflow-hidden border border-transparent p-3.5 transition-[border-color] duration-300 group-hover:border-[var(--q2m-accent)]"
           style={{
             background: Q2M.bone,
             borderRadius: 8,
@@ -107,8 +107,7 @@ export function Q2MProductCard({ product }: { product: CatalogProduct }) {
         <div className="mt-3 flex flex-col gap-1">
           <div className="flex items-baseline justify-between gap-2">
             <span
-              className="text-[10px] font-bold tracking-[0.16em] uppercase"
-              style={{ color: Q2M.inkMute }}
+              className="text-[10px] font-bold tracking-[0.16em] uppercase text-[var(--q2m-ink-mute)] transition-colors group-hover:text-[var(--q2m-accent-text)]"
             >
               {product.brand ?? "—"}
             </span>
@@ -147,7 +146,7 @@ export function Q2MProductCard({ product }: { product: CatalogProduct }) {
             slug: product.slug,
           })
         }
-        className="absolute right-3.5 top-3.5 z-10 flex h-8 w-8 items-center justify-center"
+        className="absolute right-3.5 top-3.5 z-10 flex h-8 w-8 items-center justify-center transition-all duration-200 hover:border hover:border-[var(--q2m-accent)] active:scale-90"
         style={{
           background: Q2M.bgElevated,
           borderRadius: "999px",

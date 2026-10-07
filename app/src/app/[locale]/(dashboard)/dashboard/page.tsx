@@ -46,7 +46,7 @@ export default async function DashboardOverviewPage() {
               <p className="text-[0.6875rem] uppercase tracking-[0.16em] text-[var(--q2m-ink-stone)]">
                 {card.label}
               </p>
-              <card.icon className="h-4 w-4 text-[var(--q2m-ink-stone)]" />
+              <card.icon className="h-4 w-4 text-[var(--q2m-accent-text)]" />
             </div>
             <p className="mt-2 text-2xl font-semibold tabular-nums text-[var(--q2m-ink)]">
               {card.value}

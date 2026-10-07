@@ -37,7 +37,7 @@ export default async function AccountPage({ params }: PageProps) {
 
         {user ? (
           <>
-            <h1 className="text-5xl font-black leading-none tracking-[-0.03em] md:text-7xl">
+            <h1 className="text-5xl font-black uppercase leading-none tracking-[-0.02em] md:text-7xl">
               {user.firstName ?? user.email}
             </h1>
             <p className="mt-6 text-sm text-ink-mute">
@@ -46,7 +46,7 @@ export default async function AccountPage({ params }: PageProps) {
           </>
         ) : (
           <>
-            <h1 className="text-5xl font-black leading-none tracking-[-0.03em] md:text-7xl">
+            <h1 className="text-5xl font-black uppercase leading-none tracking-[-0.02em] md:text-7xl">
               {t('guestTitle')}
             </h1>
             <p className="mt-6 max-w-xl leading-relaxed text-ink-soft">{t('guestLead')}</p>
@@ -80,10 +80,7 @@ export default async function AccountPage({ params }: PageProps) {
 
             <div className="flex flex-wrap items-center gap-3 border-t border-line px-6 py-5">
               {user.role === 'ADMIN' && (
-                <Link
-                  href="/dashboard"
-                  className="border-2 border-[#FFE500] bg-[#FFE500] px-6 py-3 font-mono text-[11px] font-black tracking-[0.15em] text-on-accent"
-                >
+                <Link href="/dashboard" className="q2m-btn-primary">
                   {t('dashboard')}
                 </Link>
               )}
@@ -92,7 +89,7 @@ export default async function AccountPage({ params }: PageProps) {
                 <input type="hidden" name="locale" value={locale} />
                 <button
                   type="submit"
-                  className="border border-line px-6 py-3 font-mono text-[11px] font-black tracking-[0.15em] text-ink-soft transition-colors hover:border-[#FF4D2E] hover:text-[#FF4D2E]"
+                  className="border border-[var(--q2m-line)] px-6 py-3 text-[11px] font-bold uppercase tracking-[0.16em] text-[var(--q2m-ink-soft)] transition-colors hover:border-[var(--q2m-alert)] hover:text-[var(--q2m-alert)]"
                 >
                   {t('signOut')}
                 </button>
@@ -100,10 +97,7 @@ export default async function AccountPage({ params }: PageProps) {
             </div>
           </div>
         ) : (
-          <Link
-            href="/login"
-            className="inline-block border-2 border-[#FFE500] bg-[#FFE500] px-8 py-4 font-mono text-[11px] font-black tracking-[0.15em] text-on-accent"
-          >
+          <Link href="/login" className="q2m-btn-primary">
             {t('login')}
           </Link>
         )}

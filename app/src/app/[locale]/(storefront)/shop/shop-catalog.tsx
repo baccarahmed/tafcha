@@ -158,7 +158,7 @@ export default function ShopCatalog({ products }: { products: CatalogProduct[] }
     const rawMax = Number(searchParams?.get('maxPrice'));
 
     return {
-      brands: list('brand').filter((b) => brands.includes(b)),
+      brands: list('brand').filter((b) => brands.some((x) => x.toLowerCase() === b)),
       sizes: list('size').filter((s) => sizes.includes(s)),
       genders: list('gender').filter((g) => GENDERS.includes(g as never)),
       colors: list('color').filter((c) => COLORS.includes(c as never)),
@@ -199,7 +199,8 @@ export default function ShopCatalog({ products }: { products: CatalogProduct[] }
 
   const filtered = useMemo(() => {
     let result = products.filter((p) => {
-      if (filters.brands.length > 0 && !filters.brands.includes(p.brand)) return false;
+      if (filters.brands.length > 0 && !filters.brands.includes((p.brand ?? '').toLowerCase()))
+        return false;
 
       if (p.price > filters.maxPrice) return false;
 
@@ -335,8 +336,8 @@ export default function ShopCatalog({ products }: { products: CatalogProduct[] }
                   key={brand}
                   type="button"
                   onClick={() => toggle('brands', brand)}
-                  className={optionClass(filters.brands.includes(brand))}
-                  style={{ color: filters.brands.includes(brand) ? Q2M.ink : Q2M.inkMute }}
+                  className={optionClass(filters.brands.includes(brand.toLowerCase()))}
+                  style={{ color: filters.brands.includes(brand.toLowerCase()) ? Q2M.accentText : Q2M.inkMute }}
                 >
                   {brand.toUpperCase()}
                 </button>
@@ -353,7 +354,7 @@ export default function ShopCatalog({ products }: { products: CatalogProduct[] }
                     type="button"
                     onClick={() => toggle('sizes', size)}
                     className={optionClass(filters.sizes.includes(size))}
-                    style={{ color: filters.sizes.includes(size) ? Q2M.ink : Q2M.inkMute }}
+                    style={{ color: filters.sizes.includes(size) ? Q2M.accentText : Q2M.inkMute }}
                   >
                     {size}
                   </button>
@@ -370,7 +371,7 @@ export default function ShopCatalog({ products }: { products: CatalogProduct[] }
                   type="button"
                   onClick={() => toggle('genders', gender)}
                   className={optionClass(filters.genders.includes(gender))}
-                  style={{ color: filters.genders.includes(gender) ? Q2M.ink : Q2M.inkMute }}
+                  style={{ color: filters.genders.includes(gender) ? Q2M.accentText : Q2M.inkMute }}
                 >
                   {genderLabel(gender)}
                 </button>
@@ -387,7 +388,7 @@ export default function ShopCatalog({ products }: { products: CatalogProduct[] }
                     type="button"
                     onClick={() => toggle('colors', color)}
                     className={optionClass(filters.colors.includes(color))}
-                    style={{ color: filters.colors.includes(color) ? Q2M.ink : Q2M.inkMute }}
+                    style={{ color: filters.colors.includes(color) ? Q2M.accentText : Q2M.inkMute }}
                   >
                     {colorLabel(color)}
                   </button>
@@ -404,7 +405,7 @@ export default function ShopCatalog({ products }: { products: CatalogProduct[] }
                   type="button"
                   onClick={() => toggle('categories', category)}
                   className={optionClass(filters.categories.includes(category))}
-                  style={{ color: filters.categories.includes(category) ? Q2M.ink : Q2M.inkMute }}
+                  style={{ color: filters.categories.includes(category) ? Q2M.accentText : Q2M.inkMute }}
                 >
                   {t(`category_${category}` as never)}
                 </button>
@@ -447,7 +448,7 @@ export default function ShopCatalog({ products }: { products: CatalogProduct[] }
               type="button"
               onClick={() => commit({ ...filters, stockOnly: !filters.stockOnly })}
               className={optionClass(filters.stockOnly)}
-              style={{ color: filters.stockOnly ? Q2M.ink : Q2M.inkMute }}
+              style={{ color: filters.stockOnly ? Q2M.accentText : Q2M.inkMute }}
             >
               {t('stockOnly')}
             </button>
@@ -543,7 +544,7 @@ export default function ShopCatalog({ products }: { products: CatalogProduct[] }
                   className="h-9 w-9 rounded text-xs transition-colors"
                   style={
                     n === currentPage
-                      ? { background: Q2M.bgDark, color: '#FFFFFF', border: `1px solid ${Q2M.bgDark}` }
+                      ? { background: Q2M.bgDark, color: '#FFFFFF', border: `1px solid ${Q2M.accent}` }
                       : { background: Q2M.bgElevated, color: Q2M.ink, border: `1px solid ${Q2M.lineStrong}` }
                   }
                 >

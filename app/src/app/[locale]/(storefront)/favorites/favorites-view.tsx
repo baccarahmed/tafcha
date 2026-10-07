@@ -1,19 +1,65 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { Heart, Trash2 } from 'lucide-react'
+import { Heart } from 'lucide-react'
 import { useLocale, useTranslations } from 'next-intl'
 import { Link } from '@/i18n/navigation'
+import SneakerVisual from '@/components/storefront/SneakerVisual'
 import { Q2M, Q2M_FONT } from '@/lib/q2m-tokens'
 import { formatCurrency } from '@/lib/utils'
-import SneakerVisual from '@/components/storefront/SneakerVisual'
-import { useWishlistStore } from '@/store/wishlist-store'
+import { useWishlistStore, type WishlistItem } from '@/store/wishlist-store'
+
+function FavoriteCard({ item, index }: { item: WishlistItem; index: number }) {
+  const t = useTranslations('favorites')
+  const locale = useLocale()
+  const remove = useWishlistStore((s) => s.removeItem)
+
+  return (
+    <motion.article
+      initial={{ opacity: 0, y: 24 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, delay: index * 0.05 }}
+      className="group relative"
+    >
+      <Link href={`/product/${item.slug}`} className="block">
+        <div
+          className="relative aspect-[319/300] w-full overflow-hidden border border-transparent p-3.5 transition-[border-color] duration-300 group-hover:border-[var(--q2m-accent)]"
+          style={{ background: Q2M.bone, borderRadius: 8 }}
+        >
+          <SneakerVisual variant={item.palette} />
+        </div>
+
+        <div className="mt-3 flex flex-col gap-1">
+          <div className="flex items-baseline justify-between gap-2">
+            <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--q2m-ink-mute)]">
+              {t('saved')}
+            </span>
+            <span className="text-sm font-extrabold tabular-nums" style={{ color: Q2M.ink }}>
+              {formatCurrency(item.price, locale)}
+            </span>
+          </div>
+          <h2 className="text-base font-extrabold leading-tight" style={{ color: Q2M.ink }}>
+            {item.name}
+          </h2>
+        </div>
+      </Link>
+
+      <button
+        type="button"
+        aria-label={t('remove')}
+        onClick={() => remove(item.productId)}
+        className="absolute right-3.5 top-3.5 z-10 flex h-8 w-8 items-center justify-center transition-all duration-200 hover:border hover:border-[var(--q2m-alert)] active:scale-90"
+        style={{ background: Q2M.bgElevated, borderRadius: '999px', color: Q2M.accent }}
+      >
+        <Heart size={15} strokeWidth={1.5} fill="currentColor" />
+      </button>
+    </motion.article>
+  )
+}
 
 export default function FavoritesView() {
   const t = useTranslations('favorites')
-  const locale = useLocale()
   const items = useWishlistStore((s) => s.items)
-  const removeItem = useWishlistStore((s) => s.removeItem)
 
   return (
     <main style={{ background: Q2M.bg, fontFamily: Q2M_FONT }}>
@@ -22,7 +68,7 @@ export default function FavoritesView() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="mb-4 text-[11px] font-extrabold tracking-[0.16em] text-accent"
+          className="mb-4 text-[11px] font-extrabold tracking-[0.16em] text-[var(--q2m-accent-text)]"
         >
           {t('kicker')}
         </motion.p>
@@ -32,13 +78,13 @@ export default function FavoritesView() {
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.1 }}
-            className="text-5xl font-black leading-none tracking-[-0.03em] md:text-7xl"
+            className="text-5xl font-black uppercase leading-none tracking-[-0.02em] md:text-7xl"
           >
             {t('title')}
           </motion.h1>
 
           {items.length > 0 && (
-            <span className="font-mono text-xs text-ink-mute">
+            <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-ink-mute">
               {t('count', { count: items.length })}
             </span>
           )}
@@ -60,66 +106,21 @@ export default function FavoritesView() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.15 }}
-            className="flex flex-col items-center gap-5 border border-line py-24 text-center"
+            className="flex flex-col items-center gap-4 border border-line py-24 text-center"
           >
             <Heart size={32} strokeWidth={1.5} className="text-ink-mute" />
-            <div>
-              <p className="text-lg font-semibold">{t('empty')}</p>
-              <p className="mt-2 text-sm text-ink-mute">{t('emptyHint')}</p>
-            </div>
-            <Link
-              href="/shop"
-              className="border-2 border-[#FFE500] bg-[#FFE500] px-6 py-3 font-mono text-[11px] font-black tracking-[0.15em] text-on-accent"
-            >
+            <p className="text-lg font-bold">{t('empty')}</p>
+            <p className="max-w-md text-sm text-ink-mute">{t('emptyHint')}</p>
+            <Link href="/shop" className="q2m-btn-primary mt-2">
               {t('browse')}
             </Link>
           </motion.div>
         ) : (
-          <ul className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {items.map((item, idx) => (
-              <motion.li
-                key={item.id}
-                initial={{ opacity: 0, y: 24 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: idx * 0.05 }}
-                className="group flex flex-col border border-line bg-surface"
-              >
-                <Link
-                  href={`/product/${item.slug}`}
-                  className="relative block aspect-square overflow-hidden bg-elevated"
-                >
-                  <SneakerVisual variant={item.palette} />
-                </Link>
-
-                <div className="flex flex-1 flex-col gap-2 p-5">
-                  <h2 className="text-base font-bold leading-tight text-ink">{item.name}</h2>
-
-                  <div className="mt-auto flex items-end justify-between gap-3 pt-3">
-                    <span className="text-lg font-black tabular-nums text-ink">
-                      {formatCurrency(item.price, locale)}
-                    </span>
-
-                    <div className="flex items-center gap-1">
-                      <Link
-                        href={`/product/${item.slug}`}
-                        className="border border-line px-3 py-2 font-mono text-[10px] font-bold tracking-wider text-ink-soft transition-colors hover:border-[#FFE500] hover:text-accent"
-                      >
-                        {t('view')}
-                      </Link>
-                      <button
-                        type="button"
-                        onClick={() => removeItem(item.productId)}
-                        aria-label={t('remove')}
-                        className="flex h-9 w-9 items-center justify-center border border-line text-ink-mute transition-colors hover:border-[#FF4D2E] hover:text-[#FF4D2E]"
-                      >
-                        <Trash2 size={14} />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </motion.li>
+          <div className="grid grid-cols-2 gap-x-4.5 gap-y-7 md:grid-cols-3 lg:grid-cols-4 lg:gap-x-[18px]">
+            {items.map((item, index) => (
+              <FavoriteCard key={item.id} item={item} index={index} />
             ))}
-          </ul>
+          </div>
         )}
       </section>
     </main>

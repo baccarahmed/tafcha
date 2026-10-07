@@ -27,7 +27,7 @@ export default function AboutPage() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="mb-5 text-[11px] font-extrabold tracking-[0.16em] text-accent"
+          className="mb-5 text-[11px] font-extrabold tracking-[0.16em] text-[var(--q2m-accent-text)]"
         >
           {t("kicker")}
         </motion.p>
@@ -109,8 +109,7 @@ export default function AboutPage() {
         >
           <Link
             href="/shop"
-            className="group inline-flex h-[52px] items-center gap-3 px-8 text-xs font-bold tracking-[0.08em] transition-transform hover:scale-[1.02]"
-            style={{ background: Q2M.accent, color: Q2M.bg }}
+            className="group q2m-btn-primary"
           >
             {t("shopCta")}
             <ArrowRight

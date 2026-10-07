@@ -38,7 +38,8 @@
     "add": "Ajouter aux favoris",
     "remove": "Retirer des favoris",
     "browse": "PARCOURIR LA COLLECTION",
-    "view": "Voir la paire"
+    "view": "Voir la paire",
+    "saved": "SÉLECTION"
   },
   "search": {
     "metaTitle": "Recherche — Q2M",

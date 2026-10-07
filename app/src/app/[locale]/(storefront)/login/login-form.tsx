@@ -21,8 +21,7 @@ function SubmitButton() {
     <button
       type="submit"
       disabled={pending}
-      className="w-full py-3.5 text-xs font-extrabold tracking-[0.16em] transition-transform hover:scale-[1.01] disabled:cursor-not-allowed disabled:opacity-60"
-      style={{ background: Q2M.accent, color: Q2M.bg }}
+      className="q2m-btn-primary w-full disabled:cursor-not-allowed disabled:opacity-60"
     >
       {pending ? t('submitting') : t('submit')}
     </button>

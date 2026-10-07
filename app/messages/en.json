@@ -38,7 +38,8 @@
     "add": "Add to wishlist",
     "remove": "Remove from wishlist",
     "browse": "BROWSE THE COLLECTION",
-    "view": "View the pair"
+    "view": "View the pair",
+    "saved": "SAVED"
   },
   "search": {
     "metaTitle": "Search — Q2M",

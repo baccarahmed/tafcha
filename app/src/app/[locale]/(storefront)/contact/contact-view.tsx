@@ -25,7 +25,7 @@ export default function ContactPage() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="mb-4 text-[11px] font-extrabold tracking-[0.16em] text-accent"
+          className="mb-4 text-[11px] font-extrabold tracking-[0.16em] text-[var(--q2m-accent-text)]"
         >
           {t("kicker")}
         </motion.p>
@@ -83,8 +83,7 @@ export default function ContactPage() {
 
           <Link
             href="/about"
-            className="group inline-flex h-[52px] items-center gap-3 px-8 text-xs font-bold tracking-[0.08em] transition-transform hover:scale-[1.02]"
-            style={{ background: Q2M.accent, color: Q2M.bg }}
+            className="group q2m-btn-primary"
           >
             {t("discoverCta")}
             <ArrowRight size={15} className="transition-transform group-hover:translate-x-1 dir:rotate-180" />
@@ -210,8 +209,7 @@ function ContactForm() {
       <button
         type="submit"
         disabled={pending}
-        className="mt-2 h-12 text-sm font-bold tracking-[0.08em] transition-transform hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-60"
-        style={{ background: Q2M.accent, color: Q2M.bg }}
+        className="q2m-btn-primary mt-2 w-full disabled:cursor-not-allowed disabled:opacity-60"
       >
         {pending ? t("sending") : t("sendCta")}
       </button>
