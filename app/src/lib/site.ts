@@ -16,10 +16,13 @@ export const SITE_NAME = process.env.NEXT_PUBLIC_STORE_NAME?.trim() || Q2M.brand
 export const SITE_NAME_LONG = process.env.NEXT_PUBLIC_STORE_NAME_LONG?.trim() || Q2M.brandFull
 
 /** URL de production de la boutique, sans slash final. */
-export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000').replace(
-  /\/$/,
-  '',
-)
+export const SITE_URL = (
+  process.env.NEXT_PUBLIC_SITE_URL ||
+  // Sur Vercel, `VERCEL_URL` porte l'URL du déploiement courant (preview ou
+  // prod) : on l'utilise pour que canonicaux/OG/sitemap pointent toujours la
+  // source live, même sans variable NEXT_PUBLIC_SITE_URL renseignée.
+  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000')
+).replace(/\/$/, '')
 
 /** ID du Meta Pixel. Vide = aucun tracking chargé. */
 export const META_PIXEL_ID = process.env.NEXT_PUBLIC_META_PIXEL_ID?.trim() || ''
