@@ -117,6 +117,11 @@ const useCartStoreBase = create<CartStore>()(
     {
       name: 'q2m-cart',
       partialize: (state) => ({ items: state.items }),
+      merge: (persistedState, currentState) => {
+        const persisted = persistedState as Partial<CartState> | undefined;
+        const items = Array.isArray(persisted?.items) ? persisted.items : currentState.items;
+        return { ...currentState, ...persisted, items, ...calculateTotals(items) };
+      },
     }
   )
 );

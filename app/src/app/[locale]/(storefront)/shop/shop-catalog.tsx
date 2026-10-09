@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
-import { ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronDown, ChevronLeft, ChevronRight, SlidersHorizontal } from 'lucide-react';
 import { Q2MProductCard } from '@/components/storefront/Q2MProductCard';
 import { Q2M, Q2M_FONT } from '@/lib/q2m-tokens';
 import { formatCurrency } from '@/lib/utils';
@@ -101,6 +101,7 @@ export default function ShopCatalog({ products }: { products: CatalogProduct[] }
   const searchParams = useSearchParams();
   const [sortBy, setSortBy] = useState<SortOption>('newest');
   const [page, setPage] = useState(1);
+  const [filtersOpen, setFiltersOpen] = useState(false);
 
   const priceBounds = useMemo(() => {
     const prices = products.map((p) => p.price);
@@ -270,7 +271,11 @@ export default function ShopCatalog({ products }: { products: CatalogProduct[] }
   };
 
   const optionClass = (active: boolean) =>
-    `text-[12px] leading-[1.9] transition-colors ${active ? 'font-bold' : ''}`;
+  `-mx-1.5 rounded px-1.5 py-1 text-left text-[12px] leading-[1.9] transition-colors ${
+    active
+      ? 'font-bold text-[var(--q2m-accent-text)]'
+      : 'text-[var(--q2m-ink-mute)] hover:text-[var(--q2m-ink)]'
+  } focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--q2m-accent)]`;
 
   const colorLabel = (c: (typeof COLORS)[number]) => t(`color_${c}` as never);
   const genderLabel = (g: (typeof GENDERS)[number]) => t(`gender_${g}` as never);
@@ -282,10 +287,20 @@ export default function ShopCatalog({ products }: { products: CatalogProduct[] }
     availableGenders.length > 0 ||
     categories.length > 0;
 
+  const activeFilterCount = useMemo(() => {
+    let count = 0;
+    for (const key of ['brands', 'sizes', 'genders', 'colors', 'categories'] as const) {
+      count += filters[key].length;
+    }
+    if (filters.stockOnly) count += 1;
+    if (Number.isFinite(filters.maxPrice)) count += 1;
+    return count;
+  }, [filters]);
+
   return (
     <main style={{ background: Q2M.bg, fontFamily: Q2M_FONT }}>
       {/* Introduction — Figma layout_6NRYDU */}
-      <header className="mx-auto flex max-w-[1440px] flex-col gap-3.5 px-12 pt-10.5 pb-9.5 lg:px-14">
+      <header className="mx-auto flex max-w-[1440px] flex-col gap-3.5 px-5 pt-10.5 pb-9.5 sm:px-10 lg:px-14">
         <div className="flex items-center justify-between">
           <span
             className="text-[10px] font-bold uppercase tracking-[0.16em]"
@@ -298,7 +313,7 @@ export default function ShopCatalog({ products }: { products: CatalogProduct[] }
           </span>
         </div>
         <h1
-          className="text-[clamp(40px,5vw,68px)] font-black uppercase leading-[0.95] tracking-[-0.01em]"
+          className="text-[clamp(34px,5vw,68px)] font-black uppercase leading-[0.95] tracking-[-0.01em]"
           style={{ color: Q2M.ink, maxWidth: 920 }}
         >
           {t('catalogTitle')}
@@ -309,10 +324,59 @@ export default function ShopCatalog({ products }: { products: CatalogProduct[] }
       </header>
 
       {/* Catalogue — Figma layout_CWHGFJ (row, gap 32) */}
-      <div className="mx-auto flex max-w-[1440px] flex-col gap-8 px-12 pb-16 lg:flex-row lg:px-14">
+      <div className="mx-auto flex max-w-[1440px] flex-col gap-8 px-5 pb-16 sm:px-10 lg:flex-row lg:px-14">
         {hasFacets && (
-        <aside className="flex w-full shrink-0 flex-col gap-6 lg:w-[250px]">
-          <div className="flex items-center justify-between">
+        <>
+        {/* Toggle filtres mobile */}
+        <div className="flex items-center justify-between gap-4 lg:hidden">
+          <button
+            type="button"
+            onClick={() => setFiltersOpen((v) => !v)}
+            aria-expanded={filtersOpen}
+            aria-controls="shop-filters"
+            className="flex h-11 items-center gap-2 px-4 text-xs font-bold uppercase tracking-[0.16em] transition-colors hover:text-[var(--q2m-accent-text)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--q2m-accent)]"
+            style={{
+              background: Q2M.bgElevated,
+              border: `1px solid ${Q2M.lineStrong}`,
+              borderRadius: 4,
+              color: Q2M.ink,
+            }}
+          >
+            <SlidersHorizontal size={14} strokeWidth={1.5} />
+            {t('filters')}
+            {activeFilterCount > 0 && (
+              <span
+                className="flex h-5 min-w-5 items-center justify-center px-1 text-[10px] font-black tabular-nums"
+                style={{ background: Q2M.accent, color: Q2M.onAccent, borderRadius: 999 }}
+              >
+                {activeFilterCount}
+              </span>
+            )}
+            <ChevronDown
+              size={14}
+              className={`transition-transform duration-200 ${filtersOpen ? 'rotate-180' : ''}`}
+              style={{ color: Q2M.inkMute }}
+            />
+          </button>
+          {activeFilterCount > 0 && (
+            <button
+              type="button"
+              onClick={reset}
+              className="text-[10px] font-bold uppercase tracking-[0.16em] transition-opacity hover:opacity-60"
+              style={{ color: Q2M.inkMute }}
+            >
+              {t('clear')}
+            </button>
+          )}
+        </div>
+
+        <aside
+          id="shop-filters"
+          className={`w-full shrink-0 flex-col gap-6 lg:flex lg:w-[250px] ${
+            filtersOpen ? 'flex' : 'hidden'
+          }`}
+        >
+          <div className="hidden items-center justify-between lg:flex">
             <h2
               className="text-xl font-extrabold leading-[1.21]"
               style={{ color: Q2M.ink }}
@@ -337,7 +401,6 @@ export default function ShopCatalog({ products }: { products: CatalogProduct[] }
                   type="button"
                   onClick={() => toggle('brands', brand)}
                   className={optionClass(filters.brands.includes(brand.toLowerCase()))}
-                  style={{ color: filters.brands.includes(brand.toLowerCase()) ? Q2M.accentText : Q2M.inkMute }}
                 >
                   {brand.toUpperCase()}
                 </button>
@@ -354,7 +417,6 @@ export default function ShopCatalog({ products }: { products: CatalogProduct[] }
                     type="button"
                     onClick={() => toggle('sizes', size)}
                     className={optionClass(filters.sizes.includes(size))}
-                    style={{ color: filters.sizes.includes(size) ? Q2M.accentText : Q2M.inkMute }}
                   >
                     {size}
                   </button>
@@ -371,7 +433,6 @@ export default function ShopCatalog({ products }: { products: CatalogProduct[] }
                   type="button"
                   onClick={() => toggle('genders', gender)}
                   className={optionClass(filters.genders.includes(gender))}
-                  style={{ color: filters.genders.includes(gender) ? Q2M.accentText : Q2M.inkMute }}
                 >
                   {genderLabel(gender)}
                 </button>
@@ -388,7 +449,6 @@ export default function ShopCatalog({ products }: { products: CatalogProduct[] }
                     type="button"
                     onClick={() => toggle('colors', color)}
                     className={optionClass(filters.colors.includes(color))}
-                    style={{ color: filters.colors.includes(color) ? Q2M.accentText : Q2M.inkMute }}
                   >
                     {colorLabel(color)}
                   </button>
@@ -405,7 +465,6 @@ export default function ShopCatalog({ products }: { products: CatalogProduct[] }
                   type="button"
                   onClick={() => toggle('categories', category)}
                   className={optionClass(filters.categories.includes(category))}
-                  style={{ color: filters.categories.includes(category) ? Q2M.accentText : Q2M.inkMute }}
                 >
                   {t(`category_${category}` as never)}
                 </button>
@@ -448,22 +507,22 @@ export default function ShopCatalog({ products }: { products: CatalogProduct[] }
               type="button"
               onClick={() => commit({ ...filters, stockOnly: !filters.stockOnly })}
               className={optionClass(filters.stockOnly)}
-              style={{ color: filters.stockOnly ? Q2M.accentText : Q2M.inkMute }}
             >
               {t('stockOnly')}
             </button>
           </FilterGroup>
         </aside>
+        </>
       )}
 
         {/* Résultats */}
         <div className="flex min-w-0 flex-1 flex-col gap-6">
           {/* Barre de tri */}
-          <div className="flex items-center justify-between gap-4">
+          <div className="flex flex-col items-stretch gap-4 sm:flex-row sm:items-center sm:justify-between">
             <span className="text-xs" style={{ color: Q2M.inkMute }}>
               {t('count', { count: filtered.length })}
             </span>
-            <div className="flex w-[230px] flex-col gap-1.75">
+            <div className="flex w-full flex-col gap-1.75 sm:w-[230px]">
               <span
                 className="text-[10px] font-bold uppercase tracking-[0.16em]"
                 style={{ color: Q2M.inkMute }}
@@ -477,10 +536,9 @@ export default function ShopCatalog({ products }: { products: CatalogProduct[] }
                     setSortBy(e.target.value as SortOption);
                     setPage(1);
                   }}
-                  className="h-10 w-full appearance-none rounded px-3.5 pr-9 text-sm outline-none"
+                  className="h-10 w-full cursor-pointer appearance-none rounded border border-[var(--q2m-line-strong)] px-3.5 pr-9 text-sm outline-none transition-colors hover:border-[var(--q2m-ink-mute)] focus:border-[var(--q2m-accent)]"
                   style={{
                     background: Q2M.bgElevated,
-                    border: `1px solid ${Q2M.lineStrong}`,
                     color: Q2M.ink,
                   }}
                 >
@@ -531,21 +589,20 @@ export default function ShopCatalog({ products }: { products: CatalogProduct[] }
                 aria-label={t('previousPage')}
                 disabled={currentPage === 1}
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
-                className="flex h-9 w-9 items-center justify-center rounded transition-opacity disabled:opacity-30"
-                style={{ background: Q2M.bgElevated, border: `1px solid ${Q2M.lineStrong}` }}
+                className="flex h-9 w-9 items-center justify-center rounded border border-[var(--q2m-line-strong)] bg-[var(--q2m-bg-elevated)] text-[var(--q2m-ink)] transition-all hover:border-[var(--q2m-accent)] active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:border-[var(--q2m-line-strong)]"
               >
-                <ChevronLeft size={14} style={{ color: Q2M.ink }} />
+                <ChevronLeft size={14} className="rtl:-scale-x-100" />
               </button>
               {Array.from({ length: pageCount }, (_, i) => i + 1).map((n) => (
                 <button
                   key={n}
                   type="button"
                   onClick={() => setPage(n)}
-                  className="h-9 w-9 rounded text-xs transition-colors"
-                  style={
+                  aria-current={n === currentPage ? 'page' : undefined}
+                  className={
                     n === currentPage
-                      ? { background: Q2M.bgDark, color: '#FFFFFF', border: `1px solid ${Q2M.accent}` }
-                      : { background: Q2M.bgElevated, color: Q2M.ink, border: `1px solid ${Q2M.lineStrong}` }
+                      ? 'h-9 w-9 rounded border border-[var(--q2m-accent)] bg-[var(--q2m-bg-dark)] text-xs font-bold text-white transition-all'
+                      : 'h-9 w-9 rounded border border-[var(--q2m-line-strong)] bg-[var(--q2m-bg-elevated)] text-xs text-[var(--q2m-ink)] transition-all hover:border-[var(--q2m-accent)] active:scale-95'
                   }
                 >
                   {n}
@@ -556,10 +613,9 @@ export default function ShopCatalog({ products }: { products: CatalogProduct[] }
                 aria-label={t('nextPage')}
                 disabled={currentPage === pageCount}
                 onClick={() => setPage((p) => Math.min(pageCount, p + 1))}
-                className="flex h-9 w-9 items-center justify-center rounded transition-opacity disabled:opacity-30"
-                style={{ background: Q2M.bgElevated, border: `1px solid ${Q2M.line}` }}
+                className="flex h-9 w-9 items-center justify-center rounded border border-[var(--q2m-line-strong)] bg-[var(--q2m-bg-elevated)] text-[var(--q2m-ink)] transition-all hover:border-[var(--q2m-accent)] active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:border-[var(--q2m-line-strong)]"
               >
-                <ChevronRight size={14} style={{ color: Q2M.ink }} />
+                <ChevronRight size={14} className="rtl:-scale-x-100" />
               </button>
             </div>
           )}

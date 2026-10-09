@@ -1,10 +1,8 @@
 import type { Metadata } from 'next';
-import { hasLocale } from 'next-intl';
-import { redirect } from '@/i18n/navigation';
-import { routing, type Locale } from '@/i18n/routing';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { getSessionUser } from '@/lib/session';
 import { getSiteSettings } from '@/lib/catalog';
+import { buildMetadata } from '@/lib/seo';
 import CheckoutView from './checkout-view';
 
 export const dynamic = 'force-dynamic';
@@ -17,35 +15,30 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: 'checkout' });
 
-  return {
+  return buildMetadata({
+    locale,
     title: t('metaTitle'),
     description: t('metaDescription'),
-  };
+    path: '/checkout',
+    noIndex: true,
+  });
 }
 
 export default async function CheckoutPage({ params }: PageProps) {
   const { locale } = await params;
   setRequestLocale(locale);
-  // The [locale] layout already rejected unknown locales.
-  const activeLocale = (hasLocale(routing.locales, locale)
-    ? locale
-    : routing.defaultLocale) as Locale;
 
+  // Commande invitee : aucun compte n'est requis. On pre-remplit simplement le
+  // formulaire quand une session existe, sinon les champs sont vides.
   const user = await getSessionUser();
-
-  // Une commande est rattachee a un compte : sans session on repasse par la
-  // connexion, puis on revient ici (le panier est persiste côté navigateur).
-  if (!user) {
-    redirect({ href: '/login?next=/checkout', locale: activeLocale });
-  }
 
   const settings = await getSiteSettings().catch(() => null);
 
   return (
     <CheckoutView
       initial={{
-        fullName: [user.firstName, user.lastName].filter(Boolean).join(' '),
-        email: user.email,
+        fullName: user ? [user.firstName, user.lastName].filter(Boolean).join(' ') : '',
+        email: user?.email ?? '',
       }}
       freeShippingThreshold={Number(settings?.free_shipping_threshold_dnt) || 200}
       shippingCost={Number(settings?.shipping_cost_dnt) || 10}

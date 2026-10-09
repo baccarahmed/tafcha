@@ -76,7 +76,7 @@ export function StorefrontNavbar({ genders = [] }: { genders?: string[] }) {
     <>
       {/* Promo bar — noir chrome aligné sur le header, texte or (liseré blanc 8% pour séparer les deux barres noires) */}
       <div
-        className="w-full flex items-center justify-center gap-8 px-12 py-3.5 text-center"
+        className="flex w-full items-center justify-center gap-8 overflow-hidden px-4 py-3.5 text-center"
         style={{
           background: "#000000",
           color: "var(--q2m-accent)",
@@ -100,7 +100,7 @@ export function StorefrontNavbar({ genders = [] }: { genders?: string[] }) {
         }}
       >
         <div
-          className="mx-auto flex h-[72px] max-w-[1440px] items-center justify-between gap-6 px-6 sm:px-12 lg:px-14"
+          className="mx-auto flex h-[72px] max-w-[1440px] items-center justify-between gap-6 px-5 sm:px-10 lg:px-14"
           style={{ fontFamily: Q2M_FONT }}
         >
           {/* Logo officiel Q2M — JPG sur fond noir, fondu dans la barre */}
@@ -115,7 +115,7 @@ export function StorefrontNavbar({ genders = [] }: { genders?: string[] }) {
               width={52}
               height={52}
               priority
-              unoptimized
+              sizes="52px"
               className="h-[52px] w-[52px] object-contain"
             />
           </Link>
@@ -143,7 +143,7 @@ export function StorefrontNavbar({ genders = [] }: { genders?: string[] }) {
                 key={label}
                 href={href}
                 aria-label={label}
-                className={`relative hidden h-10 w-10 items-center justify-center sm:flex ${CHROME_TEXT} ${CHROME_HOVER}`}
+                className={`relative hidden h-10 w-10 items-center justify-center rounded-full transition-transform duration-150 hover:scale-105 active:scale-95 sm:flex hover:bg-white/5 ${CHROME_TEXT} ${CHROME_HOVER}`}
               >
                 <Icon size={18} strokeWidth={1.5} />
                 {count > 0 && (
@@ -165,7 +165,7 @@ export function StorefrontNavbar({ genders = [] }: { genders?: string[] }) {
               type="button"
               aria-label={t("cart")}
               onClick={openCart}
-              className={`relative flex h-10 w-10 items-center justify-center ${CHROME_TEXT} ${CHROME_HOVER}`}
+              className={`relative flex h-10 w-10 items-center justify-center rounded-full transition-transform duration-150 hover:scale-105 active:scale-95 hover:bg-white/5 ${CHROME_TEXT} ${CHROME_HOVER}`}
             >
               <ShoppingBag size={18} strokeWidth={1.5} />
               {totalItems > 0 && (
@@ -186,7 +186,7 @@ export function StorefrontNavbar({ genders = [] }: { genders?: string[] }) {
               type="button"
               aria-label={open ? t("closeMenu") : t("openMenu")}
               onClick={() => setOpen(!open)}
-              className={`flex h-10 w-10 items-center justify-center lg:hidden ${CHROME_TEXT} ${CHROME_HOVER}`}
+              className={`flex h-10 w-10 items-center justify-center rounded-full transition-transform duration-150 hover:scale-105 active:scale-95 hover:bg-white/5 lg:hidden ${CHROME_TEXT} ${CHROME_HOVER}`}
             >
               {open ? <X size={20} /> : <Menu size={20} />}
             </button>
@@ -201,7 +201,7 @@ export function StorefrontNavbar({ genders = [] }: { genders?: string[] }) {
           style={{ background: "#000000" }}
         >
           <nav
-            className="flex flex-col px-6 py-10"
+            className="flex flex-col px-5 py-8"
             style={{ fontFamily: Q2M_FONT }}
           >
             {links.map((l) => (

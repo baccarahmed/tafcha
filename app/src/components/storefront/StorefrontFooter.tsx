@@ -30,7 +30,7 @@ export function StorefrontFooter() {
       links: [
         { label: t("shipping"), href: "/about" },
         { label: t("sizeGuide"), href: "/about" },
-        { label: t("returns"), href: "/about" },
+        { label: t("returns"), href: "/returns" },
         { label: t("faq"), href: "/about" },
       ],
     },
@@ -54,9 +54,9 @@ export function StorefrontFooter() {
         fontFamily: Q2M_FONT,
       }}
     >
-      <div className="mx-auto flex max-w-[1440px] flex-col gap-12 px-12 py-16 lg:px-14">
+      <div className="mx-auto flex max-w-[1440px] flex-col gap-12 px-5 py-16 sm:px-10 lg:px-14">
         {/* Top: brand + columns */}
-        <div className="grid grid-cols-1 gap-10 md:grid-cols-4">
+        <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 md:grid-cols-4">
           {/* Brand */}
           <div className="flex flex-col gap-5 md:col-span-1">
             <Link href="/" aria-label={Q2M.brand}>
@@ -65,7 +65,6 @@ export function StorefrontFooter() {
                 alt={`${Q2M.brand} — ${Q2M.brandFull}`}
                 width={56}
                 height={56}
-                unoptimized
                 className="h-14 w-14 object-contain"
               />
             </Link>
@@ -86,19 +85,19 @@ export function StorefrontFooter() {
               >
                 {col.title}
               </h3>
-              <ul className="flex flex-col gap-2.5">
-                {col.links.map((link) => (
-                  <li key={link.label}>
-                    <Link
-                      href={link.href}
-                      className="text-sm font-normal transition-colors hover:text-white"
-                      style={{ color: Q2M.onDarkSoft }}
-                    >
-                      {link.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
+              <ul className="flex flex-col gap-2">
+                  {col.links.map((link) => (
+                    <li key={link.label}>
+                      <Link
+                        href={link.href}
+                        className="inline-block py-1.5 text-sm font-normal transition-colors hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--q2m-accent)]"
+                        style={{ color: Q2M.onDarkSoft }}
+                      >
+                        {link.label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
             </div>
           ))}
         </div>
@@ -122,10 +121,27 @@ export function StorefrontFooter() {
             className="flex flex-wrap items-center gap-3 text-[10px] font-bold tracking-[0.16em] uppercase"
             style={{ color: Q2M.onDarkSoft }}
           >
-            <span>{t("terms")}</span>
-            <span>•</span>
-            <span>{t("privacy")}</span>
-            <span>•</span>
+            <Link
+              href="/terms"
+              className="transition-colors hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--q2m-accent)]"
+            >
+              {t("terms")}
+            </Link>
+            <span aria-hidden>•</span>
+            <Link
+              href="/privacy"
+              className="transition-colors hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--q2m-accent)]"
+            >
+              {t("privacy")}
+            </Link>
+            <span aria-hidden>•</span>
+            <Link
+              href="/cookies"
+              className="transition-colors hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--q2m-accent)]"
+            >
+              {t("cookies")}
+            </Link>
+            <span aria-hidden>•</span>
             <span style={{ color: Q2M.accent }}>
               {STORE_CURRENCY} / {locale.toUpperCase()}
             </span>

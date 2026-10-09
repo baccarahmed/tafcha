@@ -11,15 +11,29 @@ import {
 import { MAX_PRODUCT_IMAGES, cn, slugify } from '@/lib/utils'
 import type { DbCategory } from '@/types/catalog'
 import type { ProductGender, SneakerPalette } from '@/types/product'
+import { Button } from '@/components/ui/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Textarea } from '@/components/ui/textarea'
+import { Switch } from '@/components/ui/switch'
 
 const PALETTES: SneakerPalette[] = ['crimson', 'ember', 'void', 'volt', 'onyx']
 const GENDERS: ProductGender[] = ['homme', 'femme', 'enfant', 'unisexe']
 
-const inputClass =
-  'q2m-input w-full px-3.5 py-2.5 text-sm text-[var(--q2m-ink)] placeholder:text-[var(--q2m-ink-stone)] outline-none'
-
-const labelClass =
-  'mb-2 block text-[0.6875rem] uppercase tracking-[0.16em] text-[var(--q2m-ink-stone)]'
+const fieldClass = 'border-[var(--q2m-line-soft)] focus-visible:ring-transparent'
 
 const errorClass = 'mt-1.5 text-xs text-[var(--q2m-alert)]'
 
@@ -31,7 +45,7 @@ interface SizeRow {
 interface PendingImage {
   base64: string
   mimeType: string
-  /** URL locale pour l'apercu, revoqueee au reset ou au demontage. */
+  /** URL locale pour l'apercu, revoquee au reset ou au demontage. */
   preview: string
 }
 
@@ -257,31 +271,32 @@ export default function ProductForm({ categories }: { categories: DbCategory[] }
     const compare = comparePrice.trim() === '' ? null : Number(comparePrice)
 
     startTransition(async () => {
-      const result = await createProductAction({
-        name,
-        slug,
-        sku,
-        brand,
-        description,
-        colorway,
-        images: [],
-        price: Number(price),
-        comparePrice: compare,
-        categoryId: categoryId === '' ? null : categoryId,
-        gender,
-        palette,
-        sizes: sizes.map((row) => ({
-          size: Number(row.size),
-          stock: Number(row.stock),
-        })),
-        featured,
-        active,
-        isNewDrop,
-      },
-      // `preview` est une URL locale : elle n'a pas sa place dans la charge utile.
-      images.length > 0
-        ? images.map(({ base64, mimeType }) => ({ base64, mimeType }))
-        : undefined
+      const result = await createProductAction(
+        {
+          name,
+          slug,
+          sku,
+          brand,
+          description,
+          colorway,
+          images: [],
+          price: Number(price),
+          comparePrice: compare,
+          categoryId: categoryId === '' ? null : categoryId,
+          gender,
+          palette,
+          sizes: sizes.map((row) => ({
+            size: Number(row.size),
+            stock: Number(row.stock),
+          })),
+          featured,
+          active,
+          isNewDrop,
+        },
+        // `preview` est une URL locale : elle n'a pas sa place dans la charge utile.
+        images.length > 0
+          ? images.map(({ base64, mimeType }) => ({ base64, mimeType }))
+          : undefined
       )
 
       if (!result.ok) {
@@ -291,6 +306,7 @@ export default function ProductForm({ categories }: { categories: DbCategory[] }
 
       setSavedSlug(result.slug)
       reset()
+      setFormOpen(false)
       router.refresh()
     })
   }
@@ -309,14 +325,14 @@ export default function ProductForm({ categories }: { categories: DbCategory[] }
           </p>
         </div>
 
-        <button
+        <Button
           type="button"
-          onClick={() => setFormOpen((open) => !open)}
-          className="inline-flex items-center gap-2 rounded-sm bg-[var(--q2m-ink)] px-5 py-2.5 text-sm font-medium text-[var(--q2m-bg-elevated)] transition-opacity hover:opacity-85"
+          onClick={() => setFormOpen(true)}
+          className="gap-2 rounded-sm bg-[var(--q2m-ink)] px-5 py-2.5 text-[var(--q2m-bg-elevated)] hover:opacity-85"
         >
-          {formOpen ? <X className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
-          {formOpen ? t('closeForm') : t('openForm')}
-        </button>
+          <Plus className="h-4 w-4" />
+          {t('openForm')}
+        </Button>
       </div>
 
       {savedSlug && (
@@ -410,326 +426,320 @@ export default function ProductForm({ categories }: { categories: DbCategory[] }
         )}
       </div>
 
-      {formOpen && (
-        <form onSubmit={handleSubmit} className="mt-6 space-y-6 border-t border-[var(--q2m-line-soft)] pt-6">
-          {aiFilled && (
-          <p className="flex items-center gap-2 border-t border-[var(--q2m-line-soft)] pt-4 text-xs text-[var(--q2m-ink-stone)]">
-            <Sparkles className="h-3.5 w-3.5 text-[var(--q2m-accent-text)]" />
-            {t('aiFilledNote')}
-          </p>
-        )}
+      <Dialog open={formOpen} onOpenChange={setFormOpen}>
+        <DialogContent className="max-h-[90vh] max-w-3xl overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{t('newProduct')}</DialogTitle>
+          </DialogHeader>
 
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-            <div>
-              <label htmlFor="productName" className={labelClass}>
-                {t('fieldName')}
-              </label>
-              <input
-                id="productName"
-                value={name}
-                onChange={(event) => handleNameChange(event.target.value)}
-                required
-                className={inputClass}
-              />
-              {errorField === 'name' && (
-                <p className={errorClass}>{t('errorName')}</p>
-              )}
-            </div>
-
-            <div>
-              <label htmlFor="productSlug" className={labelClass}>
-                {t('fieldSlug')}
-              </label>
-              <input
-                id="productSlug"
-                value={slug}
-                onChange={(event) => {
-                  setSlugTouched(true)
-                  setSlug(event.target.value)
-                }}
-                placeholder="rive-court-white"
-                className={inputClass}
-              />
-              {errorField === 'slug' && (
-                <p className={errorClass}>{t('errorSlug')}</p>
-              )}
-              {errorField === 'slugTaken' && (
-                <p className={errorClass}>{t('errorSlugTaken')}</p>
-              )}
-            </div>
-
-            <div>
-              <label htmlFor="productSku" className={labelClass}>
-                {t('fieldSku')}
-              </label>
-              <input
-                id="productSku"
-                value={sku}
-                onChange={(event) => setSku(event.target.value)}
-                placeholder="Q2M-BONE-014"
-                className={cn(inputClass, 'uppercase')}
-              />
-              <p className="mt-1.5 text-xs text-[var(--q2m-ink-stone)]">
-                {t('skuHint')}
-              </p>
-              {errorField === 'sku' && (
-                <p className={errorClass}>{t('errorSku')}</p>
-              )}
-              {errorField === 'skuTaken' && (
-                <p className={errorClass}>{t('errorSkuTaken')}</p>
-              )}
-            </div>
-
-            <div>
-              <label htmlFor="productBrand" className={labelClass}>
-                {t('fieldBrand')}
-              </label>
-              <input
-                id="productBrand"
-                value={brand}
-                onChange={(event) => setBrand(event.target.value)}
-                className={inputClass}
-              />
-            </div>
-
-            <div>
-              <label htmlFor="productColorway" className={labelClass}>
-                {t('fieldColorway')}
-              </label>
-              <input
-                id="productColorway"
-                value={colorway}
-                onChange={(event) => setColorway(event.target.value)}
-                placeholder="Bone / Off White"
-                className={inputClass}
-              />
-            </div>
-
-            <div>
-              <label htmlFor="productCategory" className={labelClass}>
-                {t('fieldCategory')}
-              </label>
-              <select
-                id="productCategory"
-                value={categoryId}
-                onChange={(event) => setCategoryId(event.target.value)}
-                className={inputClass}
-              >
-                <option value="">{t('noCategory')}</option>
-                {categories.map((category) => (
-                  <option key={category.id} value={category.id}>
-                    {category.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label htmlFor="productGender" className={labelClass}>
-                {t('fieldGender')}
-              </label>
-              <select
-                id="productGender"
-                value={gender}
-                onChange={(event) => setGender(event.target.value as ProductGender)}
-                className={inputClass}
-              >
-                {GENDERS.map((option) => (
-                  <option key={option} value={option}>
-                    {t(`gender_${option}`)}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label htmlFor="productPalette" className={labelClass}>
-                {t('fieldPalette')}
-              </label>
-              <select
-                id="productPalette"
-                value={palette}
-                onChange={(event) => setPalette(event.target.value as SneakerPalette)}
-                className={inputClass}
-              >
-                {PALETTES.map((option) => (
-                  <option key={option} value={option}>
-                    {t(`palette_${option}`)}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label htmlFor="productPrice" className={labelClass}>
-                {t('fieldPrice')}
-              </label>
-              <input
-                id="productPrice"
-                type="number"
-                min={0}
-                step="0.01"
-                value={price}
-                onChange={(event) => setPrice(event.target.value)}
-                required
-                className={inputClass}
-              />
-              {errorField === 'price' && <p className={errorClass}>{t('errorPrice')}</p>}
-            </div>
-
-            <div>
-              <label htmlFor="productComparePrice" className={labelClass}>
-                {t('fieldComparePrice')}
-              </label>
-              <input
-                id="productComparePrice"
-                type="number"
-                min={0}
-                step="0.01"
-                value={comparePrice}
-                onChange={(event) => setComparePrice(event.target.value)}
-                className={inputClass}
-              />
-              {errorField === 'comparePrice' && (
-                <p className={errorClass}>{t('errorComparePrice')}</p>
-              )}
-            </div>
-
-            {/*
-              Le champ URL sert au cas du sans-IA. Des qu'une photo est
-              deposee, elle est hebergee automatiquement et l'URL n'est plus
-              saisie a la main.
-            */}
-            {images.length > 0 && (
-              <p className="flex items-center gap-2 text-xs text-[var(--q2m-ink-stone)] sm:col-span-2">
-                <Check className="h-3.5 w-3.5" />
-                {t('imagesReady', { count: images.length })}
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {aiFilled && (
+              <p className="flex items-center gap-2 border-t border-[var(--q2m-line-soft)] pt-4 text-xs text-[var(--q2m-ink-stone)]">
+                <Sparkles className="h-3.5 w-3.5 text-[var(--q2m-accent-text)]" />
+                {t('aiFilledNote')}
               </p>
             )}
 
-            <div className="sm:col-span-2">
-              <label htmlFor="productDescription" className={labelClass}>
-                {t('fieldDescription')}
-              </label>
-              <textarea
-                id="productDescription"
-                rows={3}
-                value={description}
-                onChange={(event) => setDescription(event.target.value)}
-                className={cn(inputClass, 'resize-none')}
-              />
-            </div>
-          </div>
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+              <div>
+                <Label htmlFor="productName">{t('fieldName')}</Label>
+                <Input
+                  id="productName"
+                  value={name}
+                  onChange={(event) => handleNameChange(event.target.value)}
+                  required
+                  className={fieldClass}
+                />
+                {errorField === 'name' && (
+                  <p className={errorClass}>{t('errorName')}</p>
+                )}
+              </div>
 
-          <div>
-            <div className="flex items-center justify-between">
-              <p className={labelClass}>{t('fieldSizes')}</p>
-              <button
-                type="button"
-                onClick={() =>
-                  setSizes((rows) => {
-                    const last = rows[rows.length - 1]?.size ?? 40
-                    return [...rows, { size: last + 1, stock: 1 }]
-                  })
-                }
-                className="mb-2 inline-flex items-center gap-1 text-xs text-[var(--q2m-ink-mute)] transition-colors hover:text-[var(--q2m-accent-text)]"
-              >
-                <Plus className="h-3.5 w-3.5" />
-                {t('addSize')}
-              </button>
+              <div>
+                <Label htmlFor="productSlug">{t('fieldSlug')}</Label>
+                <Input
+                  id="productSlug"
+                  value={slug}
+                  onChange={(event) => {
+                    setSlugTouched(true)
+                    setSlug(event.target.value)
+                  }}
+                  placeholder="rive-court-white"
+                  className={fieldClass}
+                />
+                {errorField === 'slug' && (
+                  <p className={errorClass}>{t('errorSlug')}</p>
+                )}
+                {errorField === 'slugTaken' && (
+                  <p className={errorClass}>{t('errorSlugTaken')}</p>
+                )}
+              </div>
+
+              <div>
+                <Label htmlFor="productSku">{t('fieldSku')}</Label>
+                <Input
+                  id="productSku"
+                  value={sku}
+                  onChange={(event) => setSku(event.target.value.toUpperCase())}
+                  placeholder="Q2M-BONE-014"
+                  className={cn(fieldClass, 'uppercase')}
+                />
+                <p className="mt-1.5 text-xs text-[var(--q2m-ink-stone)]">
+                  {t('skuHint')}
+                </p>
+                {errorField === 'sku' && (
+                  <p className={errorClass}>{t('errorSku')}</p>
+                )}
+                {errorField === 'skuTaken' && (
+                  <p className={errorClass}>{t('errorSkuTaken')}</p>
+                )}
+              </div>
+
+              <div>
+                <Label htmlFor="productBrand">{t('fieldBrand')}</Label>
+                <Input
+                  id="productBrand"
+                  value={brand}
+                  onChange={(event) => setBrand(event.target.value)}
+                  className={fieldClass}
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="productColorway">{t('fieldColorway')}</Label>
+                <Input
+                  id="productColorway"
+                  value={colorway}
+                  onChange={(event) => setColorway(event.target.value)}
+                  placeholder="Bone / Off White"
+                  className={fieldClass}
+                />
+              </div>
+
+              <div>
+                <Label>{t('fieldCategory')}</Label>
+                <Select
+                  value={categoryId || 'none'}
+                  onValueChange={(value) =>
+                    setCategoryId(value === 'none' ? '' : value)
+                  }
+                >
+                  <SelectTrigger className={cn('w-full', fieldClass)}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">{t('noCategory')}</SelectItem>
+                    {categories.map((category) => (
+                      <SelectItem key={category.id} value={category.id}>
+                        {category.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label>{t('fieldGender')}</Label>
+                <Select
+                  value={gender}
+                  onValueChange={(value) => setGender(value as ProductGender)}
+                >
+                  <SelectTrigger className={cn('w-full', fieldClass)}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {GENDERS.map((option) => (
+                      <SelectItem key={option} value={option}>
+                        {t(`gender_${option}`)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label>{t('fieldPalette')}</Label>
+                <Select
+                  value={palette}
+                  onValueChange={(value) => setPalette(value as SneakerPalette)}
+                >
+                  <SelectTrigger className={cn('w-full', fieldClass)}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {PALETTES.map((option) => (
+                      <SelectItem key={option} value={option}>
+                        {t(`palette_${option}`)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label htmlFor="productPrice">{t('fieldPrice')}</Label>
+                <Input
+                  id="productPrice"
+                  type="number"
+                  min={0}
+                  step="0.01"
+                  value={price}
+                  onChange={(event) => setPrice(event.target.value)}
+                  required
+                  className={fieldClass}
+                />
+                {errorField === 'price' && <p className={errorClass}>{t('errorPrice')}</p>}
+              </div>
+
+              <div>
+                <Label htmlFor="productComparePrice">{t('fieldComparePrice')}</Label>
+                <Input
+                  id="productComparePrice"
+                  type="number"
+                  min={0}
+                  step="0.01"
+                  value={comparePrice}
+                  onChange={(event) => setComparePrice(event.target.value)}
+                  className={fieldClass}
+                />
+                {errorField === 'comparePrice' && (
+                  <p className={errorClass}>{t('errorComparePrice')}</p>
+                )}
+              </div>
+
+              {/*
+                Le champ URL sert au cas du sans-IA. Des qu'une photo est
+                deposee, elle est hebergee automatiquement et l'URL n'est plus
+                saisie a la main.
+              */}
+              {images.length > 0 && (
+                <p className="flex items-center gap-2 text-xs text-[var(--q2m-ink-stone)] sm:col-span-2">
+                  <Check className="h-3.5 w-3.5" />
+                  {t('imagesReady', { count: images.length })}
+                </p>
+              )}
+
+              <div className="sm:col-span-2">
+                <Label htmlFor="productDescription">{t('fieldDescription')}</Label>
+                <Textarea
+                  id="productDescription"
+                  rows={3}
+                  value={description}
+                  onChange={(event) => setDescription(event.target.value)}
+                  className={cn(fieldClass, 'resize-none')}
+                />
+              </div>
             </div>
 
-            <div className="space-y-2">
-              {sizes.map((row, index) => (
-                <div key={index} className="flex items-center gap-2">
-                  <input
-                    type="number"
-                    min={1}
-                    value={row.size}
-                    onChange={(event) =>
-                      updateSize(index, { size: Number(event.target.value) })
-                    }
-                    aria-label={t('fieldSize')}
-                    className={cn(inputClass, 'w-28')}
+            <div>
+              <div className="flex items-center justify-between">
+                <Label className="mb-2">{t('fieldSizes')}</Label>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() =>
+                    setSizes((rows) => {
+                      const last = rows[rows.length - 1]?.size ?? 40
+                      return [...rows, { size: last + 1, stock: 1 }]
+                    })
+                  }
+                  className="mb-2 text-xs text-[var(--q2m-ink-mute)]"
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                  {t('addSize')}
+                </Button>
+              </div>
+
+              <div className="space-y-2">
+                {sizes.map((row, index) => (
+                  <div key={index} className="flex items-center gap-2">
+                    <Input
+                      type="number"
+                      min={1}
+                      value={row.size}
+                      onChange={(event) =>
+                        updateSize(index, { size: Number(event.target.value) })
+                      }
+                      aria-label={t('fieldSize')}
+                      className={cn(fieldClass, 'w-28')}
+                    />
+                    <Input
+                      type="number"
+                      min={0}
+                      value={row.stock}
+                      onChange={(event) =>
+                        updateSize(index, { stock: Number(event.target.value) })
+                      }
+                      aria-label={t('fieldStock')}
+                      className={cn(fieldClass, 'w-28')}
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      onClick={() =>
+                        setSizes((rows) => rows.filter((_, i) => i !== index))
+                      }
+                      disabled={sizes.length === 1}
+                      aria-label={t('removeSize')}
+                      className="h-9 w-9 text-[var(--q2m-ink-stone)]"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+
+              <p className="mt-2 text-xs text-[var(--q2m-ink-stone)]">
+                {t('totalUnits', { count: units })}
+              </p>
+              {errorField === 'sizes' && <p className={errorClass}>{t('errorSizes')}</p>}
+            </div>
+
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+              {[
+                { label: t('toggleActive'), value: active, set: setActive },
+                { label: t('toggleFeatured'), value: featured, set: setFeatured },
+                { label: t('toggleNewDrop'), value: isNewDrop, set: setIsNewDrop },
+              ].map((toggle) => (
+                <label
+                  key={toggle.label}
+                  className="flex cursor-pointer items-center justify-between gap-4 rounded-sm border border-[var(--q2m-line-soft)] bg-[var(--q2m-bone)] p-4 transition-colors hover:border-[var(--q2m-line-strong)]"
+                >
+                  <span className="text-sm font-medium text-[var(--q2m-ink)]">
+                    {toggle.label}
+                  </span>
+                  <Switch
+                    checked={toggle.value}
+                    onCheckedChange={toggle.set}
+                    aria-label={toggle.label}
                   />
-                  <input
-                    type="number"
-                    min={0}
-                    value={row.stock}
-                    onChange={(event) =>
-                      updateSize(index, { stock: Number(event.target.value) })
-                    }
-                    aria-label={t('fieldStock')}
-                    className={cn(inputClass, 'w-28')}
-                  />
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setSizes((rows) => rows.filter((_, i) => i !== index))
-                    }
-                    disabled={sizes.length === 1}
-                    aria-label={t('removeSize')}
-                    className="rounded-sm border border-[var(--q2m-line-soft)] p-2 text-[var(--q2m-ink-stone)] transition-colors hover:border-[var(--q2m-line-strong)] hover:text-[var(--q2m-ink)] disabled:opacity-40"
-                  >
-                    <X className="h-4 w-4" />
-                  </button>
-                </div>
+                </label>
               ))}
             </div>
 
-            <p className="mt-2 text-xs text-[var(--q2m-ink-stone)]">
-              {t('totalUnits', { count: units })}
-            </p>
-            {errorField === 'sizes' && <p className={errorClass}>{t('errorSizes')}</p>}
-          </div>
+            {errorField === 'forbidden' && (
+              <p className="inline-flex items-center gap-2 text-sm text-[var(--q2m-alert)]">
+                <AlertCircle className="h-4 w-4" />
+                {t('errorForbidden')}
+              </p>
+            )}
 
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-            {[
-              { label: t('toggleActive'), value: active, set: setActive },
-              { label: t('toggleFeatured'), value: featured, set: setFeatured },
-              { label: t('toggleNewDrop'), value: isNewDrop, set: setIsNewDrop },
-            ].map((toggle) => (
-              <label
-                key={toggle.label}
-                className="flex cursor-pointer items-center justify-between gap-4 rounded-sm border border-[var(--q2m-line-soft)] bg-[var(--q2m-bone)] p-4 transition-colors hover:border-[var(--q2m-line-strong)]"
-              >
-                <span className="text-sm font-medium text-[var(--q2m-ink)]">
-                  {toggle.label}
-                </span>
-                <input
-                  type="checkbox"
-                  checked={toggle.value}
-                  onChange={(event) => toggle.set(event.target.checked)}
-                  className="h-4 w-4 shrink-0 accent-[var(--q2m-accent)]"
-                />
-              </label>
-            ))}
-          </div>
+            {images.length > 0 && errorField === 'uploadFailed' && (
+              <p className="inline-flex items-center gap-2 text-sm text-[var(--q2m-alert)]">
+                <AlertCircle className="h-4 w-4" />
+                {t('error_uploadFailed')}
+              </p>
+            )}
 
-          {errorField === 'forbidden' && (
-            <p className="inline-flex items-center gap-2 text-sm text-[var(--q2m-alert)]">
-              <AlertCircle className="h-4 w-4" />
-              {t('errorForbidden')}
-            </p>
-          )}
-
-          {images.length > 0 && errorField === 'uploadFailed' && (
-            <p className="inline-flex items-center gap-2 text-sm text-[var(--q2m-alert)]">
-              <AlertCircle className="h-4 w-4" />
-              {t('error_uploadFailed')}
-            </p>
-          )}
-
-          <button
-            type="submit"
-            disabled={pending}
-            className="inline-flex items-center gap-2 rounded-sm bg-[var(--q2m-ink)] px-6 py-3 text-sm font-medium text-[var(--q2m-bg-elevated)] transition-opacity hover:opacity-85 disabled:opacity-50"
-          >
-            <Plus className="h-4 w-4" />
-            {pending ? t('creating') : t('createProduct')}
-          </button>
-        </form>
-      )}
+            <Button type="submit" disabled={pending} className="gap-2 rounded-sm">
+              <Plus className="h-4 w-4" />
+              {pending ? t('creating') : t('createProduct')}
+            </Button>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

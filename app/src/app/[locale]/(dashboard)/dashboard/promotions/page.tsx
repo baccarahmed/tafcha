@@ -1,5 +1,6 @@
 import { getTranslations } from 'next-intl/server'
 import { getAdminPromotions } from '@/lib/admin-data'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import PromotionManager from './promotion-manager'
 
 export default async function DashboardPromotionsPage() {
@@ -7,12 +8,14 @@ export default async function DashboardPromotionsPage() {
   const promotions = await getAdminPromotions()
 
   return (
-    <div className="rounded-sm border border-[var(--q2m-line-soft)] bg-[var(--q2m-bg-elevated)] p-6">
-      <h2 className="text-sm font-semibold text-[var(--q2m-ink)]">
-        {t('promotions')}
-      </h2>
+    <Card className="border-[var(--q2m-line-soft)]">
+      <CardHeader>
+        <CardTitle className="text-sm font-semibold text-[var(--q2m-ink)]">
+          {t('promotions')}
+        </CardTitle>
+      </CardHeader>
 
-      <div className="mt-6">
+      <CardContent>
         <PromotionManager
           promotions={promotions.map((promotion) => ({
             id: promotion.id,
@@ -27,7 +30,7 @@ export default async function DashboardPromotionsPage() {
             announcementText: promotion.announcementText,
           }))}
         />
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   )
 }

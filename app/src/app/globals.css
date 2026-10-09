@@ -162,7 +162,7 @@
 
 @layer components {
   .container-q2m {
-    @apply mx-auto w-full max-w-[1440px] px-12 sm:px-14 lg:px-14;
+    @apply mx-auto w-full max-w-[1440px] px-5 sm:px-10 lg:px-14;
   }
 
   /* Bandeau promo : noir chrome aligné sur le header, texte or. */
@@ -207,7 +207,7 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 10px;
+    gap: 8px;
     padding: 0 20px;
     height: 44px;
     background: var(--q2m-accent);
@@ -215,25 +215,29 @@
     border: 1px solid var(--q2m-accent);
     border-radius: 4px;
     cursor: pointer;
-    transition: transform 0.15s ease, background 0.15s ease, color 0.15s ease;
+    transition: transform 0.16s ease, box-shadow 0.16s ease, background 0.16s ease, color 0.16s ease, border-color 0.16s ease;
     font-family: 'Inter', sans-serif;
     font-weight: 700;
     font-size: 12px;
+    line-height: 1;
     letter-spacing: 0.14em;
     text-transform: uppercase;
+    white-space: nowrap;
+    min-width: fit-content;
   }
 
   .q2m-btn-primary:hover {
     background: var(--q2m-on-accent);
     color: var(--q2m-accent);
     border-color: var(--q2m-on-accent);
+    box-shadow: 0 10px 28px rgba(148, 113, 54, 0.28);
   }
 
   .q2m-btn-secondary {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 10px;
+    gap: 8px;
     padding: 0 20px;
     height: 44px;
     background: var(--q2m-on-accent);
@@ -241,24 +245,28 @@
     border: 1px solid var(--q2m-on-accent);
     border-radius: 4px;
     cursor: pointer;
-    transition: transform 0.15s ease, background 0.15s ease, color 0.15s ease;
+    transition: transform 0.16s ease, box-shadow 0.16s ease, background 0.16s ease, color 0.16s ease, border-color 0.16s ease;
     font-family: 'Inter', sans-serif;
     font-weight: 700;
     font-size: 12px;
+    line-height: 1;
     letter-spacing: 0.14em;
     text-transform: uppercase;
+    white-space: nowrap;
+    min-width: fit-content;
   }
 
   .q2m-btn-secondary:hover {
     background: var(--q2m-accent);
     color: var(--q2m-on-accent);
+    box-shadow: 0 10px 28px rgba(15, 15, 15, 0.24);
   }
 
   .q2m-btn-ghost {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 10px;
+    gap: 8px;
     padding: 0 20px;
     height: 44px;
     background: var(--q2m-bone);
@@ -266,17 +274,78 @@
     border: 1px solid var(--q2m-line);
     border-radius: 4px;
     cursor: pointer;
-    transition: transform 0.15s ease, background 0.15s ease, color 0.15s ease;
+    transition: transform 0.16s ease, box-shadow 0.16s ease, background 0.16s ease, color 0.16s ease, border-color 0.16s ease;
     font-family: 'Inter', sans-serif;
     font-weight: 700;
     font-size: 12px;
+    line-height: 1;
     letter-spacing: 0.14em;
     text-transform: uppercase;
+    white-space: nowrap;
+    min-width: fit-content;
   }
 
   .q2m-btn-ghost:hover {
     background: var(--q2m-ink);
     color: var(--q2m-bg);
+  }
+
+  .q2m-btn-primary:active,
+  .q2m-btn-secondary:active,
+  .q2m-btn-ghost:active {
+    transform: translateY(1px) scale(0.99);
+    box-shadow: none;
+  }
+
+  .q2m-btn-primary:focus-visible,
+  .q2m-btn-secondary:focus-visible,
+  .q2m-btn-ghost:focus-visible {
+    outline: 2px solid var(--q2m-accent);
+    outline-offset: 3px;
+  }
+
+  .q2m-btn-primary:disabled,
+  .q2m-btn-secondary:disabled,
+  .q2m-btn-ghost:disabled,
+  .q2m-btn-primary[aria-disabled='true'],
+  .q2m-btn-secondary[aria-disabled='true'],
+  .q2m-btn-ghost[aria-disabled='true'] {
+    cursor: not-allowed;
+    opacity: 0.45;
+    transform: none;
+    box-shadow: none;
+  }
+
+  .q2m-btn-sm {
+    height: 34px;
+    padding: 0 14px;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+  }
+
+  .q2m-btn-lg {
+    height: 54px;
+    padding: 0 32px;
+    font-size: 13px;
+    gap: 10px;
+  }
+
+  .q2m-btn-block {
+    width: 100%;
+  }
+
+  /* Rangee scrollable cote a cote sans barre de defilement (bandeau, marquee). */
+  .q2m-scroll-x {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .q2m-scroll-x::-webkit-scrollbar {
+    display: none;
+  }
+
+  .q2m-scroll-x::-moz-scrollbar {
+    display: none;
   }
 
   .q2m-card {

@@ -146,7 +146,7 @@ export function Q2MProductCard({ product }: { product: CatalogProduct }) {
             slug: product.slug,
           })
         }
-        className="absolute right-3.5 top-3.5 z-10 flex h-8 w-8 items-center justify-center transition-all duration-200 hover:border hover:border-[var(--q2m-accent)] active:scale-90"
+        className="absolute right-3.5 top-3.5 z-10 flex h-8 w-8 items-center justify-center transition-all duration-200 hover:scale-110 hover:border hover:border-[var(--q2m-accent)] active:scale-90"
         style={{
           background: Q2M.bgElevated,
           borderRadius: "999px",
@@ -173,12 +173,12 @@ export function Q2MProductGrid({
   return (
     <section className="w-full" style={{ background: Q2M.bg }}>
       <div
-        className="mx-auto flex max-w-[1440px] flex-col gap-7.5 px-12 py-16 lg:px-14 lg:py-20"
+        className="mx-auto flex max-w-[1440px] flex-col gap-7.5 px-5 py-14 sm:px-10 sm:py-16 lg:px-14 lg:py-20"
         style={{ fontFamily: Q2M_FONT }}
       >
         {/* Section header */}
-        <div className="flex items-end justify-between gap-4">
-          <div className="flex flex-col gap-2">
+        <div className="flex flex-wrap items-end justify-between gap-x-4 gap-y-2">
+          <div className="flex min-w-0 flex-col gap-2">
             <span
               className="text-[10px] font-bold tracking-[0.16em] uppercase"
               style={{ color: Q2M.accentText }}
@@ -186,7 +186,7 @@ export function Q2MProductGrid({
               {eyebrowText}
             </span>
             <h2
-              className="text-[42px] font-black leading-[1.21] uppercase"
+              className="max-w-full text-[clamp(28px,7vw,42px)] font-black leading-[1.21] uppercase break-words"
               style={{ color: Q2M.ink, letterSpacing: "-0.01em" }}
             >
               {title}
@@ -195,13 +195,13 @@ export function Q2MProductGrid({
           {link && (
             <Link
               href={link.href}
-              className="group inline-flex items-center gap-2 text-[10px] font-bold tracking-[0.16em] uppercase transition-colors"
+              className="group inline-flex shrink-0 items-center gap-2 py-2.5 text-[10px] font-bold tracking-[0.16em] uppercase transition-colors focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--q2m-accent)]"
               style={{ color: Q2M.ink }}
             >
               {link.label}
               <ArrowUpRight
                 size={14}
-                className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+                className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 rtl:-scale-x-100"
               />
             </Link>
           )}

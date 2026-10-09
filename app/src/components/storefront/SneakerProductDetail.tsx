@@ -1,7 +1,9 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useActionState, useEffect, useMemo, useState } from 'react';
+import { useFormStatus } from 'react-dom';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import {
   ArrowUpRight,
@@ -17,30 +19,20 @@ import SneakerVisual from '@/components/storefront/SneakerVisual';
 import { Q2MProductCard } from '@/components/storefront/Q2MProductCard';
 import { Q2M, Q2M_FONT } from '@/lib/q2m-tokens';
 import { formatCurrency, intlLocale } from '@/lib/utils';
+import { trackAddToCart, trackViewContent } from '@/lib/metaPixel';
 import { addItem, openCart } from '@/store/cart-store';
 import { useWishlistStore } from '@/store/wishlist-store';
+import { createReviewAction, type ReviewActionState } from '@/app/actions/reviews';
+import type { ProductReview } from '@/lib/reviews';
 import type { SneakerPalette } from '@/types/product';
 import type { CatalogProduct } from '@/types/catalog';
 
 interface SneakerProductDetailProps {
   product: CatalogProduct;
   related?: CatalogProduct[];
+  reviews?: ProductReview[];
+  signedIn?: boolean;
 }
-
-const REVIEW_COUNT = 48;
-const REVIEW_SCORE = 4.8;
-
-/**
- * Ces trois avis et la fiche technique sont du contenu de demonstration.
- *
- * Les libelles vivent dans `messages/*.json` (`review1Author`, `detail1`…) :
- * les ecrire ici les figerait en francais sur les trois langues.
- */
-const REVIEWS = [
-  { authorKey: 'review1Author', bodyKey: 'review1Body' },
-  { authorKey: 'review2Author', bodyKey: 'review2Body' },
-  { authorKey: 'review3Author', bodyKey: 'review3Body' },
-] as const;
 
 const DETAIL_KEYS = [
   'detail1',
@@ -56,6 +48,14 @@ const ASSURANCES = [
   { key: 'returns', Icon: RotateCcw },
 ] as const;
 
+const REVIEW_ERROR_KEYS: Record<NonNullable<ReviewActionState['error']>, string> = {
+  invalid: 'reviewErrorInvalid',
+  auth: 'reviewErrorAuth',
+  notPurchased: 'reviewErrorNotPurchased',
+  already: 'reviewErrorAlready',
+  failed: 'reviewErrorFailed',
+};
+
 /** 4 vues par défaut quand le produit n'a pas de photo (Figma : 4 vignettes). */
 function buildViews(product: CatalogProduct): SneakerPalette[] {
   const base = [product.palette, product.hoverPalette ?? product.palette];
@@ -65,21 +65,28 @@ function buildViews(product: CatalogProduct): SneakerPalette[] {
 export default function SneakerProductDetail({
   product,
   related = [],
+  reviews = [],
+  signedIn = false,
 }: SneakerProductDetailProps) {
   const t = useTranslations('product');
   const locale = useLocale();
   const [imageIndex, setImageIndex] = useState(0);
   const [selectedSize, setSelectedSize] = useState<number | string | null>(null);
 
-  const hasItem = useWishlistStore((s) => s.hasItem);
+  const wishlistItems = useWishlistStore((s) => s.items);
   const toggleItem = useWishlistStore((s) => s.toggleItem);
-  const isInWishlist = hasItem(product.id);
+  const isInWishlist = wishlistItems.some((item) => item.productId === product.id);
 
   const views = useMemo(() => buildViews(product), [product]);
   const gallery = product.images.length > 0 ? product.images : views;
   const activeImage = product.images[imageIndex];
 
   const inStock = product.sizes.find((s) => s.stock > 0);
+
+  // Meta Pixel — « ViewContent » une fois par fiche affichée.
+  useEffect(() => {
+    trackViewContent({ id: product.id, name: product.name, value: product.price });
+  }, [product.id, product.name, product.price]);
 
   const handleAddToCart = () => {
     if (!selectedSize || product.isSoldOut) return;
@@ -92,6 +99,7 @@ export default function SneakerProductDetail({
       slug: product.slug,
       size: selectedSize.toString(),
     });
+    trackAddToCart({ id: product.id, name: product.name, value: product.price });
     openCart();
   };
 
@@ -107,20 +115,25 @@ export default function SneakerProductDetail({
   }, [locale]);
 
   // « 4,8 » en français, « 4.8 » en anglais : la virgule décimale est locale.
+  const averageRating = useMemo(() => {
+    if (reviews.length === 0) return 0;
+    return reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length;
+  }, [reviews]);
+
   const reviewScore = useMemo(
     () =>
       new Intl.NumberFormat(intlLocale(locale), {
         minimumFractionDigits: 1,
         maximumFractionDigits: 1,
-      }).format(REVIEW_SCORE),
-    [locale]
+      }).format(averageRating),
+    [averageRating, locale]
   );
 
   return (
     <div style={{ background: Q2M.bg, fontFamily: Q2M_FONT }}>
       {/* Fil d'Ariane — bandeau blanc pleine largeur */}
       <div style={{ background: Q2M.bgElevated }}>
-        <div className="mx-auto max-w-[1440px] px-12 py-3 lg:px-14">
+        <div className="mx-auto max-w-[1440px] px-5 py-3 sm:px-10 lg:px-14">
           <p className="text-[10px] uppercase tracking-[0.12em]" style={{ color: Q2M.inkMute }}>
             {t('breadcrumbHome')} / {product.brand} / {product.name}
           </p>
@@ -128,9 +141,9 @@ export default function SneakerProductDetail({
       </div>
 
       {/* Fiche produit — row, gap 38 */}
-      <div className="mx-auto flex max-w-[1440px] flex-col gap-9.5 px-6 py-6 pb-14 lg:flex-row lg:px-14">
+      <div className="mx-auto flex max-w-[1440px] flex-col gap-9.5 px-5 py-6 pb-14 sm:px-10 lg:flex-row lg:px-14">
         {/* Galerie — miniatures 94px + vue principale 590px */}
-        <div className="flex shrink-0 flex-row gap-3 lg:w-[780px]">
+        <div className="flex shrink-0 flex-col gap-3 lg:w-[780px] lg:flex-row">
           <div className="hidden w-[94px] shrink-0 flex-col gap-2.5 lg:flex">
             {gallery.slice(0, 4).map((_, idx) => (
               <button
@@ -202,6 +215,38 @@ export default function SneakerProductDetail({
               </span>
             )}
           </div>
+
+          {/* Vignettes — pile horizontale scrollable sur mobile */}
+          <div className="q2m-scroll-x flex gap-2 overflow-x-auto lg:hidden">
+            {gallery.slice(0, 4).map((_, idx) => (
+              <button
+                key={`m-${idx}`}
+                type="button"
+                onClick={() => setImageIndex(idx)}
+                aria-label={t('viewAlt', { name: product.name, count: idx + 1 })}
+                aria-pressed={imageIndex === idx}
+                className="relative h-16 w-16 shrink-0 overflow-hidden transition-all active:scale-95"
+                style={{
+                  borderRadius: 4,
+                  border: `1px solid ${imageIndex === idx ? Q2M.accent : Q2M.line}`,
+                  background: Q2M.bone,
+                }}
+              >
+                {product.images[idx] ? (
+                  <Image
+                    src={product.images[idx]}
+                    alt=""
+                    fill
+                    sizes="64px"
+                    unoptimized
+                    className="object-cover"
+                  />
+                ) : (
+                  <SneakerVisual variant={views[idx]} flipped={idx % 2 === 1} />
+                )}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Colonne Achat — 510px */}
@@ -216,7 +261,7 @@ export default function SneakerProductDetail({
             </span>
             <button
               type="button"
-              aria-label={t('addToWishlist')}
+              aria-label={isInWishlist ? t('removeFromWishlist') : t('addToWishlist')}
               onClick={() =>
                 toggleItem({
                   productId: product.id,
@@ -226,7 +271,7 @@ export default function SneakerProductDetail({
                   slug: product.slug,
                 })
               }
-              className="transition-opacity hover:opacity-70"
+              className="flex h-9 w-9 items-center justify-center rounded-full transition-all hover:scale-110 hover:bg-[var(--q2m-bone)] active:scale-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--q2m-accent)]"
               style={{ color: isInWishlist ? Q2M.accent : Q2M.inkMute }}
             >
               <Heart size={20} strokeWidth={1.5} fill={isInWishlist ? 'currentColor' : 'none'} />
@@ -291,12 +336,11 @@ export default function SneakerProductDetail({
                     type="button"
                     disabled={soldOut}
                     onClick={() => setSelectedSize(size)}
-                    className="h-[42px] w-[54px] rounded text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-35"
-                    style={{
-                      background: selected ? Q2M.bgDark : Q2M.bgElevated,
-                      color: selected ? '#FFFFFF' : Q2M.inkMute,
-                      border: `1px solid ${selected ? Q2M.accent : Q2M.lineStrong}`,
-                    }}
+                    className={`h-[42px] w-[54px] rounded border text-sm transition-all active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--q2m-accent)] disabled:cursor-not-allowed disabled:opacity-35 disabled:active:scale-100 ${
+                      selected
+                        ? 'border-[var(--q2m-accent)] bg-[var(--q2m-bg-dark)] font-bold text-white'
+                        : 'border-[var(--q2m-line-strong)] bg-[var(--q2m-bg-elevated)] text-[var(--q2m-ink-mute)] hover:border-[var(--q2m-ink-mute)] hover:text-[var(--q2m-ink)]'
+                    }`}
                   >
                     {size}
                   </button>
@@ -324,7 +368,7 @@ export default function SneakerProductDetail({
             type="button"
             onClick={handleAddToCart}
             disabled={!selectedSize || product.isSoldOut}
-            className="q2m-btn-primary h-[54px] w-full disabled:cursor-not-allowed disabled:opacity-40"
+            className="q2m-btn-primary q2m-btn-lg q2m-btn-block"
           >
             <ShoppingBag size={15} strokeWidth={1.5} />
             {product.isSoldOut
@@ -348,7 +392,7 @@ export default function SneakerProductDetail({
 
       {/* Description et détails — fond blanc, 2 colonnes */}
       <section style={{ background: Q2M.bgElevated }}>
-        <div className="mx-auto flex max-w-[1440px] flex-col gap-15 px-12 py-13 lg:flex-row lg:px-14">
+        <div className="mx-auto flex max-w-[1440px] flex-col gap-15 px-5 py-13 sm:px-10 lg:flex-row lg:px-14">
           <div className="flex flex-1 flex-col gap-4">
             <h2
               className="text-[clamp(28px,2.2vw,28px)] font-black uppercase leading-[1.21]"
@@ -382,7 +426,7 @@ export default function SneakerProductDetail({
       {/* Vous aimerez aussi */}
       {related.length > 0 && (
         <section>
-          <div className="mx-auto flex max-w-[1440px] flex-col gap-6.5 px-12 py-13 lg:px-14">
+          <div className="mx-auto flex max-w-[1440px] flex-col gap-6.5 px-5 py-13 sm:px-10 lg:px-14">
             <div className="flex flex-col gap-2">
               <span
                 className="text-[10px] font-bold uppercase tracking-[0.16em]"
@@ -404,63 +448,196 @@ export default function SneakerProductDetail({
 
       {/* Avis — fond beige */}
       <section style={{ background: Q2M.bone }}>
-        <div className="mx-auto flex max-w-[1440px] flex-col gap-6 px-12 py-13 lg:px-14">
-          <div className="flex items-end justify-between gap-4">
-            <div className="flex flex-col gap-2">
+        <div className="mx-auto flex max-w-[1440px] flex-col gap-6 px-5 py-13 sm:px-10 lg:px-14">
+          <div className="flex flex-wrap items-end justify-between gap-x-4 gap-y-2">
+            <div className="flex min-w-0 flex-col gap-2">
               <span
                 className="text-[10px] font-bold uppercase tracking-[0.16em]"
                 style={{ color: Q2M.accentText }}
               >
-                {t('verifiedReviews', { count: REVIEW_COUNT })}
+                {t('verifiedReviews', { count: reviews.length })}
               </span>
               <h2
                 className="text-[clamp(32px,2.8vw,42px)] font-black uppercase leading-[1.21]"
                 style={{ color: Q2M.ink }}
               >
-                {reviewScore} / 5
+                {reviews.length > 0 ? `${reviewScore} / 5` : t('reviewNone')}
               </h2>
             </div>
-            <button
-              type="button"
-              className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.16em] transition-opacity hover:opacity-60"
-              style={{ color: Q2M.ink }}
-            >
-              {t('leaveReview')}
-              <ArrowUpRight size={14} strokeWidth={1.5} />
-            </button>
+            {signedIn ? (
+              <ReviewForm productId={product.id} />
+            ) : (
+              <span className="text-xs" style={{ color: Q2M.inkMute }}>
+                {t('reviewGuestNote')}
+              </span>
+            )}
           </div>
 
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-            {REVIEWS.map((review) => (
-              <motion.div
-                key={review.authorKey}
-                whileHover={{ y: -4 }}
-                className="flex flex-col gap-3 p-4.5"
-                style={{ background: Q2M.bgElevated, borderRadius: 8 }}
-              >
-                <div className="flex gap-0.5">
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <Star key={i} size={13} fill={Q2M.accent} style={{ color: Q2M.accent }} />
-                  ))}
-                </div>
-                <span className="text-xs font-bold" style={{ color: Q2M.ink }}>
-                  {t(review.authorKey)}
-                </span>
-                <p className="text-xs leading-relaxed" style={{ color: Q2M.inkMute }}>
-                  {t(review.bodyKey)}
-                </p>
-                <span
-                  className="w-fit px-2.5 text-[9px] font-extrabold uppercase tracking-[0.16em]"
-                  style={{ background: Q2M.boneSoft, color: Q2M.inkMute, borderRadius: 4 }}
+          {reviews.length === 0 ? (
+            <p className="max-w-xl text-sm leading-relaxed" style={{ color: Q2M.inkMute }}>
+              {t('reviewEmpty')}
+            </p>
+          ) : (
+            <ul className="grid grid-cols-1 gap-6 md:grid-cols-3">
+              {reviews.map((review) => (
+                <motion.li
+                  key={review.id}
+                  whileHover={{ y: -4 }}
+                  className="flex flex-col gap-3 p-4.5"
+                  style={{ background: Q2M.bgElevated, borderRadius: 8 }}
                 >
-                  {t('verifiedPurchase')}
-                </span>
-              </motion.div>
-            ))}
-          </div>
+                  <div className="flex gap-0.5">
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <Star
+                        key={i}
+                        size={13}
+                        fill={i < review.rating ? Q2M.accent : 'none'}
+                        style={{ color: i < review.rating ? Q2M.accent : Q2M.lineStrong }}
+                      />
+                    ))}
+                  </div>
+                  <span className="text-xs font-bold" style={{ color: Q2M.ink }}>
+                    {review.authorFirstName ?? t('reviewAnonymous')}
+                  </span>
+                  {review.comment && (
+                    <p className="text-xs leading-relaxed" style={{ color: Q2M.inkMute }}>
+                      {review.comment}
+                    </p>
+                  )}
+                  <span
+                    className="w-fit px-2.5 text-[9px] font-extrabold uppercase tracking-[0.16em]"
+                    style={{ background: Q2M.boneSoft, color: Q2M.inkMute, borderRadius: 4 }}
+                  >
+                    {t('verifiedPurchase')}
+                  </span>
+                </motion.li>
+              ))}
+            </ul>
+          )}
         </div>
       </section>
     </div>
+  );
+}
+
+function ReviewForm({ productId }: { productId: string }) {
+  const t = useTranslations('product');
+  const router = useRouter();
+  const [open, setOpen] = useState(false);
+  const [rating, setRating] = useState(0);
+  const [hovered, setHovered] = useState(0);
+  const [state, formAction] = useActionState(createReviewAction, {
+    ok: false,
+    error: null,
+  } satisfies ReviewActionState);
+
+  // L'avis vient d'etre enregistre : on rafraichit le rendu serveur pour
+  // afficher la liste a jour. Le formulaire disparait de lui-meme via le
+  // `if (!state.ok)` du rendu ci-dessous.
+  useEffect(() => {
+    if (state.ok) router.refresh();
+  }, [state.ok, router]);
+
+  const active = hovered || rating;
+
+  return (
+    <div className="flex w-full flex-col items-end gap-2.5">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="group inline-flex items-center gap-2 py-2.5 text-[10px] font-bold uppercase tracking-[0.16em] transition-all hover:text-[var(--q2m-accent-text)] active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--q2m-accent)]"
+        style={{ color: Q2M.ink }}
+        aria-expanded={open}
+      >
+        {open ? t('reviewFormCancel') : t('leaveReview')}
+        <ArrowUpRight
+          size={14}
+          strokeWidth={1.5}
+          className="transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 rtl:-scale-x-100"
+        />
+      </button>
+
+      {open && !state.ok && (
+        <form
+          action={formAction}
+          className="flex w-full max-w-md flex-col gap-4 p-4.5"
+          style={{ background: Q2M.bgElevated, borderRadius: 8 }}
+        >
+          <input type="hidden" name="productId" value={productId} />
+          <input type="hidden" name="rating" value={rating} />
+
+          <div className="flex flex-col gap-2">
+            <span className="text-[10px] font-extrabold uppercase tracking-[0.16em]" style={{ color: Q2M.inkMute }}>
+              {t('reviewFormRating')}
+            </span>
+            <div className="flex gap-1" role="radiogroup" aria-label={t('reviewFormRating')}>
+              {[1, 2, 3, 4, 5].map((value) => (
+                <button
+                  key={value}
+                  type="button"
+                  role="radio"
+                  aria-checked={rating === value}
+                  aria-label={`${value}/5`}
+                  onClick={() => setRating(value)}
+                  onMouseEnter={() => setHovered(value)}
+                  onMouseLeave={() => setHovered(0)}
+                  className="transition-transform hover:scale-110 active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--q2m-accent)]"
+                >
+                  <Star
+                    size={24}
+                    fill={value <= active ? Q2M.accent : 'none'}
+                    style={{ color: value <= active ? Q2M.accent : Q2M.lineStrong }}
+                  />
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <label className="flex flex-col gap-2">
+            <span className="text-[10px] font-extrabold uppercase tracking-[0.16em]" style={{ color: Q2M.inkMute }}>
+              {t('reviewFormComment')}
+            </span>
+            <textarea
+              name="comment"
+              rows={3}
+              maxLength={600}
+              placeholder={t('reviewFormPlaceholder')}
+              className="resize-none border bg-transparent px-3.5 py-3 text-sm text-ink outline-none transition-colors placeholder:text-ink-mute focus:border-accent"
+              style={{ borderColor: Q2M.lineStrong }}
+            />
+          </label>
+
+          {state.error && (
+            <p
+              role="alert"
+              className="border px-4 py-3 text-xs font-semibold"
+              style={{ borderColor: Q2M.alert, color: Q2M.alert }}
+            >
+              {t(REVIEW_ERROR_KEYS[state.error])}
+            </p>
+          )}
+
+          <div className="flex justify-end">
+            <ReviewSubmitButton disabled={rating === 0} />
+          </div>
+        </form>
+      )}
+    </div>
+  );
+}
+
+function ReviewSubmitButton({ disabled }: { disabled: boolean }) {
+  const { pending } = useFormStatus();
+  const t = useTranslations('product');
+
+  return (
+    <button
+      type="submit"
+      disabled={disabled || pending}
+      className="q2m-btn-primary disabled:cursor-not-allowed disabled:opacity-60"
+    >
+      {pending ? t('reviewFormSubmitting') : t('reviewFormSubmit')}
+    </button>
   );
 }
 

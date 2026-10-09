@@ -1,8 +1,8 @@
 'use server'
 
-import { cookies } from 'next/headers'
-import { createServerClient } from '@insforge/sdk/ssr'
+import { headers } from 'next/headers'
 import { getSessionUser } from '@/lib/session'
+import { insforgeAdmin } from '@/lib/insforge-admin'
 
 export interface CheckoutAddressInput {
   fullName: string
@@ -27,11 +27,11 @@ export interface CreateOrderInput {
 }
 
 export type CreateOrderErrorCode =
-  | 'unauthenticated'
   | 'invalid'
   | 'empty'
   | 'unavailable'
   | 'outOfStock'
+  | 'rateLimited'
   | 'failed'
 
 export type CreateOrderResult =
@@ -45,6 +45,46 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const PAYMENT_METHOD = 'COD'
 
 const round2 = (value: number) => Math.round(value * 100) / 100
+
+/**
+ * Garde-fou anti-abus du checkout invité.
+ *
+ * Depuis qu'une commande est possible sans compte, l'action est ouverte aux
+ * visiteurs anonymes : on limite le rythme par IP pour eviter le spam de
+ * commandes factices. Best-effort et par instance (memoire du process), ce qui
+ * suffit a un deploiement Node single-instance ; une passerelle (WAF, rate
+ * limit upstream) reste la vraie protection en production.
+ */
+const RATE_LIMIT_MAX = 6
+const RATE_LIMIT_WINDOW_MS = 60_000
+const recentOrders = new Map<string, number[]>()
+
+function isRateLimited(key: string): boolean {
+  const now = Date.now()
+  const hits = (recentOrders.get(key) ?? []).filter((t) => now - t < RATE_LIMIT_WINDOW_MS)
+
+  if (hits.length >= RATE_LIMIT_MAX) {
+    recentOrders.set(key, hits)
+    return true
+  }
+
+  hits.push(now)
+  recentOrders.set(key, hits)
+
+  if (recentOrders.size > 5000) {
+    for (const [k, v] of recentOrders) {
+      if (v.every((t) => now - t >= RATE_LIMIT_WINDOW_MS)) recentOrders.delete(k)
+    }
+  }
+
+  return false
+}
+
+async function requestKey(): Promise<string> {
+  const h = await headers()
+  const forwarded = h.get('x-forwarded-for')?.split(',')[0]?.trim()
+  return forwarded || h.get('x-real-ip') || 'local'
+}
 
 function isAddressValid(address: CheckoutAddressInput): boolean {
   return (
@@ -60,22 +100,28 @@ function isAddressValid(address: CheckoutAddressInput): boolean {
 }
 
 /**
- * Cree une commande a partir du panier client.
+ * Cree une commande a partir du panier client — avec ou sans compte.
  *
  * Les prix et les stocks sont relus en base : le montant facture ne vient
  * jamais du navigateur. Les totaux (sous-total, livraison, total) sont donc
  * recalcules ici avec les mêmes seuils que la vitrine.
  *
- * L'ecriture passe par le client lie a la session : la policy `orders_owner_access`
- * impose user_id = auth.uid(), ce que le client anon ne peut pas produire.
- * Le stock n'est pas decremente — la table `products` n'ecrit que pour les
- * admins — le controle se fait en lecture et le back-office gere la rupture.
+ * Ecriture : depuis la migration 20261008192851_close-order-insert-rls,
+ * authenticated n'a plus INSERT sur orders/order_items. createOrderAction
+ * ecrit donc systematiquement via le client admin (non soumis a RLS), avec
+ * ou sans compte. user_id est conserve pour lier la commande a un compte
+ * quand il y en a un ; l'e-mail du client est garde dans shipping_address
+ * pour le back-office.
+ *
+ * Le stock (total et par taille) est valide puis decremente, via le client
+ * admin : la table `products` n'est pas accessible en ecriture au client de
+ * session. La decrementation est best-effort (bornee a zero) apres la
+ * creation des lignes de commande.
  */
 export async function createOrderAction(
   input: CreateOrderInput
 ): Promise<CreateOrderResult> {
   const user = await getSessionUser()
-  if (!user) return { ok: false, error: 'unauthenticated' }
 
   const address = input?.address
   if (!address || !isAddressValid(address)) return { ok: false, error: 'invalid' }
@@ -84,7 +130,10 @@ export async function createOrderAction(
   if (items.length === 0) return { ok: false, error: 'empty' }
   if (items.length > 50) return { ok: false, error: 'invalid' }
 
+  if (isRateLimited(await requestKey())) return { ok: false, error: 'rateLimited' }
+
   const quantities = new Map<string, number>()
+  const sizeQuantities = new Map<string, number>()
 
   for (const item of items) {
     if (!item || typeof item.productId !== 'string' || !UUID_RE.test(item.productId)) {
@@ -97,25 +146,35 @@ export async function createOrderAction(
     }
 
     quantities.set(item.productId, (quantities.get(item.productId) ?? 0) + quantity)
+
+    if (item.size) {
+      const sizeKey = String(item.size).trim()
+      sizeQuantities.set(
+        `${item.productId}|${sizeKey}`,
+        (sizeQuantities.get(`${item.productId}|${sizeKey}`) ?? 0) + quantity
+      )
+    }
   }
 
-  const insforge = await createServerClient({ cookies: await cookies() })
-  const db = insforge.database
+  const db = insforgeAdmin().database
 
   const { data: products, error: productsError } = await db
     .from('products')
-    .select('id, price, stock, active')
+    .select('id, price, stock, active, sizes')
     .in('id', Array.from(quantities.keys()))
 
   if (productsError) return { ok: false, error: 'failed' }
 
+  interface ProductStockRow {
+    id: string
+    price: number | string
+    stock: number
+    active: boolean
+    sizes: Array<{ size: number | string; stock: number }> | null
+  }
+
   const catalog = new Map(
-    ((products ?? []) as Array<{
-      id: string
-      price: number | string
-      stock: number
-      active: boolean
-    }>).map((row) => [row.id, row])
+    ((products ?? []) as ProductStockRow[]).map((row) => [row.id, row])
   )
 
   let subtotal = 0
@@ -126,6 +185,20 @@ export async function createOrderAction(
     if (Number(product.stock) < quantity) return { ok: false, error: 'outOfStock' }
 
     subtotal += Number(product.price) * quantity
+  }
+
+  // Validation du stock par taille : si le produit declare des tailles et
+  // que la commande porte sur une taille inconnue ou en rupture, on refuse.
+  for (const [key, quantity] of sizeQuantities) {
+    const sep = key.lastIndexOf('|')
+    const productId = key.slice(0, sep)
+    const sizeKey = key.slice(sep + 1)
+    const product = catalog.get(productId)
+    if (!product) continue
+    const sizes = Array.isArray(product.sizes) ? product.sizes : []
+    if (sizes.length === 0) continue
+    const row = sizes.find((s) => String(s.size) === sizeKey)
+    if (!row || Number(row.stock) < quantity) return { ok: false, error: 'outOfStock' }
   }
 
   const { data: settings } = await db
@@ -144,7 +217,7 @@ export async function createOrderAction(
   const { data: order, error: orderError } = await db
     .from('orders')
     .insert({
-      user_id: user.id,
+      user_id: user?.id ?? null,
       status: 'PENDING',
       payment_status: 'PENDING',
       payment_method: PAYMENT_METHOD,
@@ -171,7 +244,7 @@ export async function createOrderAction(
   const orderItems = items.map((item) => ({
     order_id: order.id,
     product_id: item.productId,
-    user_id: user.id,
+    user_id: user?.id ?? null,
     quantity: Number(item.quantity),
     price: Number(catalog.get(item.productId)?.price ?? 0),
     size: item.size ? String(item.size).slice(0, 16) : null,
@@ -181,15 +254,62 @@ export async function createOrderAction(
 
   if (itemsError) {
     // La commande sans ses lignes n'est pas exploitable : on la passe en
-    // CANCELLED plutot que de laisser une coquille creuse au back-office
-    // (le client lie a la session n'a pas le droit de DELETE sur `orders`).
-    await db
-      .from('orders')
+    // CANCELLED plutot que de laisser une coquille creuse au back-office.
+    // Le nettoyage passe par le client admin (le client de session n'a plus
+    // UPDATE sur `orders`, cf. 20261007090000_restrict-order-writes.sql) ; on
+    // ne restreint par user_id que pour une commande rattachee a un compte.
+    let cleanup = insforgeAdmin()
+      .database.from('orders')
       .update({ status: 'CANCELLED' })
       .eq('id', order.id)
-      .eq('user_id', user.id)
+
+    if (user) cleanup = cleanup.eq('user_id', user.id)
+
+    await cleanup
 
     return { ok: false, error: 'failed' }
+  }
+
+  // Decrementation best-effort des stocks apres validation. Le stock est
+  // borne a zero (jamais negatif) ; les tailles sont mises a jour en meme
+  // temps que le stock total. L'echec d'une mise a jour est logge mais ne
+  // casse pas la commande deja creee.
+  const decrements = new Map<string, { qty: number; sizes: Map<string, number> }>()
+
+  for (const item of items) {
+    const entry = decrements.get(item.productId) ?? { qty: 0, sizes: new Map<string, number>() }
+    entry.qty += Number(item.quantity)
+    if (item.size) {
+      const sizeKey = String(item.size).trim()
+      entry.sizes.set(sizeKey, (entry.sizes.get(sizeKey) ?? 0) + Number(item.quantity))
+    }
+    decrements.set(item.productId, entry)
+  }
+
+  for (const [productId, decrement] of decrements) {
+    const product = catalog.get(productId)
+    if (!product) continue
+
+    const payload: Record<string, unknown> = {
+      stock: Math.max(0, Number(product.stock) - decrement.qty),
+    }
+
+    if (Array.isArray(product.sizes) && product.sizes.length > 0 && decrement.sizes.size > 0) {
+      payload.sizes = product.sizes.map((row) => {
+        const sizeKey = String(row.size).trim()
+        const qty = decrement.sizes.get(sizeKey)
+        return qty ? { ...row, stock: Math.max(0, Number(row.stock) - qty) } : row
+      })
+    }
+
+    const { error: decrementError } = await db
+      .from('products')
+      .update(payload)
+      .eq('id', productId)
+
+    if (decrementError) {
+      console.error('stock decrement failed for', productId, decrementError.message)
+    }
   }
 
   return { ok: true, orderId: order.id }

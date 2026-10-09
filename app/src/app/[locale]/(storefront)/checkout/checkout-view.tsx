@@ -1,13 +1,14 @@
 "use client";
 
 import { Link } from "@/i18n/navigation";
-import { useTransition, useState, type FormEvent } from "react";
+import { useEffect, useRef, useTransition, useState, type FormEvent } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { motion } from "framer-motion";
-import { ArrowRight, Banknote, Check, ShoppingBag, Truck } from "lucide-react";
+import { ArrowRight, Banknote, Check, ShoppingBag, Truck, UserRound } from "lucide-react";
 import { useCartStore } from "@/store/cart-store";
 import SneakerVisual from "@/components/storefront/SneakerVisual";
 import { formatCurrency } from "@/lib/utils";
+import { trackInitiateCheckout, trackPurchase } from "@/lib/metaPixel";
 import { Q2M, Q2M_FONT } from "@/lib/q2m-tokens";
 import { createOrderAction, type CreateOrderErrorCode } from "@/app/actions/orders";
 
@@ -94,7 +95,11 @@ export default function CheckoutView({
   });
   const [error, setError] = useState<CreateOrderErrorCode | null>(null);
   const [placedRef, setPlacedRef] = useState<string | null>(null);
+  const [purchase, setPurchase] = useState<{ value: number; ids: string[]; count: number } | null>(
+    null,
+  );
   const [pending, startTransition] = useTransition();
+  const checkoutFired = useRef(false);
 
   const shipping =
     totalItems > 0 && totalPrice < freeShippingThreshold ? shippingCost : 0;
@@ -120,6 +125,11 @@ export default function CheckoutView({
       });
 
       if (result.ok) {
+        setPurchase({
+          value: grandTotal,
+          ids: items.map((item) => item.productId),
+          count: totalItems,
+        });
         clearCart();
         setPlacedRef(result.orderId);
       } else {
@@ -127,6 +137,35 @@ export default function CheckoutView({
       }
     });
   };
+
+  // Meta Pixel — « InitiateCheckout » une fois, dès qu'un panier est présent.
+  useEffect(() => {
+    if (checkoutFired.current || items.length === 0) return;
+    checkoutFired.current = true;
+    trackInitiateCheckout({
+      value: totalPrice,
+      contentIds: items.map((item) => item.productId),
+      numItems: totalItems,
+    });
+  }, [items, totalPrice, totalItems]);
+
+  // Meta Pixel — « Purchase » une fois par commande (dédup par orderId).
+  useEffect(() => {
+    if (!purchase || !placedRef) return;
+    const key = `q2m-purchase-${placedRef}`;
+    try {
+      if (window.sessionStorage.getItem(key)) return;
+      window.sessionStorage.setItem(key, "1");
+    } catch {
+      /* storage indisponible : on émet quand même */
+    }
+    trackPurchase({
+      value: purchase.value,
+      orderId: placedRef,
+      contentIds: purchase.ids,
+      numItems: purchase.count,
+    });
+  }, [purchase, placedRef]);
 
   if (placedRef) {
     return (
@@ -193,7 +232,7 @@ export default function CheckoutView({
 
   return (
     <main style={{ fontFamily: Q2M_FONT }}>
-      <section className="mx-auto max-w-[1440px] px-6 pt-16 pb-8 lg:px-12">
+      <section className="mx-auto max-w-[1440px] px-5 sm:px-10 pt-16 pb-8 lg:px-14">
         <p className="mb-4 text-[11px] font-extrabold tracking-[0.16em] text-accent">
           {t("kicker")}
         </p>
@@ -203,9 +242,13 @@ export default function CheckoutView({
         <p className="mt-5 max-w-xl leading-relaxed text-ink-soft">
           {t("subtitle")}
         </p>
+        <p className="mt-3 inline-flex items-center gap-2 text-xs font-semibold text-ink-mute">
+          <UserRound size={14} />
+          {t("guestNote")}
+        </p>
       </section>
 
-      <section className="mx-auto grid max-w-[1440px] grid-cols-1 gap-10 px-6 pb-24 lg:grid-cols-[1.2fr_1fr] lg:px-12">
+      <section className="mx-auto grid max-w-[1440px] grid-cols-1 gap-10 px-5 sm:px-10 pb-24 lg:grid-cols-[1.2fr_1fr] lg:px-14">
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
@@ -303,19 +346,7 @@ export default function CheckoutView({
                 className="flex flex-wrap items-center gap-2 border px-4 py-3 text-xs font-semibold"
                 style={{ borderColor: Q2M.alert, color: Q2M.alert }}
               >
-                <span>
-                  {error === "unauthenticated"
-                    ? t("errors.unauthenticated")
-                    : t(`errors.${error}`)}
-                </span>
-                {error === "unauthenticated" && (
-                  <Link
-                    href="/login?next=/checkout"
-                    className="font-bold underline underline-offset-2"
-                  >
-                    {t("login")}
-                  </Link>
-                )}
+                <span>{t(`errors.${error}`)}</span>
               </div>
             )}
 

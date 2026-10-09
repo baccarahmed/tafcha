@@ -1,6 +1,9 @@
 import { getLocale, getTranslations } from 'next-intl/server'
 import { getAdminProducts } from '@/lib/admin-data'
 import { formatCurrency } from '@/lib/utils'
+import { Badge } from '@/components/ui/badge'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { cn } from '@/lib/utils'
 
 export default async function DashboardDropsPage() {
   const t = await getTranslations('dashboard')
@@ -8,50 +11,62 @@ export default async function DashboardDropsPage() {
   const money = (amount: number) => formatCurrency(amount, locale)
   const products = await getAdminProducts()
 
-  const drops = [...products].sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+  const drops = products
+    .filter((product) => product.isNewDrop)
+    .sort((a, b) => (a.dropEndsAt ?? a.releaseDate ?? '').localeCompare(b.dropEndsAt ?? b.releaseDate ?? ''))
 
   return (
-    <div className="rounded-sm border border-[var(--q2m-line-soft)] bg-[var(--q2m-bg-elevated)] p-6">
-      <h2 className="text-sm font-semibold text-[var(--q2m-ink)]">{t('drops')}</h2>
+    <Card className="border-[var(--q2m-line-soft)]">
+      <CardHeader>
+        <CardTitle className="text-sm font-semibold text-[var(--q2m-ink)]">
+          {t('drops')}
+        </CardTitle>
+        <p className="text-xs text-[var(--q2m-ink-stone)]">{t('dropsHint')}</p>
+      </CardHeader>
 
-      <ul className="mt-6 space-y-3">
-        {drops.map((product) => (
-          <li
-            key={product.id}
-            className="flex flex-col gap-2 border-b border-[var(--q2m-line-soft)] pb-3 last:border-b-0 sm:flex-row sm:items-center sm:justify-between"
-          >
-            <div className="min-w-0">
-              <p className="truncate text-sm font-medium text-[var(--q2m-ink)]">
-                {product.name}
-              </p>
-              <p className="mt-0.5 text-xs text-[var(--q2m-ink-stone)]">
-                {product.brand} · {money(product.price)}
-              </p>
-            </div>
-
-            <div className="flex shrink-0 items-center gap-3">
-              <span className="text-xs tabular-nums text-[var(--q2m-ink-stone)]">
-                {product.createdAt.slice(0, 10)}
-              </span>
-              <span
-                className={`inline-flex items-center rounded-sm border px-2 py-0.5 text-[0.625rem] font-semibold uppercase tracking-[0.12em] ${
-                  product.isNewDrop
-                    ? 'border-[var(--q2m-accent)] bg-[var(--q2m-accent)]/10 text-[var(--q2m-accent-text)]'
-                    : 'border-[var(--q2m-line-strong)] text-[var(--q2m-ink-mute)]'
-                }`}
+      <CardContent>
+        {drops.length === 0 ? (
+          <p className="py-12 text-center text-sm text-[var(--q2m-ink-stone)]">
+            {t('noDrops')}
+          </p>
+        ) : (
+          <ul className="space-y-3">
+            {drops.map((product) => (
+              <li
+                key={product.id}
+                className="flex flex-col gap-2 border-b border-[var(--q2m-line-soft)] pb-3 last:border-b-0 sm:flex-row sm:items-center sm:justify-between"
               >
-                {product.isNewDrop ? t('drops') : product.isActive ? t('published') : t('draft')}
-              </span>
-            </div>
-          </li>
-        ))}
-      </ul>
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-medium text-[var(--q2m-ink)]">
+                    {product.name}
+                  </p>
+                  <p className="mt-0.5 text-xs text-[var(--q2m-ink-stone)]">
+                    {product.brand} · {money(product.price)}
+                  </p>
+                  <p className="mt-0.5 text-xs text-[var(--q2m-ink-mute)]">
+                    {t('dropsDates', {
+                      release: product.releaseDate ?? '—',
+                      ends: product.dropEndsAt ?? '—',
+                    })}
+                  </p>
+                </div>
 
-      {drops.length === 0 && (
-        <p className="py-12 text-center text-sm text-[var(--q2m-ink-stone)]">
-          {t('noStock')}
-        </p>
-      )}
-    </div>
+                <Badge
+                  variant="outline"
+                  className={cn(
+                    'uppercase',
+                    product.isActive
+                      ? 'border-[var(--q2m-accent)] bg-[var(--q2m-accent)]/10 text-[var(--q2m-accent-text)]'
+                      : 'border-[var(--q2m-line-strong)] text-[var(--q2m-ink-mute)]'
+                  )}
+                >
+                  {product.isActive ? t('drops') : t('draft')}
+                </Badge>
+              </li>
+            ))}
+          </ul>
+        )}
+      </CardContent>
+    </Card>
   )
 }

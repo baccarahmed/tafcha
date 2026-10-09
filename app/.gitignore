@@ -6,6 +6,7 @@ node_modules
 
 # InsForge & AI agent skills
 .insforge
+opencode.json
 .agent
 .agents
 .augment

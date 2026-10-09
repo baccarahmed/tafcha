@@ -4,6 +4,11 @@ import { hasLocale, NextIntlClientProvider } from 'next-intl';
 import { getMessages, getTranslations, setRequestLocale } from 'next-intl/server';
 import { routing, isRtl, type Locale } from '@/i18n/routing';
 import { Providers } from '../providers';
+import { SITE_URL } from '@/lib/site';
+import { buildMetadata, organizationSchema } from '@/lib/seo';
+import { JsonLd } from '@/components/seo/JsonLd';
+import MetaPixel from '@/components/analytics/MetaPixel';
+import CookieConsent from '@/components/consent/CookieConsent';
 import '@/app/globals.css';
 
 import '@fontsource/inter/300.css';
@@ -35,8 +40,14 @@ export async function generateMetadata({
 
   const t = await getTranslations({ locale, namespace: 'home' });
   return {
-    title: t('metaTitle'),
-    description: t('metaDescription'),
+    // Base commune à toutes les URL relatives (canonical, Open Graph, etc.).
+    metadataBase: new URL(SITE_URL),
+    ...buildMetadata({
+      locale,
+      title: t('metaTitle'),
+      description: t('metaDescription'),
+      path: '',
+    }),
   };
 }
 
@@ -83,6 +94,9 @@ export default async function LocaleLayout({
       <body className="font-sans antialiased">
         <NextIntlClientProvider messages={messages}>
           <Providers>{children}</Providers>
+          <JsonLd data={organizationSchema()} />
+          <MetaPixel />
+          <CookieConsent />
         </NextIntlClientProvider>
       </body>
     </html>

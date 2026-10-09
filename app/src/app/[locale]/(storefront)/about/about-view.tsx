@@ -22,7 +22,7 @@ export default function AboutPage() {
 
   return (
     <main style={{ background: Q2M.bg, fontFamily: Q2M_FONT }}>
-      <section className="mx-auto max-w-[1440px] px-6 pt-24 pb-16 text-center lg:px-12">
+      <section className="mx-auto max-w-[1440px] px-5 sm:px-10 pt-24 pb-16 text-center lg:px-14">
         <motion.p
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -52,7 +52,7 @@ export default function AboutPage() {
         </motion.p>
       </section>
 
-      <section className="mx-auto max-w-[1440px] px-6 pb-24 lg:px-12">
+      <section className="mx-auto max-w-[1440px] px-5 sm:px-10 pb-24 lg:px-14">
         <div className="grid grid-cols-2 gap-px md:grid-cols-4" style={{ background: Q2M.line }}>
           {STATS.map((stat, i) => (
             <motion.div
@@ -75,7 +75,7 @@ export default function AboutPage() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-[1440px] px-6 pb-24 lg:px-12">
+      <section className="mx-auto max-w-[1440px] px-5 sm:px-10 pb-24 lg:px-14">
         <div className="grid grid-cols-1 gap-px md:grid-cols-2" style={{ background: Q2M.line }}>
           {PILLARS.map((p, i) => (
             <motion.div

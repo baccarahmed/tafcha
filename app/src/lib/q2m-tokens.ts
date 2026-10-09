@@ -105,14 +105,12 @@ export const Q2M_BRAND_IMAGES = {
     'Mens luxury sneakers fashion editorial, handsome athletic north african man model, confident pose wearing premium black leather sneakers with gold logo details, dark modern minimal outfit, moody background with soft crimson rim lighting, high end fashion photography, portrait 4:3',
     'portrait_4_3',
   ),
-  categoryFemme: IMG(
-    'Womens luxury sneakers fashion editorial, elegant tunisian woman model with stylish hair, graceful pose wearing premium white and silver lifestyle sneakers, chic urban outfit, soft warm golden hour lighting, sophisticated dark background, high fashion photography, portrait 4:3',
-    'portrait_4_3',
-  ),
-  categoryEnfant: IMG(
-    'Kids luxury sneakers lifestyle photo, smiling little boy around 7 years old, playful energetic pose wearing colorful premium sneakers, bright modern indoor studio setting, soft cheerful lighting, happy kid fashion aesthetic, portrait 4:3',
-    'portrait_4_3',
-  ),
+  /** Visuel client — `Elevate Your Style with Minimalist Jeans Outfits.jpg`
+   *  (736×1104), recadré en 4/5 par object-cover. */
+  categoryFemme: '/images/q2m/category-femme.jpg',
+  /** Visuel client — `Children's fashion ⬇️ Summer outfit.jpg` (736×1197),
+   *  recadré en 4/5 par object-cover. */
+  categoryEnfant: '/images/q2m/category-enfant.jpg',
   dropNightRun: IMG(
     'Midnight urban running campaign, dynamic low angle shot of black and red performance running sneakers in motion, wet reflective asphalt ground, dramatic crimson red and gold neon bokeh lights in background, motion blur on edges, cinematic Paris inspired night scene, luxury drop campaign',
     'landscape_16_9',
@@ -121,4 +119,14 @@ export const Q2M_BRAND_IMAGES = {
     'Luxury sneakers drop campaign still life, three premium sneakers arranged artistically on dark marble surface, gold crown logo engraved on heel tab, elegant lighting, small french flag detail, luxury Parisian boutique aesthetic, high end product photography',
     'landscape_16_9',
   ),
+} as const;
+
+/**
+ * Assets vidéo locaux (`public/uploads/`) — hero fond animé.
+ * MP4 H.264 : lisible partout (Chrome/Safari/Firefox/Edge + iOS via playsInline),
+ * toujours diffusé en muted/loop, avec repli image statique si indisponible.
+ */
+export const Q2M_BRAND_VIDEOS = {
+  /** Unboxing Nike TN — background du hero (3 Mo). */
+  heroUnboxing: '/uploads/Unboxing_Nike_TN_sneakers_20261007152939.mp4',
 } as const;

@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { Link } from '@/i18n/navigation'
+import { buildMetadata } from '@/lib/seo'
 import { Q2M, Q2M_FONT } from '@/lib/q2m-tokens'
 import { getSessionUser } from '@/lib/session'
 import { signOut } from '@/app/actions/auth'
@@ -15,10 +16,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const { locale } = await params
   const t = await getTranslations({ locale, namespace: 'account' })
 
-  return {
+  return buildMetadata({
+    locale,
     title: t('metaTitle'),
     description: t('metaDescription'),
-  }
+    path: '/account',
+    noIndex: true,
+  })
 }
 
 export default async function AccountPage({ params }: PageProps) {
@@ -30,7 +34,7 @@ export default async function AccountPage({ params }: PageProps) {
 
   return (
     <main style={{ background: Q2M.bg, fontFamily: Q2M_FONT }}>
-      <section className="mx-auto max-w-[1440px] px-6 pt-24 pb-16 lg:px-12">
+      <section className="mx-auto max-w-[1440px] px-5 sm:px-10 pt-24 pb-16 lg:px-14">
         <p className="mb-4 text-[11px] font-extrabold tracking-[0.16em] text-accent">
           {t('kicker')}
         </p>
@@ -54,7 +58,7 @@ export default async function AccountPage({ params }: PageProps) {
         )}
       </section>
 
-      <section className="mx-auto max-w-[1440px] px-6 pb-24 lg:px-12">
+      <section className="mx-auto max-w-[1440px] px-5 sm:px-10 pb-24 lg:px-14">
         {user ? (
           <div className="max-w-2xl border border-line">
             <div className="border-b border-line px-6 py-4">

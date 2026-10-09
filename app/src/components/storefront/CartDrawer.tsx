@@ -9,6 +9,7 @@ import {
   Plus,
   Minus,
   ArrowRight,
+  Check,
   Truck,
 } from 'lucide-react';
 import { useCartStore } from '@/store/cart-store';
@@ -40,6 +41,10 @@ export function CartDrawer({
     totalItems > 0 && totalPrice < freeShippingThreshold ? shippingCost : 0;
   const grandTotal = totalPrice + shipping;
   const freeShippingGap = freeShippingThreshold - totalPrice;
+  const freeShippingProgress =
+    freeShippingThreshold > 0
+      ? Math.min(100, Math.round((totalPrice / freeShippingThreshold) * 100))
+      : 100;
 
   const handleOpenChange = (open: boolean) => {
     if (!open) {
@@ -216,6 +221,40 @@ export function CartDrawer({
                   </div>
 
                   <div className="border-t border-[var(--q2m-line-soft)] bg-[var(--q2m-bg)] px-6 py-5">
+                    {/* Progression vers la livraison gratuite */}
+                    <div className="mb-4 rounded-md border border-[var(--q2m-line-soft)] bg-[var(--q2m-bg-elevated)] p-3">
+                      <div className="mb-2 flex items-center justify-between gap-2 text-[11px]">
+                        <span className="flex min-w-0 items-center gap-1.5 font-semibold text-[var(--q2m-ink)]">
+                          <Truck className="h-3.5 w-3.5 shrink-0" />
+                          <span className="truncate">
+                            {shipping === 0
+                              ? t('shippingFree')
+                              : t('freeShippingHint', {
+                                  amount: formatCurrency(freeShippingGap, locale),
+                                })}
+                          </span>
+                        </span>
+                        {shipping === 0 && (
+                          <Check
+                            className="h-4 w-4 shrink-0 text-[var(--q2m-status-open)]"
+                            strokeWidth={2.5}
+                          />
+                        )}
+                      </div>
+                      <div
+                        className="h-1.5 w-full overflow-hidden rounded-full bg-[var(--q2m-bone)]"
+                        role="progressbar"
+                        aria-valuenow={freeShippingProgress}
+                        aria-valuemin={0}
+                        aria-valuemax={100}
+                      >
+                        <div
+                          className="h-full rounded-full bg-[var(--q2m-accent)] transition-all duration-500"
+                          style={{ width: `${freeShippingProgress}%` }}
+                        />
+                      </div>
+                    </div>
+
                     <div className="space-y-3">
                       <div className="flex items-center justify-between text-sm">
                         <span className="text-[var(--q2m-ink-stone)]">{t('subtotal')}</span>
@@ -236,11 +275,6 @@ export function CartDrawer({
                           )}
                         </span>
                       </div>
-                      {shipping > 0 && (
-                        <p className="text-[11px] text-[var(--q2m-ink-stone)]">
-                          {t('freeShippingHint', { amount: formatCurrency(freeShippingGap, locale) })}
-                        </p>
-                      )}
 
                       <div className="my-4 h-px bg-[var(--q2m-line-soft)]" />
 

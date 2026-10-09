@@ -7,15 +7,28 @@ import { AlertCircle, Pencil, Plus, Save, Trash2, X } from 'lucide-react'
 import { updateProductAction } from '@/app/actions/admin'
 import { MAX_PRODUCT_IMAGES, cn } from '@/lib/utils'
 import type { ProductGender, SneakerPalette } from '@/types/product'
+import { Button } from '@/components/ui/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Textarea } from '@/components/ui/textarea'
 
 const PALETTES: SneakerPalette[] = ['crimson', 'ember', 'void', 'volt', 'onyx']
 const GENDERS: ProductGender[] = ['homme', 'femme', 'enfant', 'unisexe']
 
-const inputClass =
-  'q2m-input w-full px-3.5 py-2.5 text-sm text-[var(--q2m-ink)] placeholder:text-[var(--q2m-ink-stone)] outline-none'
-
-const labelClass =
-  'mb-2 block text-[0.6875rem] uppercase tracking-[0.16em] text-[var(--q2m-ink-stone)]'
+const fieldClass = 'border-[var(--q2m-line-soft)] focus-visible:ring-transparent'
 
 const errorClass = 'mt-1.5 text-xs text-[var(--q2m-alert)]'
 
@@ -38,6 +51,8 @@ export interface EditableProduct {
   featured: boolean
   active: boolean
   isNewDrop: boolean
+  releaseDate: string | null
+  dropEndsAt: string | null
 }
 
 /**
@@ -77,6 +92,8 @@ export default function ProductEditor({
   const [palette, setPalette] = useState<SneakerPalette>(product.palette)
   const [images, setImages] = useState(product.images)
   const [sizes, setSizes] = useState(product.sizes)
+  const [releaseDate, setReleaseDate] = useState(product.releaseDate ?? '')
+  const [dropEndsAt, setDropEndsAt] = useState(product.dropEndsAt ?? '')
 
   function reload(source: EditableProduct) {
     setName(source.name)
@@ -92,6 +109,8 @@ export default function ProductEditor({
     setPalette(source.palette)
     setImages(source.images)
     setSizes(source.sizes)
+    setReleaseDate(source.releaseDate ?? '')
+    setDropEndsAt(source.dropEndsAt ?? '')
   }
 
   function updateSize(index: number, patch: Partial<{ size: number; stock: number }>) {
@@ -125,6 +144,8 @@ export default function ProductEditor({
         featured: product.featured,
         active: product.active,
         isNewDrop: product.isNewDrop,
+        releaseDate: releaseDate ? releaseDate : null,
+        dropEndsAt: dropEndsAt ? dropEndsAt : null,
       })
 
       if (!result.ok) {
@@ -139,353 +160,344 @@ export default function ProductEditor({
 
   const units = sizes.reduce((sum, row) => sum + (Number(row.stock) || 0), 0)
 
-  if (!open) {
-    return (
-      <button
-        type="button"
-        onClick={() => {
-          reload(product)
-          setError(null)
-          setOpen(true)
-        }}
-        aria-label={t('editProduct')}
-        className="inline-flex h-7 w-7 items-center justify-center rounded-sm border border-[var(--q2m-line-soft)] text-[var(--q2m-ink-stone)] transition-colors hover:border-[var(--q2m-ink)] hover:text-[var(--q2m-ink)]"
-      >
-        <Pencil className="h-3.5 w-3.5" />
-      </button>
-    )
-  }
-
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/60 p-4 md:p-8">
-      <form
-        onSubmit={handleSubmit}
-        className="w-full max-w-3xl space-y-6 rounded-sm border border-[var(--q2m-line-soft)] bg-[var(--q2m-bg-elevated)] p-6"
+    <Dialog open={open} onOpenChange={setOpen}>
+      {/* Bouton d'edition */}
+      <Button
+        asChild
+        variant="outline"
+        size="icon"
+        className="h-7 w-7 text-[var(--q2m-ink-stone)]"
       >
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <h3 className="text-sm font-semibold text-[var(--q2m-ink)]">
-              {t('editProduct')}
-            </h3>
-            <p className="mt-0.5 truncate text-xs text-[var(--q2m-ink-stone)]">
-              {product.name}
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={() => setOpen(false)}
-            aria-label={t('closeForm')}
-            className="p-1.5 text-[var(--q2m-ink-stone)] transition-colors hover:text-[var(--q2m-ink)]"
-          >
-            <X className="h-4 w-4" />
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={() => {
+            reload(product)
+            setError(null)
+            setOpen(true)
+          }}
+          aria-label={t('editProduct')}
+        >
+          <Pencil className="h-3.5 w-3.5" />
+        </button>
+      </Button>
 
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-          <div>
-            <label htmlFor={`edit-name-${product.id}`} className={labelClass}>
-              {t('fieldName')}
-            </label>
-            <input
-              id={`edit-name-${product.id}`}
-              value={name}
-              onChange={(event) => setName(event.target.value)}
-              required
-              className={inputClass}
-            />
-            {error === 'name' && <p className={errorClass}>{t('errorName')}</p>}
-          </div>
+      <DialogContent className="max-h-[90vh] max-w-3xl overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>{t('editProduct')}</DialogTitle>
+          <p className="truncate text-xs text-[var(--q2m-ink-stone)]">{product.name}</p>
+        </DialogHeader>
 
-          <div>
-            <label htmlFor={`edit-slug-${product.id}`} className={labelClass}>
-              {t('fieldSlug')}
-            </label>
-            <input
-              id={`edit-slug-${product.id}`}
-              value={slug}
-              onChange={(event) => setSlug(event.target.value)}
-              className={inputClass}
-            />
-            {(error === 'slug' || error === 'slugTaken') && (
-              <p className={errorClass}>
-                {error === 'slugTaken' ? t('errorSlugTaken') : t('errorSlug')}
-              </p>
-            )}
-          </div>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+            <div>
+              <Label htmlFor={`edit-name-${product.id}`}>{t('fieldName')}</Label>
+              <Input
+                id={`edit-name-${product.id}`}
+                value={name}
+                onChange={(event) => setName(event.target.value)}
+                required
+                className={fieldClass}
+              />
+              {error === 'name' && <p className={errorClass}>{t('errorName')}</p>}
+            </div>
 
-          <div>
-            <label htmlFor={`edit-sku-${product.id}`} className={labelClass}>
-              {t('fieldSku')}
-            </label>
-            <input
-              id={`edit-sku-${product.id}`}
-              value={sku}
-              onChange={(event) => setSku(event.target.value.toUpperCase())}
-              className={cn(inputClass, 'uppercase')}
-            />
-            {error === 'sku' && <p className={errorClass}>{t('errorSku')}</p>}
-            {error === 'skuTaken' && (
-              <p className={errorClass}>{t('errorSkuTaken')}</p>
-            )}
-          </div>
+            <div>
+              <Label htmlFor={`edit-slug-${product.id}`}>{t('fieldSlug')}</Label>
+              <Input
+                id={`edit-slug-${product.id}`}
+                value={slug}
+                onChange={(event) => setSlug(event.target.value)}
+                className={fieldClass}
+              />
+              {(error === 'slug' || error === 'slugTaken') && (
+                <p className={errorClass}>
+                  {error === 'slugTaken' ? t('errorSlugTaken') : t('errorSlug')}
+                </p>
+              )}
+            </div>
 
-          <div>
-            <label htmlFor={`edit-brand-${product.id}`} className={labelClass}>
-              {t('fieldBrand')}
-            </label>
-            <input
-              id={`edit-brand-${product.id}`}
-              value={brand}
-              onChange={(event) => setBrand(event.target.value)}
-              className={inputClass}
-            />
-          </div>
+            <div>
+              <Label htmlFor={`edit-sku-${product.id}`}>{t('fieldSku')}</Label>
+              <Input
+                id={`edit-sku-${product.id}`}
+                value={sku}
+                onChange={(event) => setSku(event.target.value.toUpperCase())}
+                className={cn(fieldClass, 'uppercase')}
+              />
+              {error === 'sku' && <p className={errorClass}>{t('errorSku')}</p>}
+              {error === 'skuTaken' && (
+                <p className={errorClass}>{t('errorSkuTaken')}</p>
+              )}
+            </div>
 
-          <div>
-            <label htmlFor={`edit-colorway-${product.id}`} className={labelClass}>
-              {t('fieldColorway')}
-            </label>
-            <input
-              id={`edit-colorway-${product.id}`}
-              value={colorway}
-              onChange={(event) => setColorway(event.target.value)}
-              className={inputClass}
-            />
-          </div>
+            <div>
+              <Label htmlFor={`edit-brand-${product.id}`}>{t('fieldBrand')}</Label>
+              <Input
+                id={`edit-brand-${product.id}`}
+                value={brand}
+                onChange={(event) => setBrand(event.target.value)}
+                className={fieldClass}
+              />
+            </div>
 
-          <div>
-            <label htmlFor={`edit-category-${product.id}`} className={labelClass}>
-              {t('fieldCategory')}
-            </label>
-            <select
-              id={`edit-category-${product.id}`}
-              value={categoryId}
-              onChange={(event) => setCategoryId(event.target.value)}
-              className={inputClass}
-            >
-              <option value="">{t('noCategory')}</option>
-              {categories.map((category) => (
-                <option key={category.id} value={category.id}>
-                  {category.name}
-                </option>
-              ))}
-            </select>
-          </div>
+            <div>
+              <Label htmlFor={`edit-colorway-${product.id}`}>{t('fieldColorway')}</Label>
+              <Input
+                id={`edit-colorway-${product.id}`}
+                value={colorway}
+                onChange={(event) => setColorway(event.target.value)}
+                className={fieldClass}
+              />
+            </div>
 
-          <div>
-            <label htmlFor={`edit-gender-${product.id}`} className={labelClass}>
-              {t('fieldGender')}
-            </label>
-            <select
-              id={`edit-gender-${product.id}`}
-              value={gender}
-              onChange={(event) => setGender(event.target.value as ProductGender)}
-              className={inputClass}
-            >
-              {GENDERS.map((option) => (
-                <option key={option} value={option}>
-                  {t(`gender_${option}`)}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label htmlFor={`edit-palette-${product.id}`} className={labelClass}>
-              {t('fieldPalette')}
-            </label>
-            <select
-              id={`edit-palette-${product.id}`}
-              value={palette}
-              onChange={(event) => setPalette(event.target.value as SneakerPalette)}
-              className={inputClass}
-            >
-              {PALETTES.map((option) => (
-                <option key={option} value={option}>
-                  {t(`palette_${option}`)}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label htmlFor={`edit-price-${product.id}`} className={labelClass}>
-              {t('fieldPrice')}
-            </label>
-            <input
-              id={`edit-price-${product.id}`}
-              type="number"
-              min={0}
-              step="0.01"
-              value={price}
-              onChange={(event) => setPrice(event.target.value)}
-              required
-              className={inputClass}
-            />
-            {error === 'price' && <p className={errorClass}>{t('errorPrice')}</p>}
-          </div>
-
-          <div>
-            <label htmlFor={`edit-compare-${product.id}`} className={labelClass}>
-              {t('fieldComparePrice')}
-            </label>
-            <input
-              id={`edit-compare-${product.id}`}
-              type="number"
-              min={0}
-              step="0.01"
-              value={comparePrice}
-              onChange={(event) => setComparePrice(event.target.value)}
-              className={inputClass}
-            />
-            {error === 'comparePrice' && (
-              <p className={errorClass}>{t('errorComparePrice')}</p>
-            )}
-          </div>
-
-          <div className="sm:col-span-2">
-            <label htmlFor={`edit-description-${product.id}`} className={labelClass}>
-              {t('fieldDescription')}
-            </label>
-            <textarea
-              id={`edit-description-${product.id}`}
-              rows={3}
-              value={description}
-              onChange={(event) => setDescription(event.target.value)}
-              className={cn(inputClass, 'resize-none')}
-            />
-          </div>
-        </div>
-
-        <div>
-          <div className="flex items-center justify-between">
-            <p className={labelClass}>{t('fieldSizes')}</p>
-            <button
-              type="button"
-              onClick={() =>
-                setSizes((rows) => {
-                  const last = rows[rows.length - 1]?.size ?? 40
-                  return [...rows, { size: last + 1, stock: 1 }]
-                })
-              }
-              className="mb-2 inline-flex items-center gap-1 text-xs text-[var(--q2m-ink-mute)] transition-colors hover:text-[var(--q2m-accent-text)]"
-            >
-              <Plus className="h-3.5 w-3.5" />
-              {t('addSize')}
-            </button>
-          </div>
-
-          <div className="space-y-2">
-            {sizes.map((row, index) => (
-              <div key={index} className="flex items-center gap-2">
-                <input
-                  type="number"
-                  min={1}
-                  value={row.size}
-                  onChange={(event) =>
-                    updateSize(index, { size: Number(event.target.value) })
-                  }
-                  aria-label={t('fieldSize')}
-                  className={cn(inputClass, 'w-28')}
-                />
-                <input
-                  type="number"
-                  min={0}
-                  value={row.stock}
-                  onChange={(event) =>
-                    updateSize(index, { stock: Number(event.target.value) })
-                  }
-                  aria-label={t('fieldStock')}
-                  className={cn(inputClass, 'w-28')}
-                />
-                <button
-                  type="button"
-                  onClick={() =>
-                    setSizes((rows) => rows.filter((_, i) => i !== index))
-                  }
-                  disabled={sizes.length === 1}
-                  aria-label={t('removeSize')}
-                  className="rounded-sm border border-[var(--q2m-line-soft)] p-2 text-[var(--q2m-ink-stone)] transition-colors hover:text-[var(--q2m-ink)] disabled:opacity-40"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </button>
-              </div>
-            ))}
-          </div>
-
-          <p className="mt-2 text-xs text-[var(--q2m-ink-stone)]">
-            {t('totalUnits', { count: units })}
-          </p>
-          {error === 'sizes' && <p className={errorClass}>{t('errorSizes')}</p>}
-        </div>
-
-        <div>
-          <div className="flex items-center justify-between">
-            <p className={labelClass}>{t('gallery')}</p>
-            <span className="mb-2 text-xs text-[var(--q2m-ink-stone)]">
-              {images.length}/{MAX_PRODUCT_IMAGES}
-            </span>
-          </div>
-
-          <div className="flex flex-wrap gap-3">
-            {images.map((image, index) => (
-              <div
-                key={image}
-                className="relative h-20 w-20 overflow-hidden rounded-sm border border-[var(--q2m-line-soft)]"
+            <div>
+              <Label>{t('fieldCategory')}</Label>
+              <Select
+                value={categoryId || 'none'}
+                onValueChange={(value) => setCategoryId(value === 'none' ? '' : value)}
               >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={image} alt="" className="h-full w-full object-cover" />
+                <SelectTrigger className={cn('w-full', fieldClass)}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">{t('noCategory')}</SelectItem>
+                  {categories.map((category) => (
+                    <SelectItem key={category.id} value={category.id}>
+                      {category.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-                {index === 0 && (
-                  <span className="absolute inset-x-0 bottom-0 bg-[var(--q2m-ink)] py-0.5 text-center text-[0.5625rem] uppercase tracking-[0.12em] text-[var(--q2m-bg-elevated)]">
-                    {t('coverImage')}
-                  </span>
-                )}
+            <div>
+              <Label>{t('fieldGender')}</Label>
+              <Select value={gender} onValueChange={(value) => setGender(value as ProductGender)}>
+                <SelectTrigger className={cn('w-full', fieldClass)}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {GENDERS.map((option) => (
+                    <SelectItem key={option} value={option}>
+                      {t(`gender_${option}`)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-                <button
-                  type="button"
-                  onClick={() =>
-                    setImages((rows) => rows.filter((_, i) => i !== index))
-                  }
-                  aria-label={t('removeImage')}
-                  className="absolute right-1 top-1 rounded-sm bg-[var(--q2m-ink)]/80 p-1 text-[var(--q2m-bg-elevated)] transition-colors hover:bg-[var(--q2m-alert)]"
-                >
-                  <X className="h-3 w-3" />
-                </button>
-              </div>
-            ))}
+            <div>
+              <Label>{t('fieldPalette')}</Label>
+              <Select
+                value={palette}
+                onValueChange={(value) => setPalette(value as SneakerPalette)}
+              >
+                <SelectTrigger className={cn('w-full', fieldClass)}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {PALETTES.map((option) => (
+                    <SelectItem key={option} value={option}>
+                      {t(`palette_${option}`)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label htmlFor={`edit-price-${product.id}`}>{t('fieldPrice')}</Label>
+              <Input
+                id={`edit-price-${product.id}`}
+                type="number"
+                min={0}
+                step="0.01"
+                value={price}
+                onChange={(event) => setPrice(event.target.value)}
+                required
+                className={fieldClass}
+              />
+              {error === 'price' && <p className={errorClass}>{t('errorPrice')}</p>}
+            </div>
+
+            <div>
+              <Label htmlFor={`edit-compare-${product.id}`}>{t('fieldComparePrice')}</Label>
+              <Input
+                id={`edit-compare-${product.id}`}
+                type="number"
+                min={0}
+                step="0.01"
+                value={comparePrice}
+                onChange={(event) => setComparePrice(event.target.value)}
+                className={fieldClass}
+              />
+              {error === 'comparePrice' && (
+                <p className={errorClass}>{t('errorComparePrice')}</p>
+              )}
+            </div>
+
+            <div className="sm:col-span-2">
+              <Label htmlFor={`edit-description-${product.id}`}>{t('fieldDescription')}</Label>
+              <Textarea
+                id={`edit-description-${product.id}`}
+                rows={3}
+                value={description}
+                onChange={(event) => setDescription(event.target.value)}
+                className={cn(fieldClass, 'resize-none')}
+              />
+            </div>
+
+            <div>
+              <Label htmlFor={`edit-release-${product.id}`}>{t('fieldReleaseDate')}</Label>
+              <Input
+                id={`edit-release-${product.id}`}
+                type="date"
+                value={releaseDate}
+                onChange={(event) => setReleaseDate(event.target.value)}
+                className={fieldClass}
+              />
+            </div>
+
+            <div>
+              <Label htmlFor={`edit-ends-${product.id}`}>{t('fieldDropEndsAt')}</Label>
+              <Input
+                id={`edit-ends-${product.id}`}
+                type="date"
+                value={dropEndsAt}
+                onChange={(event) => setDropEndsAt(event.target.value)}
+                className={fieldClass}
+              />
+              {error === 'date' && <p className={errorClass}>{t('errorDate')}</p>}
+            </div>
           </div>
 
-          <p className="mt-2 text-xs text-[var(--q2m-ink-stone)]">
-            {t('galleryHint')}
-          </p>
-        </div>
+          <p className="text-xs text-[var(--q2m-ink-stone)]">{t('dropDateHint')}</p>
 
-        {error && !['name', 'slug', 'slugTaken', 'sku', 'skuTaken', 'price', 'comparePrice', 'sizes'].includes(error) && (
-          <p className="inline-flex items-center gap-2 text-sm text-[var(--q2m-alert)]">
-            <AlertCircle className="h-4 w-4" />
-            {t(`manageError_${error}`)}
-          </p>
-        )}
+          <div>
+            <div className="flex items-center justify-between">
+              <Label className="mb-2">{t('fieldSizes')}</Label>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() =>
+                  setSizes((rows) => {
+                    const last = rows[rows.length - 1]?.size ?? 40
+                    return [...rows, { size: last + 1, stock: 1 }]
+                  })
+                }
+                className="mb-2 text-xs text-[var(--q2m-ink-mute)]"
+              >
+                <Plus className="h-3.5 w-3.5" />
+                {t('addSize')}
+              </Button>
+            </div>
 
-        <div className="flex items-center gap-3">
-          <button
-            type="submit"
-            disabled={pending}
-            className="inline-flex items-center gap-2 rounded-sm bg-[var(--q2m-ink)] px-6 py-3 text-sm font-medium text-[var(--q2m-bg-elevated)] transition-opacity hover:opacity-85 disabled:opacity-50"
-          >
-            <Save className="h-4 w-4" />
-            {pending ? t('saving') : t('save')}
-          </button>
-          <button
-            type="button"
-            onClick={() => setOpen(false)}
-            className="rounded-sm border border-[var(--q2m-line-strong)] px-5 py-3 text-sm font-medium text-[var(--q2m-ink-soft)] transition-colors hover:text-[var(--q2m-ink)]"
-          >
-            {t('cancel')}
-          </button>
-        </div>
-      </form>
-    </div>
+            <div className="space-y-2">
+              {sizes.map((row, index) => (
+                <div key={index} className="flex items-center gap-2">
+                  <Input
+                    type="number"
+                    min={1}
+                    value={row.size}
+                    onChange={(event) =>
+                      updateSize(index, { size: Number(event.target.value) })
+                    }
+                    aria-label={t('fieldSize')}
+                    className={cn(fieldClass, 'w-28')}
+                  />
+                  <Input
+                    type="number"
+                    min={0}
+                    value={row.stock}
+                    onChange={(event) =>
+                      updateSize(index, { stock: Number(event.target.value) })
+                    }
+                    aria-label={t('fieldStock')}
+                    className={cn(fieldClass, 'w-28')}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    onClick={() =>
+                      setSizes((rows) => rows.filter((_, i) => i !== index))
+                    }
+                    disabled={sizes.length === 1}
+                    aria-label={t('removeSize')}
+                    className="h-9 w-9 text-[var(--q2m-ink-stone)]"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+
+            <p className="mt-2 text-xs text-[var(--q2m-ink-stone)]">
+              {t('totalUnits', { count: units })}
+            </p>
+            {error === 'sizes' && <p className={errorClass}>{t('errorSizes')}</p>}
+          </div>
+
+          <div>
+            <div className="flex items-center justify-between">
+              <Label className="mb-2">{t('gallery')}</Label>
+              <span className="mb-2 text-xs text-[var(--q2m-ink-stone)]">
+                {images.length}/{MAX_PRODUCT_IMAGES}
+              </span>
+            </div>
+
+            <div className="flex flex-wrap gap-3">
+              {images.map((image, index) => (
+                <div
+                  key={image}
+                  className="relative h-20 w-20 overflow-hidden rounded-sm border border-[var(--q2m-line-soft)]"
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={image} alt="" className="h-full w-full object-cover" />
+
+                  {index === 0 && (
+                    <span className="absolute inset-x-0 bottom-0 bg-[var(--q2m-ink)] py-0.5 text-center text-[0.5625rem] uppercase tracking-[0.12em] text-[var(--q2m-bg-elevated)]">
+                      {t('coverImage')}
+                    </span>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setImages((rows) => rows.filter((_, i) => i !== index))
+                    }
+                    aria-label={t('removeImage')}
+                    className="absolute right-1 top-1 rounded-sm bg-[var(--q2m-ink)]/80 p-1 text-[var(--q2m-bg-elevated)] transition-colors hover:bg-[var(--q2m-alert)]"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            <p className="mt-2 text-xs text-[var(--q2m-ink-stone)]">{t('galleryHint')}</p>
+          </div>
+
+          {error && !['name', 'slug', 'slugTaken', 'sku', 'skuTaken', 'price', 'comparePrice', 'sizes', 'date'].includes(error) && (
+            <p className="inline-flex items-center gap-2 text-sm text-[var(--q2m-alert)]">
+              <AlertCircle className="h-4 w-4" />
+              {t(`manageError_${error}`)}
+            </p>
+          )}
+
+          <div className="flex items-center gap-3">
+            <Button type="submit" disabled={pending}>
+              <Save className="h-4 w-4" />
+              {pending ? t('saving') : t('save')}
+            </Button>
+            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+              {t('cancel')}
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
   )
 }

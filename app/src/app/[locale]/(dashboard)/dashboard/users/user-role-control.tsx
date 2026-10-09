@@ -6,6 +6,8 @@ import { useTranslations } from 'next-intl'
 import { AlertCircle, Check, Shield, ShieldOff } from 'lucide-react'
 import { setUserRoleAction } from '@/app/actions/admin'
 import { cn } from '@/lib/utils'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 
 /**
  * Bascule du role d'un compte.
@@ -54,9 +56,10 @@ export default function UserRoleControl({
 
   return (
     <div className="flex flex-wrap items-center justify-end gap-1.5">
-      <span
+      <Badge
+        variant="outline"
         className={cn(
-          'inline-flex items-center gap-1 rounded-sm border px-2 py-0.5 text-[0.625rem] font-semibold uppercase tracking-[0.12em]',
+          'uppercase',
           isAdmin
             ? 'border-[var(--q2m-accent)] bg-[var(--q2m-accent)]/10 text-[var(--q2m-accent-text)]'
             : 'border-[var(--q2m-line-strong)] text-[var(--q2m-ink-mute)]'
@@ -64,23 +67,25 @@ export default function UserRoleControl({
       >
         {label}
         {isSelf && ` · ${t('you')}`}
-      </span>
+      </Badge>
 
-      <button
+      <Button
         type="button"
+        variant="outline"
+        size="icon"
         disabled={pending || isSelf}
         onClick={toggle}
         title={isSelf ? t('cannotChangeOwnRole') : isAdmin ? t('revokeAdmin') : t('grantAdmin')}
         aria-label={isAdmin ? t('revokeAdmin') : t('grantAdmin')}
         className={cn(
-          'inline-flex h-7 w-7 items-center justify-center rounded-sm border transition-colors disabled:opacity-40',
+          'h-7 w-7 text-[var(--q2m-ink-stone)]',
           isAdmin
-            ? 'border-[var(--q2m-line-soft)] text-[var(--q2m-ink-stone)] hover:border-[var(--q2m-alert)] hover:text-[var(--q2m-alert)]'
-            : 'border-[var(--q2m-line-soft)] text-[var(--q2m-ink-stone)] hover:border-[var(--q2m-accent)] hover:text-[var(--q2m-accent-text)]'
+            ? 'hover:border-[var(--q2m-alert)] hover:text-[var(--q2m-alert)]'
+            : 'hover:border-[var(--q2m-accent)] hover:text-[var(--q2m-accent-text)]'
         )}
       >
         {isAdmin ? <ShieldOff className="h-3.5 w-3.5" /> : <Shield className="h-3.5 w-3.5" />}
-      </button>
+      </Button>
 
       {saved && (
         <Check className="h-3.5 w-3.5 text-[var(--q2m-status-open)]" />

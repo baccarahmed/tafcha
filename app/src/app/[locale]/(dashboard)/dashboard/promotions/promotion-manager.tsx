@@ -3,19 +3,39 @@
 import { useState, useTransition } from 'react'
 import { useRouter } from '@/i18n/navigation'
 import { useTranslations } from 'next-intl'
-import { AlertCircle, Check, Pencil, Plus, Save, Trash2, X } from 'lucide-react'
+import { AlertCircle, Check, Pencil, Plus, Save, Trash2 } from 'lucide-react'
 import {
   deletePromotionAction,
   savePromotionAction,
   setPromotionActiveAction,
 } from '@/app/actions/admin'
 import { cn } from '@/lib/utils'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Switch } from '@/components/ui/switch'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog'
 
-const inputClass =
-  'q2m-input w-full px-3.5 py-2.5 text-sm text-[var(--q2m-ink)] placeholder:text-[var(--q2m-ink-stone)] outline-none'
-
-const labelClass =
-  'mb-2 block text-[0.6875rem] uppercase tracking-[0.16em] text-[var(--q2m-ink-stone)]'
+const fieldClass = 'border-[var(--q2m-line-soft)] focus-visible:ring-transparent'
 
 const errorClass = 'mt-1.5 text-xs text-[var(--q2m-alert)]'
 
@@ -130,18 +150,18 @@ export default function PromotionManager({
         <p className="text-sm text-[var(--q2m-ink-stone)]">{t('promotionsLead')}</p>
 
         {!creating && (
-          <button
+          <Button
             type="button"
             onClick={() => {
               setCreating(true)
               setEditingId(null)
               setError(null)
             }}
-            className="inline-flex items-center gap-2 rounded-sm bg-[var(--q2m-ink)] px-5 py-2.5 text-sm font-medium text-[var(--q2m-bg-elevated)] transition-opacity hover:opacity-85"
+            className="gap-2 rounded-sm bg-[var(--q2m-ink)] text-[var(--q2m-bg-elevated)] hover:opacity-85"
           >
             <Plus className="h-4 w-4" />
             {t('newPromotion')}
-          </button>
+          </Button>
         )}
       </div>
 
@@ -176,88 +196,104 @@ export default function PromotionManager({
               />
             </li>
           ) : (
-            <li
-              key={promotion.id}
-              className="flex flex-col gap-3 rounded-sm border border-[var(--q2m-line-soft)] p-4 sm:flex-row sm:items-center sm:justify-between"
-            >
-              <div className="min-w-0">
-                <p className="truncate text-sm font-medium text-[var(--q2m-ink)]">
-                  {promotion.name}
-                </p>
-                {promotion.description && (
-                  <p className="mt-0.5 truncate text-xs text-[var(--q2m-ink-stone)]">
-                    {promotion.description}
-                  </p>
-                )}
-                <p className="mt-1 text-xs text-[var(--q2m-ink-mute)]">
-                  {t(`promoType_${promotion.type ?? 'PRODUCT'}`)}
-                  {promotion.percentage != null && ` · ${promotion.percentage}%`}
-                  {promotion.startDate &&
-                    ` · ${toDateInput(promotion.startDate)} → ${toDateInput(promotion.endDate)}`}
-                </p>
-              </div>
+            <li key={promotion.id}>
+              <Card className="border-[var(--q2m-line-soft)]">
+                <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-medium text-[var(--q2m-ink)]">
+                      {promotion.name}
+                    </p>
+                    {promotion.description && (
+                      <p className="mt-0.5 truncate text-xs text-[var(--q2m-ink-stone)]">
+                        {promotion.description}
+                      </p>
+                    )}
+                    <p className="mt-1 text-xs text-[var(--q2m-ink-mute)]">
+                      {t(`promoType_${promotion.type ?? 'PRODUCT'}`)}
+                      {promotion.percentage != null && ` · ${promotion.percentage}%`}
+                      {promotion.startDate &&
+                        ` · ${toDateInput(promotion.startDate)} → ${toDateInput(promotion.endDate)}`}
+                    </p>
+                  </div>
 
-              <div className="flex shrink-0 items-center gap-1.5">
-                <button
-                  type="button"
-                  disabled={pending}
-                  onClick={() => toggleActive(promotion.id, !promotion.isActive)}
-                  className={cn(
-                    'inline-flex items-center rounded-sm border px-2 py-0.5 text-[0.625rem] font-semibold uppercase tracking-[0.12em] transition-colors disabled:opacity-50',
-                    promotion.isActive
-                      ? 'border-[var(--q2m-status-open)] bg-[var(--q2m-status-open-bg)] text-[var(--q2m-status-open)]'
-                      : 'border-[var(--q2m-line-strong)] text-[var(--q2m-ink-mute)]'
-                  )}
-                >
-                  {promotion.isActive ? t('active') : t('inactive')}
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setEditingId(promotion.id)
-                    setCreating(false)
-                    setError(null)
-                  }}
-                  aria-label={t('editPromotion')}
-                  className="inline-flex h-7 w-7 items-center justify-center rounded-sm border border-[var(--q2m-line-soft)] text-[var(--q2m-ink-stone)] transition-colors hover:border-[var(--q2m-ink)] hover:text-[var(--q2m-ink)]"
-                >
-                  <Pencil className="h-3.5 w-3.5" />
-                </button>
-
-                {confirmingId === promotion.id ? (
-                  <span className="flex items-center gap-1">
-                    <button
+                  <div className="flex shrink-0 items-center gap-1.5">
+                    <Button
                       type="button"
+                      variant="ghost"
+                      size="sm"
                       disabled={pending}
-                      onClick={() => remove(promotion.id)}
-                      aria-label={t('confirmDeletePromotion')}
-                      className="inline-flex h-7 items-center gap-1 rounded-sm bg-[var(--q2m-alert)] px-2 text-[0.625rem] font-semibold uppercase tracking-[0.12em] text-white disabled:opacity-50"
+                      onClick={() => toggleActive(promotion.id, !promotion.isActive)}
+                      className="h-7"
                     >
-                      <Check className="h-3.5 w-3.5" />
-                      {t('confirmYes')}
-                    </button>
-                    <button
+                      <Badge
+                        variant="outline"
+                        className={cn(
+                          'uppercase',
+                          promotion.isActive
+                            ? 'border-[var(--q2m-status-open)] bg-[var(--q2m-status-open-bg)] text-[var(--q2m-status-open)]'
+                            : 'border-[var(--q2m-line-strong)] text-[var(--q2m-ink-mute)]'
+                        )}
+                      >
+                        {promotion.isActive ? t('active') : t('inactive')}
+                      </Badge>
+                    </Button>
+
+                    <Button
                       type="button"
-                      onClick={() => setConfirmingId(null)}
-                      aria-label={t('cancel')}
-                      className="inline-flex h-7 w-7 items-center justify-center rounded-sm border border-[var(--q2m-line-strong)] text-[var(--q2m-ink-mute)]"
+                      variant="outline"
+                      size="icon"
+                      onClick={() => {
+                        setEditingId(promotion.id)
+                        setCreating(false)
+                        setError(null)
+                      }}
+                      aria-label={t('editPromotion')}
+                      className="h-7 w-7 text-[var(--q2m-ink-stone)]"
                     >
-                      <X className="h-3.5 w-3.5" />
-                    </button>
-                  </span>
-                ) : (
-                  <button
-                    type="button"
-                    disabled={pending}
-                    onClick={() => setConfirmingId(promotion.id)}
-                    aria-label={t('deletePromotion')}
-                    className="inline-flex h-7 w-7 items-center justify-center rounded-sm border border-[var(--q2m-line-soft)] text-[var(--q2m-ink-stone)] transition-colors hover:border-[var(--q2m-alert)] hover:text-[var(--q2m-alert)] disabled:opacity-50"
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </button>
-                )}
-              </div>
+                      <Pencil className="h-3.5 w-3.5" />
+                    </Button>
+
+                    <AlertDialog
+                      open={confirmingId === promotion.id}
+                      onOpenChange={(open) => setConfirmingId(open ? promotion.id : null)}
+                    >
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="icon"
+                          disabled={pending}
+                          aria-label={t('deletePromotion')}
+                          className="h-7 w-7 text-[var(--q2m-ink-stone)] hover:border-[var(--q2m-alert)] hover:text-[var(--q2m-alert)]"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>{t('deletePromotion')}</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            {t('confirmDeletePromotion')}
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel disabled={pending}>{t('cancel')}</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={(event) => {
+                              event.preventDefault()
+                              void remove(promotion.id)
+                            }}
+                            disabled={pending}
+                            className="bg-[var(--q2m-alert)] text-white hover:bg-[var(--q2m-alert)]"
+                          >
+                            {t('confirmYes')}
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
+                </CardContent>
+              </Card>
             </li>
           )
         )}
@@ -293,6 +329,12 @@ function PromotionForm({
   const nextMonth = new Date()
   nextMonth.setMonth(nextMonth.getMonth() + 1)
 
+  // Les controles Radix (Select, Switch) ne produisent pas de champ natif : on
+  // les fait miroiter dans des inputs caches pour que le FormData lu dans
+  // `submit()` retrouve `type` et `active`.
+  const [type, setType] = useState(promotion?.type ?? 'PRODUCT')
+  const [isActive, setIsActive] = useState(promotion?.isActive ?? true)
+
   return (
     <form
       id={formId}
@@ -304,39 +346,34 @@ function PromotionForm({
     >
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
         <div>
-          <label htmlFor={`${formId}-name`} className={labelClass}>
-            {t('fieldPromotionName')}
-          </label>
-          <input
+          <Label htmlFor={`${formId}-name`}>{t('fieldPromotionName')}</Label>
+          <Input
             id={`${formId}-name`}
             name="name"
             defaultValue={promotion?.name ?? ''}
             required
-            className={inputClass}
+            className={fieldClass}
           />
           {error === 'name' && <p className={errorClass}>{t('errorName')}</p>}
         </div>
 
         <div>
-          <label htmlFor={`${formId}-type`} className={labelClass}>
-            {t('fieldPromotionType')}
-          </label>
-          <select
-            id={`${formId}-type`}
-            name="type"
-            defaultValue={promotion?.type ?? 'PRODUCT'}
-            className={inputClass}
-          >
-            <option value="PRODUCT">{t('promoType_PRODUCT')}</option>
-            <option value="CATEGORY">{t('promoType_CATEGORY')}</option>
-          </select>
+          <Label>{t('fieldPromotionType')}</Label>
+          <input type="hidden" name="type" value={type} />
+          <Select value={type} onValueChange={setType}>
+            <SelectTrigger className={cn('w-full', fieldClass)}>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="PRODUCT">{t('promoType_PRODUCT')}</SelectItem>
+              <SelectItem value="CATEGORY">{t('promoType_CATEGORY')}</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
         <div>
-          <label htmlFor={`${formId}-percentage`} className={labelClass}>
-            {t('fieldPromotionPercentage')}
-          </label>
-          <input
+          <Label htmlFor={`${formId}-percentage`}>{t('fieldPromotionPercentage')}</Label>
+          <Input
             id={`${formId}-percentage`}
             name="percentage"
             type="number"
@@ -345,7 +382,7 @@ function PromotionForm({
             step="0.01"
             defaultValue={promotion?.percentage ?? 10}
             required
-            className={inputClass}
+            className={fieldClass}
           />
           {error === 'percentage' && (
             <p className={errorClass}>{t('errorPromotionPercentage')}</p>
@@ -353,36 +390,30 @@ function PromotionForm({
         </div>
 
         <div>
-          <label htmlFor={`${formId}-announcementText`} className={labelClass}>
-            {t('fieldAnnouncementText')}
-          </label>
-          <input
+          <Label htmlFor={`${formId}-announcementText`}>{t('fieldAnnouncementText')}</Label>
+          <Input
             id={`${formId}-announcementText`}
             name="announcementText"
             defaultValue={promotion?.announcementText ?? ''}
-            className={inputClass}
+            className={fieldClass}
           />
         </div>
 
         <div>
-          <label htmlFor={`${formId}-startDate`} className={labelClass}>
-            {t('fieldStartDate')}
-          </label>
-          <input
+          <Label htmlFor={`${formId}-startDate`}>{t('fieldStartDate')}</Label>
+          <Input
             id={`${formId}-startDate`}
             name="startDate"
             type="date"
             defaultValue={toDateInput(promotion?.startDate ?? null) || today}
             required
-            className={inputClass}
+            className={fieldClass}
           />
         </div>
 
         <div>
-          <label htmlFor={`${formId}-endDate`} className={labelClass}>
-            {t('fieldEndDate')}
-          </label>
-          <input
+          <Label htmlFor={`${formId}-endDate`}>{t('fieldEndDate')}</Label>
+          <Input
             id={`${formId}-endDate`}
             name="endDate"
             type="date"
@@ -391,33 +422,27 @@ function PromotionForm({
               nextMonth.toISOString().slice(0, 10)
             }
             required
-            className={inputClass}
+            className={fieldClass}
           />
           {error === 'dates' && <p className={errorClass}>{t('errorDates')}</p>}
         </div>
 
         <div className="sm:col-span-2">
-          <label htmlFor={`${formId}-description`} className={labelClass}>
-            {t('fieldPromotionDescription')}
-          </label>
-          <input
+          <Label htmlFor={`${formId}-description`}>{t('fieldPromotionDescription')}</Label>
+          <Input
             id={`${formId}-description`}
             name="description"
             defaultValue={promotion?.description ?? ''}
-            className={inputClass}
+            className={fieldClass}
           />
         </div>
       </div>
 
       <label className="flex cursor-pointer items-center justify-between gap-4 rounded-sm border border-[var(--q2m-line-soft)] bg-[var(--q2m-bg-elevated)] p-4">
         <span className="text-sm font-medium text-[var(--q2m-ink)]">{t('active')}</span>
-        <input
-          type="checkbox"
-          name="active"
-          defaultChecked={promotion?.isActive ?? true}
-          className="h-4 w-4 shrink-0 accent-[var(--q2m-accent)]"
-        />
+        <Switch checked={isActive} onCheckedChange={setIsActive} />
       </label>
+      <input type="hidden" name="active" value={isActive ? 'on' : 'off'} />
 
       {error && !['name', 'percentage', 'dates'].includes(error) && (
         <p className="inline-flex items-center gap-2 text-sm text-[var(--q2m-alert)]">
@@ -427,21 +452,13 @@ function PromotionForm({
       )}
 
       <div className="flex items-center gap-3">
-        <button
-          type="submit"
-          disabled={pending}
-          className="inline-flex items-center gap-2 rounded-sm bg-[var(--q2m-ink)] px-5 py-2.5 text-sm font-medium text-[var(--q2m-bg-elevated)] transition-opacity hover:opacity-85 disabled:opacity-50"
-        >
+        <Button type="submit" disabled={pending} className="gap-2 rounded-sm">
           <Save className="h-4 w-4" />
           {pending ? t('saving') : t('save')}
-        </button>
-        <button
-          type="button"
-          onClick={onCancel}
-          className="rounded-sm border border-[var(--q2m-line-strong)] px-5 py-2.5 text-sm font-medium text-[var(--q2m-ink-soft)] transition-colors hover:text-[var(--q2m-ink)]"
-        >
+        </Button>
+        <Button type="button" variant="outline" onClick={onCancel}>
           {t('cancel')}
-        </button>
+        </Button>
       </div>
     </form>
   )

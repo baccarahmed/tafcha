@@ -47,6 +47,10 @@ export interface ProductInput {
   featured: boolean
   active: boolean
   isNewDrop: boolean
+  /** Date de lancement (drop à venir) : `YYYY-MM-DD` ou null. */
+  releaseDate?: string | null
+  /** Fin des ventes (drop en cours) : `YYYY-MM-DD` ou null. */
+  dropEndsAt?: string | null
 }
 
 /** Messages en francais : le back-office est monolingue cote validation. */
@@ -55,6 +59,26 @@ export class ProductValidationError extends Error {
     super(field)
     this.name = 'ProductValidationError'
   }
+}
+
+/**
+ * Date ISO ramenee a `YYYY-MM-DD`, ou null pour effacer la colonne.
+ *
+ * Le storefront construit ses statuts/pousseurs a partir de ces deux bornes :
+ * une valeur invalide se propagerait comme « drop live » indefiniment, donc on
+ * refuse plutot que d'avaler.
+ */
+function normalizeDate(value: string | null): string | null {
+  if (value === null || value.trim() === '') return null
+
+  const trimmed = value.trim()
+  // Les champs date du back-office envoient `YYYY-MM-DD` : sans heure, le
+  // suffixe brut `Z` donne une date invalide. On precise donc minuit UTC.
+  const iso = /^\d{4}-\d{2}-\d{2}$/.test(trimmed) ? `${trimmed}T00:00:00Z` : trimmed
+  const date = new Date(iso)
+  if (Number.isNaN(date.getTime())) throw new ProductValidationError('date')
+
+  return date.toISOString().slice(0, 10)
 }
 
 /** Au moins une pointure en stock, sinon la fiche est invisible. */
@@ -190,6 +214,8 @@ export async function createProduct(input: ProductInput): Promise<CreateResult> 
       featured: input.featured,
       active: input.active,
       is_new_drop: input.isNewDrop,
+      release_date: normalizeDate(input.releaseDate ?? null),
+      drop_ends_at: normalizeDate(input.dropEndsAt ?? null),
     })
     .select('id, slug')
     .single()
@@ -225,6 +251,8 @@ export interface ProductPatch {
   featured?: boolean
   active?: boolean
   isNewDrop?: boolean
+  releaseDate?: string | null
+  dropEndsAt?: string | null
 }
 
 /**
@@ -318,6 +346,10 @@ export async function updateProduct(id: string, patch: ProductPatch): Promise<Up
   if (patch.featured !== undefined) row.featured = patch.featured
   if (patch.active !== undefined) row.active = patch.active
   if (patch.isNewDrop !== undefined) row.is_new_drop = patch.isNewDrop
+  if (patch.releaseDate !== undefined)
+    row.release_date = normalizeDate(patch.releaseDate)
+  if (patch.dropEndsAt !== undefined)
+    row.drop_ends_at = normalizeDate(patch.dropEndsAt)
 
   if (Object.keys(row).length === 0) {
     return { id: existing.id, slug: existing.slug }

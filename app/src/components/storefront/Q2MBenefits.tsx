@@ -20,7 +20,7 @@ export function Q2MBenefits() {
       style={{ background: Q2M.bgDark, color: Q2M.onDark }}
     >
       <div
-        className="mx-auto grid max-w-[1440px] grid-cols-1 gap-px px-12 py-12 sm:grid-cols-2 lg:grid-cols-4 lg:px-14"
+        className="mx-auto grid max-w-[1440px] grid-cols-1 gap-px px-5 py-10 sm:grid-cols-2 sm:px-10 sm:py-12 lg:grid-cols-4 lg:px-14"
         style={{ background: Q2M.line, fontFamily: Q2M_FONT }}
       >
         {BENEFIT_KEYS.map((key, i) => {
@@ -28,7 +28,7 @@ export function Q2MBenefits() {
           return (
             <div
               key={key}
-              className="flex flex-col gap-4 p-7"
+              className="flex flex-col gap-4 p-6 sm:p-7"
               style={{ background: Q2M.bgDark }}
             >
               <Icon size={22} strokeWidth={1.5} style={{ color: Q2M.accent }} />

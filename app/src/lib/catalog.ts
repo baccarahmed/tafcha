@@ -1,6 +1,5 @@
 import 'server-only'
 
-import { insforge } from './insforge'
 import { insforgeAdmin } from './insforge-admin'
 import type { SneakerPalette, ProductGender } from '@/types/product'
 import type { CatalogProduct, DbCategory, SiteSettings } from '@/types/catalog'
@@ -144,20 +143,48 @@ export async function getSiteSettings(): Promise<SiteSettings | null> {
   return (data as SiteSettings) ?? null
 }
 
-/** RLS allows anon inserts on these two tables; the browser client is enough. */
+/**
+ * L'INSERT est reserve au client project_admin (insforgeAdmin) : les droits
+ * anon/authenticated sur ces deux tables ont ete revoques (F-SPAM-1). Le
+ * rate-limit applicatif reste en amont dans les route handlers /api/contact
+ * et /api/newsletter.
+ */
 export async function submitContactMessage(payload: {
   name: string
   email: string
   subject?: string
   message: string
 }): Promise<void> {
-  const { error } = await insforge.database.from('contact_messages').insert([payload])
+  const { error } = await insforgeAdmin()
+    .database.from('contact_messages')
+    .insert([payload])
   if (error) throw new Error(`Failed to send message: ${error.message}`)
 }
 
 export async function subscribeToNewsletter(email: string): Promise<void> {
-  const { error } = await insforge.database
-    .from('newsletter_subscribers')
+  const { error } = await insforgeAdmin()
+    .database.from('newsletter_subscribers')
     .insert([{ email }])
-  if (error) throw new Error(`Failed to subscribe: ${error.message}`)
+
+  // `email` porte une contrainte unique : une double inscription est
+  // un succes idempotent, pas une erreur. Le visiteire qui valide
+  // deux fois le formulaire ne doit pas voir un echec.
+  if (error && !isUniqueViolation(error)) {
+    throw new Error(`Failed to subscribe: ${error.message}`)
+  }
+}
+
+/**
+ * L'API renvoie le code SQL de la contrainte (23505) ou son libelle
+ * selon le pilote : on couvre les deux pour rester robuste.
+ */
+function isUniqueViolation(error: unknown): boolean {
+  const code = (error as { code?: unknown } | null)?.code
+  const message = (error as { message?: unknown } | null)?.message
+
+  return (
+    code === '23505' ||
+    (typeof message === 'string' &&
+      /duplicate key value violates unique constraint/i.test(message))
+  )
 }

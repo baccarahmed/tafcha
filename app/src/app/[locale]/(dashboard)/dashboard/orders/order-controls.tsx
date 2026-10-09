@@ -3,9 +3,25 @@
 import { useState, useTransition } from 'react'
 import { useRouter } from '@/i18n/navigation'
 import { useLocale, useTranslations } from 'next-intl'
-import { AlertCircle, Check, ChevronDown, X } from 'lucide-react'
+import { AlertCircle, Check, ChevronDown } from 'lucide-react'
 import { updateOrderAction } from '@/app/actions/admin'
 import { cn, formatCurrency } from '@/lib/utils'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 
 const STATUSES = ['PENDING', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED'] as const
 const PAYMENT_STATUSES = ['PENDING', 'PAID', 'FAILED', 'REFUNDED'] as const
@@ -58,125 +74,124 @@ export default function OrderControls({
     })
   }
 
+  const statusTone = (value: string | null) => {
+    if (value === 'PAID') return 'bg-[var(--q2m-status-open-bg)] text-[var(--q2m-status-open)]'
+    if (value === 'FAILED' || value === 'REFUNDED' || value === 'CANCELLED')
+      return 'bg-[var(--q2m-alert)]/10 text-[var(--q2m-alert)]'
+    return 'text-[var(--q2m-ink-soft)]'
+  }
+
   return (
     <>
       <div className="flex items-center justify-end gap-1.5">
-        <select
-          value={status ?? ''}
+        <Select
+          value={status ?? undefined}
           disabled={pending}
-          onChange={(event) => patch({ status: event.target.value })}
-          aria-label={t('status')}
-          className={cn(
-            'rounded-sm border px-2 py-1.5 text-xs font-medium uppercase tracking-wider outline-none',
-            status === 'CANCELLED'
-              ? 'border-[var(--q2m-alert)] bg-[var(--q2m-alert)]/10 text-[var(--q2m-alert)]'
-              : 'border-[var(--q2m-line-strong)] bg-transparent text-[var(--q2m-ink-soft)]'
-          )}
+          onValueChange={(value) => patch({ status: value })}
         >
-          {STATUSES.map((option) => (
-            <option key={option} value={option}>
-              {t(`orderStatus_${option}`)}
-            </option>
-          ))}
-        </select>
+          <SelectTrigger
+            aria-label={t('status')}
+            className={cn(
+              'h-7 w-[7.5rem] border px-2 text-xs font-medium uppercase tracking-wider',
+              statusTone(status)
+            )}
+          >
+            <SelectValue placeholder="—" />
+          </SelectTrigger>
+          <SelectContent>
+            {STATUSES.map((option) => (
+              <SelectItem key={option} value={option}>
+                {t(`orderStatus_${option}`)}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
 
-        <select
-          value={paymentStatus ?? ''}
+        <Select
+          value={paymentStatus ?? undefined}
           disabled={pending}
-          onChange={(event) => patch({ paymentStatus: event.target.value })}
-          aria-label={t('paymentStatus')}
-          className={cn(
-            'rounded-sm border px-2 py-1.5 text-xs font-medium uppercase tracking-wider outline-none',
-            paymentStatus === 'PAID'
-              ? 'border-[var(--q2m-status-open)] bg-[var(--q2m-status-open-bg)] text-[var(--q2m-status-open)]'
-              : paymentStatus === 'FAILED' || paymentStatus === 'REFUNDED'
-                ? 'border-[var(--q2m-alert)] bg-[var(--q2m-alert)]/10 text-[var(--q2m-alert)]'
-                : 'border-[var(--q2m-line-strong)] bg-transparent text-[var(--q2m-ink-soft)]'
-          )}
+          onValueChange={(value) => patch({ paymentStatus: value })}
         >
-          {PAYMENT_STATUSES.map((option) => (
-            <option key={option} value={option}>
-              {t(`paymentStatus_${option}`)}
-            </option>
-          ))}
-        </select>
+          <SelectTrigger
+            aria-label={t('paymentStatus')}
+            className={cn(
+              'h-7 w-[7.5rem] border px-2 text-xs font-medium uppercase tracking-wider',
+              statusTone(paymentStatus)
+            )}
+          >
+            <SelectValue placeholder="—" />
+          </SelectTrigger>
+          <SelectContent>
+            {PAYMENT_STATUSES.map((option) => (
+              <SelectItem key={option} value={option}>
+                {t(`paymentStatus_${option}`)}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
 
-        <button
+        <Button
           type="button"
+          variant="outline"
+          size="icon"
           onClick={() => setOpen(true)}
           aria-label={t('orderDetail')}
-          className="inline-flex h-7 w-7 items-center justify-center rounded-sm border border-[var(--q2m-line-soft)] text-[var(--q2m-ink-stone)] transition-colors hover:border-[var(--q2m-ink)] hover:text-[var(--q2m-ink)]"
+          className="h-7 w-7 text-[var(--q2m-ink-stone)]"
         >
           <ChevronDown className="h-3.5 w-3.5" />
-        </button>
+        </Button>
 
         {saved && (
-          <span className="inline-flex items-center gap-1 text-[0.625rem] text-[var(--q2m-status-open)]">
-            <Check className="h-3 w-3" />
-          </span>
+          <Badge variant="outline" className="bg-transparent px-0 text-[var(--q2m-status-open)]">
+            <Check className="h-3.5 w-3.5" />
+          </Badge>
         )}
 
         {error && (
-          <span className="inline-flex items-center gap-1 text-[0.625rem] text-[var(--q2m-alert)]">
-            <AlertCircle className="h-3 w-3" />
-          </span>
+          <Badge variant="outline" className="bg-transparent px-0 text-[var(--q2m-alert)]">
+            <AlertCircle className="h-3.5 w-3.5" />
+          </Badge>
         )}
       </div>
 
-      {open && (
-        <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/60 p-4 md:p-8">
-          <div className="w-full max-w-lg space-y-5 rounded-sm border border-[var(--q2m-line-soft)] bg-[var(--q2m-bg-elevated)] p-6">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <h3 className="text-sm font-semibold text-[var(--q2m-ink)]">
-                  {t('orderDetail')}
-                </h3>
-                <p className="mt-0.5 text-xs text-[var(--q2m-ink-stone)]">
-                  {customerEmail ?? t('customer')}
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setOpen(false)}
-                aria-label={t('closeForm')}
-                className="p-1.5 text-[var(--q2m-ink-stone)] transition-colors hover:text-[var(--q2m-ink)]"
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>{t('orderDetail')}</DialogTitle>
+            <DialogDescription>{customerEmail ?? t('customer')}</DialogDescription>
+          </DialogHeader>
+
+          <ul className="space-y-2 border-y border-[var(--q2m-line-soft)] py-4">
+            {items.map((item) => (
+              <li
+                key={item.id}
+                className="flex items-baseline justify-between gap-4 text-sm"
               >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-
-            <ul className="space-y-2 border-y border-[var(--q2m-line-soft)] py-4">
-              {items.map((item) => (
-                <li
-                  key={item.id}
-                  className="flex items-baseline justify-between gap-4 text-sm"
-                >
-                  <span className="min-w-0">
-                    <span className="block truncate text-[var(--q2m-ink)]">
-                      {item.name}
+                <span className="min-w-0">
+                  <span className="block truncate text-[var(--q2m-ink)]">
+                    {item.name}
+                  </span>
+                  {item.colorway && (
+                    <span className="block truncate text-xs text-[var(--q2m-ink-stone)]">
+                      {item.colorway}
                     </span>
-                    {item.colorway && (
-                      <span className="block truncate text-xs text-[var(--q2m-ink-stone)]">
-                        {item.colorway}
-                      </span>
-                    )}
-                  </span>
-                  <span className="shrink-0 tabular-nums text-[var(--q2m-ink-soft)]">
-                    ×{item.quantity}
-                  </span>
-                </li>
-              ))}
-            </ul>
+                  )}
+                </span>
+                <span className="shrink-0 tabular-nums text-[var(--q2m-ink-soft)]">
+                  ×{item.quantity}
+                </span>
+              </li>
+            ))}
+          </ul>
 
-            <div className="flex items-baseline justify-between text-sm">
-              <span className="font-semibold text-[var(--q2m-ink)]">{t('total')}</span>
-              <span className="tabular-nums text-[var(--q2m-ink)]">
-                {formatCurrency(total, locale)}
-              </span>
-            </div>
+          <div className="flex items-baseline justify-between text-sm">
+            <span className="font-semibold text-[var(--q2m-ink)]">{t('total')}</span>
+            <span className="tabular-nums text-[var(--q2m-ink)]">
+              {formatCurrency(total, locale)}
+            </span>
           </div>
-        </div>
-      )}
+        </DialogContent>
+      </Dialog>
     </>
   )
 }

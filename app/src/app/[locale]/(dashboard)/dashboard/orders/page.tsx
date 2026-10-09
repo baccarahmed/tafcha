@@ -1,6 +1,21 @@
 import { getLocale, getTranslations } from 'next-intl/server'
 import { getAdminOrders } from '@/lib/admin-data'
 import { formatCurrency } from '@/lib/utils'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
 import OrderControls from './order-controls'
 
 export default async function DashboardOrdersPage() {
@@ -39,91 +54,79 @@ export default async function DashboardOrdersPage() {
     <div className="space-y-6">
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         {cards.map((card) => (
-          <div
-            key={card.label}
-            className="rounded-sm border border-[var(--q2m-line-soft)] bg-[var(--q2m-bg-elevated)] p-5"
-          >
-            <p className="text-[0.6875rem] uppercase tracking-[0.16em] text-[var(--q2m-ink-stone)]">
-              {card.label}
-            </p>
-            <p className="mt-2 text-2xl font-semibold tabular-nums text-[var(--q2m-ink)]">
-              {card.value}
-            </p>
-          </div>
+          <Card key={card.label}>
+            <CardHeader className="flex-row items-center justify-between">
+              <CardDescription className="text-[0.6875rem] font-semibold uppercase tracking-[0.16em]">
+                {card.label}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-2xl font-semibold tabular-nums text-[var(--q2m-ink)]">
+                {card.value}
+              </p>
+            </CardContent>
+          </Card>
         ))}
       </div>
 
-      <div className="rounded-sm border border-[var(--q2m-line-soft)] bg-[var(--q2m-bg-elevated)] p-6">
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[860px]">
-            <thead>
-              <tr className="border-b border-[var(--q2m-line-soft)]">
-                {[
-                  t('orderRef'),
-                  t('customerCol'),
-                  t('date'),
-                  t('status'),
-                  t('total'),
-                  '',
-                ].map((heading, index) => (
-                  <th
-                    key={heading || index}
-                    className={`px-2 py-3 text-[0.6875rem] uppercase tracking-[0.16em] text-[var(--q2m-ink-stone)] ${
-                      index === 4 ? 'text-end' : 'text-start'
-                    }`}
-                  >
-                    {heading}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {orders.map((order) => (
-                <tr
-                  key={order.id}
-                  className="border-b border-[var(--q2m-line-soft)] last:border-b-0"
-                >
-                  <td className="whitespace-nowrap px-2 py-3.5 text-xs tabular-nums text-[var(--q2m-ink-mute)]">
-                    {order.shortId}
-                  </td>
-                  <td className="px-2 py-3.5 text-sm text-[var(--q2m-ink)]">
-                    {order.customerEmail ?? t('customer')}
-                  </td>
-                  <td className="whitespace-nowrap px-2 py-3.5 text-xs tabular-nums text-[var(--q2m-ink-mute)]">
-                    {order.createdAt.slice(0, 10)}
-                  </td>
-                  <td className="px-2 py-3.5">
-                    <span className="block text-xs text-[var(--q2m-ink-stone)]">
-                      {order.status
-                        ? t(`orderStatus_${order.status}`)
-                        : '—'}
-                    </span>
-                  </td>
-                  <td className="px-2 py-3.5 text-end text-sm font-semibold tabular-nums text-[var(--q2m-ink)]">
-                    {money(order.total)}
-                  </td>
-                  <td className="px-2 py-3.5">
-                    <OrderControls
-                      orderId={order.id}
-                      status={order.status}
-                      paymentStatus={order.paymentStatus}
-                      customerEmail={order.customerEmail}
-                      items={order.items}
-                      total={order.total}
-                    />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        {orders.length === 0 && (
-          <p className="py-12 text-center text-sm text-[var(--q2m-ink-stone)]">
-            {t('noOrdersYet')}
-          </p>
-        )}
-      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-sm font-semibold">{t('ordersCount')}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {orders.length > 0 ? (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>{t('orderRef')}</TableHead>
+                    <TableHead>{t('customerCol')}</TableHead>
+                    <TableHead>{t('date')}</TableHead>
+                    <TableHead>{t('status')}</TableHead>
+                    <TableHead className="text-end">{t('total')}</TableHead>
+                    <TableHead className="text-end">{t('actions')}</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {orders.map((order) => (
+                    <TableRow key={order.id}>
+                      <TableCell className="whitespace-nowrap text-xs tabular-nums text-[var(--q2m-ink-mute)]">
+                        {order.shortId}
+                      </TableCell>
+                      <TableCell className="text-sm text-[var(--q2m-ink)]">
+                        {order.customerEmail ?? t('customer')}
+                      </TableCell>
+                      <TableCell className="whitespace-nowrap text-xs tabular-nums text-[var(--q2m-ink-mute)]">
+                        {order.createdAt.slice(0, 10)}
+                      </TableCell>
+                      <TableCell className="text-xs text-[var(--q2m-ink-stone)]">
+                        {order.status ? t(`orderStatus_${order.status}`) : '—'}
+                      </TableCell>
+                      <TableCell className="text-end text-sm font-semibold tabular-nums text-[var(--q2m-ink)]">
+                        {money(order.total)}
+                      </TableCell>
+                      <TableCell className="text-end">
+                        <OrderControls
+                          orderId={order.id}
+                          status={order.status}
+                          paymentStatus={order.paymentStatus}
+                          customerEmail={order.customerEmail}
+                          items={order.items}
+                          total={order.total}
+                        />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          ) : (
+            <p className="py-12 text-center text-sm text-[var(--q2m-ink-stone)]">
+              {t('noOrdersYet')}
+            </p>
+          )}
+        </CardContent>
+      </Card>
     </div>
   )
 }

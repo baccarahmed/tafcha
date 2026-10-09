@@ -10,11 +10,17 @@ export default defineConfig([
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {
-    files: ['**/*.{ts,tsx}'],
+    // Plugins enregistrés sur tous les fichiers, sans `files` : la détection du
+    // plugin par `next build` évalue le config file lui-même (eslint.config.mjs),
+    // qui ne matche pas `**/*.{ts,tsx}`. Sans ce bloc, Next émet
+    // « The Next.js plugin was not detected in your ESLint configuration ».
     plugins: {
       'react-hooks': reactHooks,
       '@next/next': nextPlugin,
     },
+  },
+  {
+    files: ['**/*.{ts,tsx}'],
     languageOptions: {
       ecmaVersion: 2022,
       globals: globals.browser,
@@ -29,7 +35,7 @@ export default defineConfig([
     },
   },
   {
-    files: ['scripts/**/*.mjs'],
+    files: ['scripts/**/*.mjs', 'next.config.mjs'],
     languageOptions: {
       globals: globals.node,
     },

@@ -3,12 +3,24 @@
 import { useState, useTransition } from 'react'
 import { useRouter } from '@/i18n/navigation'
 import { useTranslations } from 'next-intl'
-import { AlertCircle, Check, Star, Trash2, X } from 'lucide-react'
+import { AlertCircle, Check, Star, Trash2 } from 'lucide-react'
 import {
   deleteProductAction,
   updateProductAction,
 } from '@/app/actions/admin'
 import { cn } from '@/lib/utils'
+import { Button } from '@/components/ui/button'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog'
 
 /**
  * Actions d'une fiche produit dans la liste du back-office.
@@ -95,38 +107,41 @@ export default function ProductRowActions({
         onClick={() => toggle({ isNewDrop: !isNewDrop })}
       />
 
-      {confirming ? (
-        <span className="flex items-center gap-1">
-          <button
+      <AlertDialog open={confirming} onOpenChange={setConfirming}>
+        <AlertDialogTrigger asChild>
+          <Button
             type="button"
+            variant="outline"
+            size="icon"
             disabled={pending}
-            onClick={remove}
-            aria-label={t('confirmDeleteProduct')}
-            className="inline-flex h-7 items-center gap-1 rounded-sm bg-[var(--q2m-alert)] px-2 text-[0.625rem] font-semibold uppercase tracking-[0.12em] text-white disabled:opacity-50"
+            aria-label={t('deleteProduct')}
+            className="h-7 w-7 text-[var(--q2m-ink-stone)] hover:border-[var(--q2m-alert)] hover:text-[var(--q2m-alert)]"
           >
-            <Check className="h-3.5 w-3.5" />
-            {t('confirmYes')}
-          </button>
-          <button
-            type="button"
-            onClick={() => setConfirming(false)}
-            aria-label={t('cancel')}
-            className="inline-flex h-7 items-center rounded-sm border border-[var(--q2m-line-strong)] px-2 text-[var(--q2m-ink-mute)] transition-colors hover:text-[var(--q2m-ink)]"
-          >
-            <X className="h-3.5 w-3.5" />
-          </button>
-        </span>
-      ) : (
-        <button
-          type="button"
-          disabled={pending}
-          onClick={() => setConfirming(true)}
-          aria-label={t('deleteProduct')}
-          className="inline-flex h-7 w-7 items-center justify-center rounded-sm border border-[var(--q2m-line-soft)] text-[var(--q2m-ink-stone)] transition-colors hover:border-[var(--q2m-alert)] hover:text-[var(--q2m-alert)] disabled:opacity-50"
-        >
-          <Trash2 className="h-3.5 w-3.5" />
-        </button>
-      )}
+            <Trash2 className="h-3.5 w-3.5" />
+          </Button>
+        </AlertDialogTrigger>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('deleteProduct')}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('confirmDeleteProduct')}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={pending}>{t('cancel')}</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(event) => {
+                event.preventDefault()
+                void remove()
+              }}
+              disabled={pending}
+              className="bg-[var(--q2m-alert)] text-white hover:bg-[var(--q2m-alert)]"
+            >
+              {t('confirmYes')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {saved && (
         <span className="inline-flex items-center gap-1 text-[0.625rem] text-[var(--q2m-status-open)]">

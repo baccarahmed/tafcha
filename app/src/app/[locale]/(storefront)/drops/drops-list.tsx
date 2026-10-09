@@ -11,58 +11,33 @@ import { Q2M, Q2M_FONT, Q2M_BRAND_IMAGES } from '@/lib/q2m-tokens';
 import { formatCurrency, intlLocale } from '@/lib/utils';
 import type { CatalogProduct } from '@/types/catalog';
 
-interface DropsListProps {
-  featured?: CatalogProduct | null;
-  archives?: CatalogProduct[];
+export type DropStatus = 'live' | 'upcoming' | 'ended';
+
+export interface DropRow {
+  slug: string;
+  name: string;
+  date: string;
+  quantity: number;
+  status: DropStatus;
 }
 
-/** Drop vedette : 1er décembre 2026 à 20h00 UTC. */
-const DROP_TARGET = Date.UTC(2026, 11, 1, 20, 0, 0);
+interface DropsListProps {
+  featured: { product: CatalogProduct; status: DropStatus; countdownMs: number | null } | null;
+  calendar: DropRow[];
+  archives: CatalogProduct[];
+}
 
-/**
- * Calendrier de demonstration.
- *
- * `quantity` est un nombre et `statusKey` une cle : « 120 paires » et
- * « Inscriptions ouvertes » se traduisent, « Nike Air Max DN » non. La date est
- * une vraie date ISO : le jour et le mois abrégé sont rendus via `Intl` pour
- * suivre la langue active, « 12 oct. » en francais, « 12 Oct » en anglais.
- */
-const CALENDAR = [
-  {
-    date: '2026-10-12',
-    model: 'Nike Air Max DN — Black / Gold',
-    quantity: 120,
-    status: 'open',
-    statusKey: 'statusOpen',
-  },
-  {
-    date: '2026-10-24',
-    model: 'Crocs Echo Clog — Triple Black',
-    quantity: 90,
-    status: 'soon',
-    statusKey: 'statusUpcoming',
-  },
-  {
-    date: '2026-11-08',
-    model: 'Adidas Ultraboost 5 — Q2M Edition',
-    quantity: 60,
-    status: 'soon',
-    statusKey: 'statusUpcoming',
-  },
-  {
-    date: '2026-11-21',
-    model: 'Nike Air Force 1 — Tunis Nights',
-    quantity: 100,
-    status: 'soon',
-    statusKey: 'statusSoon',
-  },
-] as const;
+const STATUS_TONES: Record<DropStatus, { background: string; color: string }> = {
+  live: { background: 'var(--q2m-status-open-bg)', color: 'var(--q2m-status-open)' },
+  upcoming: { background: 'var(--q2m-status-soon-bg)', color: 'var(--q2m-status-soon)' },
+  ended: { background: 'var(--q2m-status-neutral-bg)', color: 'var(--q2m-status-neutral)' },
+};
 
-const STATUS_TONES = {
-  open: { background: 'var(--q2m-status-open-bg)', color: 'var(--q2m-status-open)' },
-  soon: { background: 'var(--q2m-status-soon-bg)', color: 'var(--q2m-status-soon)' },
-  neutral: { background: 'var(--q2m-status-neutral-bg)', color: 'var(--q2m-status-neutral)' },
-} as const;
+const STATUS_KEYS: Record<DropStatus, 'statusOpen' | 'statusUpcoming' | 'statusEnded'> = {
+  live: 'statusOpen',
+  upcoming: 'statusUpcoming',
+  ended: 'statusEnded',
+};
 
 function splitDuration(ms: number) {
   const clamped = Math.max(0, ms);
@@ -74,10 +49,16 @@ function splitDuration(ms: number) {
   };
 }
 
-export default function DropsList({ featured, archives = [] }: DropsListProps) {
+export default function DropsList({
+  featured,
+  calendar = [],
+  archives = [],
+}: DropsListProps) {
   const t = useTranslations('drops');
   const locale = useLocale();
-  const [now, setNow] = useState<number>(DROP_TARGET);
+  // Valeur initiale neutre : l'horloge se synchronise dans l'effet pour
+  // rester pur pendant le rendu.
+  const [now, setNow] = useState<number>(0);
 
   useEffect(() => {
     const tick = () => setNow(Date.now());
@@ -86,29 +67,34 @@ export default function DropsList({ featured, archives = [] }: DropsListProps) {
     return () => clearInterval(id);
   }, []);
 
-  const countdown = splitDuration(DROP_TARGET - now);
-  const units = [
-    [countdown.days, t('daysLong')],
-    [countdown.hours, t('hoursLong')],
-    [countdown.minutes, t('minutesLong')],
-    [countdown.seconds, t('secondsLong')],
-  ] as const;
-
   // « 12 oct. » en français, « 12 Oct » en anglais, « 12 أكتوبر » en arabe :
   // le mois du calendrier ne peut pas rester fige en OCT.
   const dayFormatter = new Intl.DateTimeFormat(intlLocale(locale), {
     day: '2-digit',
     month: 'short',
+    year: '2-digit',
     timeZone: 'UTC',
   });
-  const formatDate = (iso: string) => dayFormatter.format(new Date(`${iso}T00:00:00Z`));
+  // Les bornes de drop sont stockees en `YYYY-MM-DD` : il faut completer
+  // l'heure pour un parsing UTC fiable (`new Date('2026-10-06Z')` est invalide).
+  const formatDate = (iso: string) => {
+    const normalized = /^\d{4}-\d{2}-\d{2}$/.test(iso)
+      ? `${iso}T00:00:00Z`
+      : iso;
+    const date = new Date(normalized);
+    return Number.isNaN(date.getTime()) ? '—' : dayFormatter.format(date);
+  };
+
+  const countdown =
+    featured?.countdownMs && now ? splitDuration(featured.countdownMs - now) : null;
+  const countdownLabel = featured?.status === 'live' ? t('endsIn') : t('releasesIn');
 
   return (
     <div style={{ background: Q2M.bg, fontFamily: Q2M_FONT }}>
       {/* Introduction — bandeau sombre */}
       <header style={{ background: '#151515' }}>
-        <div className="mx-auto flex max-w-[1440px] flex-col gap-3.5 px-12 pt-10.5 pb-9.5 lg:px-14">
-          <div className="flex items-center justify-between">
+        <div className="mx-auto flex max-w-[1440px] flex-col gap-3.5 px-5 pt-10.5 pb-9.5 sm:px-10 lg:px-14">
+          <div className="flex items-center justify-between gap-3">
             <span
               className="text-[10px] font-bold uppercase tracking-[0.16em]"
               style={{ color: Q2M.accent }}
@@ -116,16 +102,19 @@ export default function DropsList({ featured, archives = [] }: DropsListProps) {
               {t('route')}
             </span>
             <Link
-              href="/drops"
-              className="inline-flex items-center gap-2 px-3 py-2 text-[10px] font-bold uppercase tracking-[0.16em] transition-opacity hover:opacity-80"
-              style={{ background: Q2M.accent, color: Q2M.onAccent, borderRadius: 4 }}
+              href={{ pathname: '/', hash: 'newsletter' }}
+              className="group q2m-btn-primary q2m-btn-sm shrink-0"
             >
               {t('enableAlerts')}
-              <ArrowUpRight size={13} strokeWidth={1.5} />
+              <ArrowUpRight
+                size={13}
+                strokeWidth={1.5}
+                className="transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 rtl:-scale-x-100"
+              />
             </Link>
           </div>
           <h1
-            className="text-[clamp(40px,5vw,68px)] font-black uppercase leading-[0.95] tracking-[-0.01em]"
+            className="text-[clamp(34px,5vw,68px)] font-black uppercase leading-[0.95] tracking-[-0.01em]"
             style={{ color: '#FFFFFF', maxWidth: 920 }}
           >
             {t('heroTitle')}
@@ -136,101 +125,136 @@ export default function DropsList({ featured, archives = [] }: DropsListProps) {
         </div>
       </header>
 
-      {/* Drop principal — panneau #151515, 2 colonnes */}
-      <section style={{ background: '#151515' }}>
-        <div className="mx-auto max-w-[1440px] px-12 pb-10.5 lg:px-14">
-          <div
-            className="flex flex-col overflow-hidden lg:flex-row"
-            style={{ background: '#151515' }}
-          >
-            {/* Informations — padding 54 */}
+      {featured ? (
+        <section>
+          <div className="mx-auto max-w-[1440px] px-5 pb-10.5 sm:px-10 lg:px-14">
             <div
-              className="flex flex-1 flex-col justify-between gap-12 p-8 lg:p-13.5"
-              style={{ minHeight: 480 }}
+              className="relative flex flex-col gap-6 overflow-hidden lg:flex-row lg:items-end lg:gap-10"
+              style={{
+                background: Q2M.bgDark,
+                borderRadius: 12,
+                padding: 'clamp(24px,4.5vw,54px)',
+              }}
             >
-              <div className="flex flex-col gap-4">
+              <div className="flex flex-1 flex-col gap-4">
                 <span
                   className="w-fit px-2.5 py-1.5 text-[9px] font-extrabold uppercase tracking-[0.16em]"
-                  style={{ ...STATUS_TONES.soon, borderRadius: 999 }}
+                  style={{ ...STATUS_TONES[featured.status], borderRadius: 999 }}
                 >
-                  {t('statusUpcoming')}
+                  {t(STATUS_KEYS[featured.status])}
                 </span>
                 <h2
-                  className="text-[clamp(36px,3.6vw,52px)] font-black uppercase leading-[0.92] tracking-[-0.02em]"
+                  className="text-[clamp(28px,3.4vw,46px)] font-black uppercase leading-[0.94] tracking-[-0.02em]"
                   style={{ color: '#FFFFFF' }}
                 >
-                  {featured?.name ?? t('featuredTitle')}
+                  {featured.product.name}
                 </h2>
                 <p className="text-sm leading-[1.6]" style={{ color: '#AAA59C', maxWidth: 460 }}>
                   {t('featuredLead')}
                 </p>
+                <div className="flex items-center gap-6 pt-1">
+                  <span className="text-xl font-black tabular-nums" style={{ color: '#FFFFFF' }}>
+                    {formatCurrency(featured.product.price, locale)}
+                  </span>
+                  <Link
+                    href={
+                      featured.status === 'live'
+                        ? `/product/${featured.product.slug}`
+                        : { pathname: '/', hash: 'newsletter' }
+                    }
+                    className="group q2m-btn-primary shrink-0"
+                  >
+                    {featured.status === 'live' ? t('details') : t('notifyMe')}
+                    <ArrowUpRight
+                      size={14}
+                      strokeWidth={1.5}
+                      className="transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 rtl:-scale-x-100"
+                    />
+                  </Link>
+                </div>
               </div>
 
-              {/* Compte à rebours — 4 cellules h68 */}
-              <div className="flex gap-2">
-                {units.map(([value, label]) => (
+              {featured.product.images[0] ? (
+                <div className="relative min-h-[220px] w-full flex-1 lg:min-h-[320px]">
+                  <Image
+                    src={featured.product.images[0]}
+                    alt={featured.product.name}
+                    fill
+                    sizes="(max-width: 1024px) 100vw, 50vw"
+                    unoptimized
+                    className="object-cover"
+                  />
+                </div>
+              ) : (
+                <div className="relative min-h-[220px] w-full flex-1 lg:min-h-[320px]">
+                  <Image
+                    src={Q2M_BRAND_IMAGES.dropClassic}
+                    alt="Q2M"
+                    fill
+                    unoptimized
+                    className="object-cover"
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* Compte à rebours réel (fin de vente ou lancement) */}
+            {countdown && (
+              <div className="flex gap-2 pt-3">
+                <span
+                  className="mr-3 self-center text-[10px] font-extrabold uppercase tracking-[0.16em]"
+                  style={{ color: Q2M.inkMute }}
+                >
+                  {countdownLabel}
+                </span>
+                {[
+                  [countdown.days, t('daysLong')],
+                  [countdown.hours, t('hoursLong')],
+                  [countdown.minutes, t('minutesLong')],
+                  [countdown.seconds, t('secondsLong')],
+                ].map(([value, label]) => (
                   <div
                     key={label}
-                    className="flex h-17 flex-1 flex-col items-center justify-center gap-1"
-                    style={{ background: Q2M.bgDark }}
+                    className="flex h-16 flex-1 max-w-[120px] flex-col items-center justify-center gap-1"
+                    style={{ background: Q2M.bgElevated, borderRadius: 8 }}
                   >
-                    <span
-                      className="text-xl font-black tabular-nums"
-                      style={{ color: '#FFFFFF' }}
-                    >
+                    <span className="text-xl font-black tabular-nums" style={{ color: Q2M.ink }}>
                       {String(value).padStart(2, '0')}
                     </span>
-                    <span className="text-[12px] leading-[1.5]" style={{ color: '#FFFFFF' }}>
+                    <span className="text-xs" style={{ color: Q2M.inkMute }}>
                       {label}
                     </span>
                   </div>
                 ))}
               </div>
-
-              {/* Prix + action */}
-              <div className="flex items-center justify-between gap-4">
-                <span className="text-xl font-black tabular-nums" style={{ color: '#FFFFFF' }}>
-                  {featured ? formatCurrency(featured.price, locale) : t('priceOnReveal')}
-                </span>
-                <Link
-                  href={featured ? `/product/${featured.slug}` : '/shop'}
-                  className="inline-flex items-center gap-2 px-5 py-3.5 text-xs font-bold uppercase tracking-[0.16em] transition-opacity hover:opacity-80"
-                  style={{ background: Q2M.accent, color: Q2M.onAccent, borderRadius: 4 }}
-                >
-                  {t('notifyMe')}
-                  <ArrowUpRight size={14} strokeWidth={1.5} />
-                </Link>
-              </div>
-            </div>
-
-            {/* Visuel du drop */}
-            <div className="relative min-h-[320px] flex-1 lg:min-h-[480px]">
-              {featured?.images[0] ? (
-                <Image
-                  src={featured.images[0]}
-                  alt={featured.name}
-                  fill
-                  sizes="(max-width: 1024px) 100vw, 50vw"
-                  unoptimized
-                  className="object-cover"
-                />
-              ) : (
-                <Image
-                  src={Q2M_BRAND_IMAGES.dropClassic}
-                  alt="Q2M drop à venir"
-                  fill
-                  unoptimized
-                  className="object-cover"
-                />
-              )}
+            )}
+          </div>
+        </section>
+      ) : (
+        <section style={{ background: '#151515' }}>
+          <div className="mx-auto max-w-[1440px] px-5 pb-10.5 sm:px-10 lg:px-14">
+            <div
+              className="flex flex-col items-start gap-4 lg:flex-row lg:items-center lg:justify-between"
+              style={{ background: Q2M.bgDark, borderRadius: 12, padding: 'clamp(24px,4vw,48px)' }}
+            >
+              <p className="text-sm leading-[1.6]" style={{ color: '#AAA59C', maxWidth: 520 }}>
+                {t('calendarEmpty')}
+              </p>
+              <Link
+                href={{ pathname: '/', hash: 'newsletter' }}
+                className="q2m-btn-primary shrink-0"
+              >
+                {t('enableAlerts')}
+                <ArrowUpRight size={14} strokeWidth={1.5} className="rtl:-scale-x-100" />
+              </Link>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* Calendrier — lignes empilées, fond blanc, bordure 1px */}
       <section>
-        <div className="mx-auto flex max-w-[1440px] flex-col gap-7 px-12 py-14 lg:px-14">
+        <div className="mx-auto flex max-w-[1440px] flex-col gap-7 px-5 py-14 sm:px-10 lg:px-14">
           <div className="flex flex-col gap-2">
             <span
               className="text-[10px] font-bold uppercase tracking-[0.16em]"
@@ -247,25 +271,25 @@ export default function DropsList({ featured, archives = [] }: DropsListProps) {
           </div>
 
           <div className="flex flex-col gap-7">
-            {CALENDAR.map((row) => (
+            {calendar.map((row) => (
               <motion.div
-                key={row.date}
+                key={row.slug}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-40px" }}
+                viewport={{ once: true, margin: '-40px' }}
                 transition={{ duration: 0.45 }}
                 className="flex flex-col gap-4 px-4.5 py-5 lg:flex-row lg:items-center lg:gap-6"
                 style={{ background: Q2M.bgElevated, border: `1px solid ${Q2M.line}` }}
               >
                 <span
-                  className="w-[100px] shrink-0 text-xs font-black tabular-nums"
+                  className="w-[110px] shrink-0 text-xs font-black tabular-nums"
                   style={{ color: Q2M.ink }}
                 >
-                  {formatDate(row.date)}
+                  {row.date ? formatDate(row.date) : '—'}
                 </span>
                 <div className="flex min-w-0 flex-1 flex-col gap-1">
                   <span className="text-base font-bold" style={{ color: Q2M.ink }}>
-                    {row.model}
+                    {row.name}
                   </span>
                   <span className="w-[130px] text-xs" style={{ color: Q2M.inkMute }}>
                     {t('pairs', { count: row.quantity })}
@@ -275,15 +299,14 @@ export default function DropsList({ featured, archives = [] }: DropsListProps) {
                   className="w-fit px-2.5 py-1.5 text-[9px] font-extrabold uppercase tracking-[0.16em]"
                   style={{ ...STATUS_TONES[row.status], borderRadius: 999 }}
                 >
-                  {t(row.statusKey)}
+                  {t(STATUS_KEYS[row.status])}
                 </span>
                 <Link
-                  href="/shop"
-                  className="inline-flex shrink-0 items-center gap-2 px-4 py-2.5 text-xs font-bold uppercase tracking-[0.16em] transition-colors hover:bg-accent hover:text-on-accent"
-                  style={{ border: `1px solid ${Q2M.lineStrong}`, borderRadius: 4, color: Q2M.ink }}
+                  href={`/product/${row.slug}`}
+                  className="q2m-btn-ghost q2m-btn-sm shrink-0 self-start lg:self-auto"
                 >
                   {t('details')}
-                  <ArrowUpRight size={13} strokeWidth={1.5} />
+                  <ArrowUpRight size={13} strokeWidth={1.5} className="rtl:-scale-x-100" />
                 </Link>
               </motion.div>
             ))}
@@ -294,9 +317,9 @@ export default function DropsList({ featured, archives = [] }: DropsListProps) {
       {/* Archives — fond beige */}
       {archives.length > 0 && (
         <section style={{ background: Q2M.bone }}>
-          <div className="mx-auto flex max-w-[1440px] flex-col gap-6.5 px-12 py-12.5 lg:px-14">
-            <div className="flex items-end justify-between gap-4">
-              <div className="flex flex-col gap-2">
+          <div className="mx-auto flex max-w-[1440px] flex-col gap-6.5 px-5 py-12.5 sm:px-10 lg:px-14">
+            <div className="flex flex-wrap items-end justify-between gap-x-4 gap-y-2">
+              <div className="flex min-w-0 flex-col gap-2">
                 <span
                   className="text-[10px] font-bold uppercase tracking-[0.16em]"
                   style={{ color: Q2M.accent }}
@@ -312,11 +335,15 @@ export default function DropsList({ featured, archives = [] }: DropsListProps) {
               </div>
               <Link
                 href="/shop"
-                className="inline-flex shrink-0 items-center gap-2 text-[10px] font-bold uppercase tracking-[0.16em] transition-opacity hover:opacity-60"
+                className="group inline-flex shrink-0 items-center gap-2 py-2.5 text-[10px] font-bold uppercase tracking-[0.16em] transition-colors hover:text-[var(--q2m-accent-text)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--q2m-accent)]"
                 style={{ color: Q2M.ink }}
               >
                 {t('viewAllDrops')}
-                <ArrowUpRight size={13} strokeWidth={1.5} />
+                <ArrowUpRight
+                  size={13}
+                  strokeWidth={1.5}
+                  className="transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 rtl:-scale-x-100"
+                />
               </Link>
             </div>
 

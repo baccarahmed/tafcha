@@ -3,19 +3,78 @@
 import Image from "next/image";
 import { Link } from "@/i18n/navigation";
 import { motion } from "framer-motion";
-import { ArrowUpRight, ChevronRight } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { Q2M, Q2M_FONT, Q2M_BRAND_IMAGES } from "@/lib/q2m-tokens";
+import { useEffect, useRef, useState } from "react";
+import {
+  Q2M,
+  Q2M_FONT,
+  Q2M_BRAND_IMAGES,
+  Q2M_BRAND_VIDEOS,
+} from "@/lib/q2m-tokens";
 
 export function Q2MHero() {
   const t = useTranslations("home");
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const inViewRef = useRef(true);
+  const [videoReady, setVideoReady] = useState(false);
+  const [reducedMotion, setReducedMotion] = useState(false);
+
+  // prefers-reduced-motion : on coupe la vidéo, l'image statique reste.
+  useEffect(() => {
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const sync = () => setReducedMotion(mq.matches);
+    sync();
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
+  }, []);
+
+  // Lecture uniquement quand le hero est visible et l'onglet actif.
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    if (reducedMotion) {
+      video.pause();
+      video.currentTime = 0;
+      return;
+    }
+    const tryPlay = () => {
+      if (inViewRef.current && !document.hidden) video.play().catch(() => {});
+    };
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        inViewRef.current = entry.isIntersecting;
+        if (entry.isIntersecting) tryPlay();
+        else video.pause();
+      },
+      { threshold: 0.15 },
+    );
+    io.observe(video);
+    const onVisibility = () => {
+      if (document.hidden) video.pause();
+      else tryPlay();
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+    tryPlay();
+    return () => {
+      io.disconnect();
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
+  }, [reducedMotion]);
+
+  const videoVisible = videoReady && !reducedMotion;
 
   return (
     <section
       className="relative w-full overflow-hidden"
-      style={{ height: 620, background: Q2M.bgDark, fontFamily: Q2M_FONT }}
+      style={{
+        height: "clamp(540px, 82vh, 720px)",
+        minHeight: 540,
+        background: Q2M.bgDark,
+        fontFamily: Q2M_FONT,
+      }}
     >
-      {/* Background artwork — sneakers premium cinématique */}
+      {/* Poster statique — premier paint immédiat + repli si la vidéo échoue */}
       <Image
         src={Q2M_BRAND_IMAGES.heroMain}
         alt="Q2M — hero sneakers premium"
@@ -25,18 +84,36 @@ export function Q2MHero() {
         className="object-cover"
       />
 
-      {/* Left dark veil — Figma exact gradient */}
+      {/* Fond animé — unboxing (fade-in une fois le premier frame décodé) */}
+      <video
+        ref={videoRef}
+        src={Q2M_BRAND_VIDEOS.heroUnboxing}
+        autoPlay
+        muted
+        loop
+        playsInline
+        preload="auto"
+        disablePictureInPicture
+        aria-hidden="true"
+        tabIndex={-1}
+        onCanPlay={() => setVideoReady(true)}
+        className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-700 ${
+          videoVisible ? "opacity-100" : "opacity-0"
+        }`}
+      />
+
+      {/* Voile gauche Figma + scrim bas pour la lisibilité du bloc texte */}
       <div
         className="absolute inset-0"
         style={{
           backgroundImage:
-            "linear-gradient(90deg, rgba(0,0,0,0.91) 0%, rgba(0,0,0,0.27) 65%, rgba(0,0,0,0.07) 100%)",
+            "linear-gradient(90deg, rgba(0,0,0,0.91) 0%, rgba(0,0,0,0.27) 65%, rgba(0,0,0,0.07) 100%), linear-gradient(0deg, rgba(0,0,0,0.62) 0%, rgba(0,0,0,0.18) 38%, rgba(0,0,0,0) 62%)",
         }}
       />
 
       {/* Top-left route index */}
       <div
-        className="absolute left-12 top-9 z-10"
+        className="absolute left-5 top-4 z-10 lg:left-12 lg:top-9"
         style={{ color: Q2M.onDark }}
       >
         <div className="flex flex-col items-end gap-1">
@@ -86,7 +163,7 @@ export function Q2MHero() {
           transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
           className="font-black uppercase"
           style={{
-            fontSize: "clamp(48px, 6.5vw, 82px)",
+            fontSize: "clamp(34px, 8.5vw, 82px)",
             lineHeight: 0.86,
             letterSpacing: "-0.02em",
             color: Q2M.onDark,
@@ -118,18 +195,25 @@ export function Q2MHero() {
             className="group q2m-btn-primary"
           >
             {t("heroPrimary")}
-            <ArrowUpRight size={15} strokeWidth={1.5} />
+            <ArrowUpRight
+              size={15}
+              strokeWidth={1.5}
+              className="transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 rtl:-scale-x-100"
+            />
           </Link>
           <Link
             href="/shop"
             className="group q2m-btn-secondary"
           >
             {t("heroSecondary")}
-            <ArrowUpRight size={15} strokeWidth={1.5} />
+            <ArrowUpRight
+              size={15}
+              strokeWidth={1.5}
+              className="transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 rtl:-scale-x-100"
+            />
           </Link>
         </motion.div>
       </div>
-
     </section>
   );
 }

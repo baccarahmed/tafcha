@@ -4,8 +4,10 @@ import { Link, redirect } from '@/i18n/navigation'
 import { routing, type Locale } from '@/i18n/routing'
 import { hasLocale } from 'next-intl'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
+import { buildMetadata } from '@/lib/seo'
 import { Q2M, Q2M_FONT, Q2M_BRAND_IMAGES } from '@/lib/q2m-tokens'
 import { getSessionUser } from '@/lib/session'
+import { safeReturnPath } from '@/lib/safe-redirect'
 import LoginForm from './login-form'
 
 export const dynamic = 'force-dynamic'
@@ -19,10 +21,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const { locale } = await params
   const t = await getTranslations({ locale, namespace: 'auth' })
 
-  return {
+return buildMetadata({
+    locale,
     title: t('metaTitle'),
     description: t('metaDescription'),
-  }
+    path: '/login',
+    noIndex: true,
+  });
 }
 
 export default async function LoginPage({ params, searchParams }: PageProps) {
@@ -33,8 +38,9 @@ export default async function LoginPage({ params, searchParams }: PageProps) {
   const activeLocale = (hasLocale(routing.locales, locale) ? locale : routing.defaultLocale) as Locale
 
   const t = await getTranslations('auth')
-  // Seule une destination interne est rejouée après connexion.
-  const nextPath = next && next.startsWith('/') && !next.startsWith('//') ? next : null
+  // Seule une destination interne est rejouée après connexion (le même garde
+  // s'applique ensuite côté server action, `next` pouvant être forgé).
+  const nextPath = safeReturnPath(next)
 
   const user = await getSessionUser()
 
@@ -67,7 +73,6 @@ export default async function LoginPage({ params, searchParams }: PageProps) {
             alt={`${Q2M.brand} — ${Q2M.brandFull}`}
             width={220}
             height={220}
-            unoptimized
             priority
             className="q2m-logo h-[220px] w-[220px] rounded-full object-contain"
           />

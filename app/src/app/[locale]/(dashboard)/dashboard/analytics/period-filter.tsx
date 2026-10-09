@@ -4,6 +4,7 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { cn } from '@/lib/utils'
 import type { SalesPeriod } from '@/lib/admin-analytics'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 /**
  * Selecteur de periode de l'analyse.
@@ -38,35 +39,24 @@ export default function PeriodFilter({
   }
 
   return (
-    <div
-      role="tablist"
-      aria-label={t('topProductsPeriod')}
-      className="inline-flex flex-wrap gap-1 rounded-sm border border-[var(--q2m-line-soft)] bg-[var(--q2m-bone)] p-1"
-    >
-      {options.map((option) => {
-        const active = option.period === value
-
-        return (
-          <button
-            key={option.period}
-            type="button"
-            role="tab"
-            aria-selected={active}
-            onClick={() => select(option.period)}
-            className={cn(
-              'rounded-sm px-4 py-2 text-sm font-medium transition-colors',
-              active
-                ? 'bg-[var(--q2m-bg-elevated)] text-[var(--q2m-ink)] shadow-[var(--q2m-shadow-sm)]'
-                : 'text-[var(--q2m-ink-mute)] hover:text-[var(--q2m-ink)]'
-            )}
-          >
+    <Tabs value={value} onValueChange={(period) => select(period as SalesPeriod)}>
+      <TabsList>
+        {options.map((option) => (
+          <TabsTrigger key={option.period} value={option.period}>
             {option.label}
-            <span className="ms-1.5 text-xs tabular-nums text-[var(--q2m-ink-stone)]">
+            <span
+              className={cn(
+                'ms-1.5 text-xs tabular-nums',
+                option.period === value
+                  ? 'text-[var(--q2m-accent-text)]'
+                  : 'text-[var(--q2m-ink-stone)]'
+              )}
+            >
               {counts[option.period]}
             </span>
-          </button>
-        )
-      })}
-    </div>
+          </TabsTrigger>
+        ))}
+      </TabsList>
+    </Tabs>
   )
 }

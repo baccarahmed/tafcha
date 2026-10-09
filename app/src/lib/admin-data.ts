@@ -45,7 +45,23 @@ interface OrderRow {
   subtotal: number | null
   shipping: number | null
   total: number | null
+  shipping_address: unknown
   created_at: string
+}
+
+/**
+ * E-mail d'une commande invitee.
+ *
+ * Sans compte, `user_id` est NULL et il n'y a pas de ligne `profiles` a
+ * joindre : l'e-mail saisi au checkout est le seul contact, conserve dans
+ * `shipping_address`.
+ */
+function guestEmail(address: unknown): string | null {
+  if (address && typeof address === 'object' && 'email' in address) {
+    const email = (address as { email?: unknown }).email
+    if (typeof email === 'string' && email.trim()) return email.trim()
+  }
+  return null
 }
 
 /** Resolution des adresses : profiles.email est le miroir de auth.users. */
@@ -157,7 +173,7 @@ async function toOrderRows(rows: OrderRow[]): Promise<AdminOrderRow[]> {
     id: row.id,
     shortId: row.id.slice(0, 8).toUpperCase(),
     userId: row.user_id,
-    customerEmail: row.user_id ? (emails.get(row.user_id) ?? null) : null,
+    customerEmail: row.user_id ? (emails.get(row.user_id) ?? null) : guestEmail(row.shipping_address),
     status: row.status,
     paymentStatus: row.payment_status,
     paymentMethod: row.payment_method,
@@ -181,7 +197,7 @@ async function readOrderHeaders(limit?: number): Promise<OrderRow[]> {
     .database
     .from('orders')
     .select(
-      'id,user_id,status,payment_status,payment_method,subtotal,shipping,total,created_at',
+      'id,user_id,status,payment_status,payment_method,subtotal,shipping,total,shipping_address,created_at',
     )
     .order('created_at', { ascending: false })
 
@@ -345,12 +361,14 @@ export interface AdminProductRow {
   isActive: boolean
   isNewDrop: boolean
   createdAt: string
+  releaseDate: string | null
+  dropEndsAt: string | null
 }
 
 export async function getAdminProducts(): Promise<AdminProductRow[]> {
   const { data, error } = await insforgeAdmin()
     .database.from('products')
-    .select('id,slug,name,brand,price,stock,active,is_new_drop,created_at')
+    .select('id,slug,name,brand,price,stock,active,is_new_drop,created_at,release_date,drop_ends_at')
     .order('created_at', { ascending: false })
 
   if (error) throw new Error(`products: ${error.message}`)
@@ -365,6 +383,8 @@ export async function getAdminProducts(): Promise<AdminProductRow[]> {
     active: boolean
     is_new_drop: boolean
     created_at: string
+    release_date: string | null
+    drop_ends_at: string | null
   }>).map((row) => ({
     id: row.id,
     slug: row.slug,
@@ -375,6 +395,8 @@ export async function getAdminProducts(): Promise<AdminProductRow[]> {
     isActive: row.active,
     isNewDrop: row.is_new_drop,
     createdAt: row.created_at,
+    releaseDate: row.release_date,
+    dropEndsAt: row.drop_ends_at,
   }))
 }
 
@@ -405,6 +427,8 @@ export interface AdminEditableProduct {
   featured: boolean
   active: boolean
   isNewDrop: boolean
+  releaseDate: string | null
+  dropEndsAt: string | null
 }
 
 const PALETTES: SneakerPalette[] = ['crimson', 'ember', 'void', 'volt', 'onyx']
@@ -420,7 +444,7 @@ export async function getAdminEditableProducts(): Promise<AdminEditableProduct[]
     .database.from('products')
     .select(
       'id,name,slug,sku,brand,description,colorway,images,price,compare_price,' +
-        'category_id,gender,palette,sizes,featured,active,is_new_drop'
+        'category_id,gender,palette,sizes,featured,active,is_new_drop,release_date,drop_ends_at'
     )
     .order('created_at', { ascending: false })
 
@@ -444,6 +468,8 @@ export async function getAdminEditableProducts(): Promise<AdminEditableProduct[]
     featured: boolean
     active: boolean
     is_new_drop: boolean
+    release_date: string | null
+    drop_ends_at: string | null
   }>).map((row) => ({
     id: row.id,
     name: row.name,
@@ -469,6 +495,8 @@ export async function getAdminEditableProducts(): Promise<AdminEditableProduct[]
     featured: row.featured,
     active: row.active,
     isNewDrop: row.is_new_drop,
+    releaseDate: row.release_date,
+    dropEndsAt: row.drop_ends_at,
   }))
 }
 

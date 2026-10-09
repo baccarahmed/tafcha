@@ -24,7 +24,7 @@ export function Q2MCategories({ genders = [] }: { genders?: string[] }) {
   return (
     <section className="w-full" style={{ background: Q2M.bg }}>
       <div
-        className="mx-auto flex max-w-[1440px] flex-col gap-7.5 px-12 pb-16 lg:px-14 lg:pb-20"
+        className="mx-auto flex max-w-[1440px] flex-col gap-7.5 px-5 pb-14 sm:px-10 sm:pb-16 lg:px-14 lg:pb-20"
         style={{ fontFamily: Q2M_FONT }}
       >
         {/* Section header */}
@@ -36,7 +36,7 @@ export function Q2MCategories({ genders = [] }: { genders?: string[] }) {
             {t('categoriesKicker')}
           </span>
           <h2
-            className="text-[42px] font-black leading-[1.21] uppercase"
+            className="text-[clamp(28px,7vw,42px)] font-black leading-[1.21] uppercase"
             style={{ color: Q2M.ink, letterSpacing: "-0.01em" }}
           >
             {t('categoriesTitle')}
@@ -62,7 +62,8 @@ export function Q2MCategories({ genders = [] }: { genders?: string[] }) {
                   src={cat.image}
                   alt={tShop(`gender_${cat.gender}`)}
                   fill
-                  unoptimized
+                  sizes="(max-width: 768px) 100vw, 33vw"
+                  unoptimized={!cat.image.startsWith("/")}
                   className="object-cover transition-transform duration-700 group-hover:scale-105"
                 />
                 <div
@@ -70,20 +71,24 @@ export function Q2MCategories({ genders = [] }: { genders?: string[] }) {
                   style={{ backgroundColor: "rgba(0,0,0,0.18)" }}
                 />
                 <span
-                  className="absolute bottom-7 left-7 text-4xl font-black uppercase tracking-[-0.02em]"
+                  className="absolute bottom-6 left-6 text-3xl font-black uppercase tracking-[-0.02em] sm:bottom-7 sm:left-7 sm:text-4xl"
                   style={{ color: Q2M.onDark }}
                 >
                   {tShop(`gender_${cat.gender}`)}
                 </span>
                 <span
-                  className="absolute right-5 top-5 flex h-11 w-11 items-center justify-center opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+                  className="absolute right-5 top-5 flex h-11 w-11 items-center justify-center opacity-0 transition-all duration-300 group-hover:opacity-100 group-focus-visible:opacity-100"
                   style={{
                     background: Q2M.accent,
                     color: Q2M.onAccent,
                     borderRadius: 4,
                   }}
                 >
-                  <ArrowUpRight size={18} strokeWidth={1.5} />
+                  <ArrowUpRight
+                    size={18}
+                    strokeWidth={1.5}
+                    className="rtl:-scale-x-100"
+                  />
                 </span>
               </Link>
             </motion.div>

@@ -13,6 +13,7 @@ This project uses [InsForge](https://insforge.dev): an all-in-one, open-source P
   - `insforge-integrations`: wiring external auth providers (Clerk, Auth0, WorkOS, Better Auth, etc.) for JWT-based RLS, or the OKX x402 payment facilitator.
   - `find-skills`: discovering additional skills on demand.
 - **Credentials:** app code reads keys from `.env.local`; the CLI reads `.insforge/project.json`. Never hardcode or commit keys.
+- **MCP (opencode):** `opencode.json` (hors git) déclare le serveur MCP `@insforge/mcp@latest` (`API_KEY`, `API_BASE_URL`) pour la gestion backend et la doc SDK.
 
 Key patterns:
 

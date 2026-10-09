@@ -45,7 +45,7 @@ export function Q2MBrandsAndDrop() {
   return (
     <section className="w-full" style={{ background: Q2M.bg }}>
       <div
-        className="mx-auto grid max-w-[1440px] grid-cols-1 gap-6 px-12 pb-16 lg:grid-cols-2 lg:px-14 lg:pb-20"
+        className="mx-auto grid max-w-[1440px] grid-cols-1 gap-6 px-5 pb-14 sm:px-10 sm:pb-16 lg:grid-cols-2 lg:px-14 lg:pb-20"
         style={{ fontFamily: Q2M_FONT }}
       >
         {/* Brands panel */}
@@ -54,7 +54,7 @@ export function Q2MBrandsAndDrop() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-60px" }}
           transition={{ duration: 0.6 }}
-          className="flex flex-col justify-between gap-10 p-10"
+          className="flex flex-col justify-between gap-10 p-7 sm:p-10"
           style={{
             background: Q2M.bgElevated,
             borderRadius: 4,
@@ -68,7 +68,7 @@ export function Q2MBrandsAndDrop() {
               {t('brandsKicker')}
             </span>
             <h2
-              className="text-[42px] font-black leading-[1.21] uppercase"
+              className="text-[clamp(28px,7vw,42px)] font-black leading-[1.21] uppercase"
               style={{ color: Q2M.ink, letterSpacing: "-0.01em" }}
             >
               Nike / Adidas / Crocs
@@ -80,9 +80,13 @@ export function Q2MBrandsAndDrop() {
           >
             {t('brandsBody')}
           </p>
-          <Link href="/shop" className="q2m-btn-ghost w-fit">
+          <Link href="/shop" className="group q2m-btn-ghost w-fit">
             {t('brandsCta')}
-            <ArrowUpRight size={14} strokeWidth={1.5} />
+            <ArrowUpRight
+              size={14}
+              strokeWidth={1.5}
+              className="transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 rtl:-scale-x-100"
+            />
           </Link>
         </motion.div>
 
@@ -92,7 +96,7 @@ export function Q2MBrandsAndDrop() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-60px" }}
           transition={{ duration: 0.6, delay: 0.1 }}
-          className="relative flex flex-col justify-end gap-6 overflow-hidden p-10"
+          className="relative flex flex-col justify-end gap-6 overflow-hidden p-7 sm:p-10"
           style={{
             color: Q2M.onDark,
             borderRadius: 4,
@@ -120,7 +124,7 @@ export function Q2MBrandsAndDrop() {
               {t('dropBadge')}
             </span>
             <h2
-              className="text-5xl font-black uppercase leading-none tracking-[-0.02em]"
+              className="text-4xl font-black uppercase leading-none tracking-[-0.02em] sm:text-5xl"
             >
               Q2M NIGHT RUN
             </h2>
@@ -134,7 +138,7 @@ export function Q2MBrandsAndDrop() {
                     key={label}
                     className="flex items-baseline gap-1.5"
                   >
-                    <span className="text-4xl">
+                    <span className="text-3xl sm:text-4xl">
                       {String(val).padStart(2, "0")}
                     </span>
                     <span
@@ -150,7 +154,7 @@ export function Q2MBrandsAndDrop() {
                 ))
               : (
                 <div className="flex items-baseline gap-1.5">
-                  <span className="text-4xl">00</span>
+                  <span className="text-3xl sm:text-4xl">00</span>
                   <span
                     className="text-xs tracking-[0.16em] uppercase"
                     style={{ color: Q2M.accent }}
@@ -158,7 +162,7 @@ export function Q2MBrandsAndDrop() {
                     {tDrops('days')}
                   </span>
                   <span style={{ color: Q2M.accent }}>:</span>
-                  <span className="text-4xl">00</span>
+                  <span className="text-3xl sm:text-4xl">00</span>
                   <span
                     className="text-xs tracking-[0.16em] uppercase"
                     style={{ color: Q2M.accent }}
@@ -169,9 +173,13 @@ export function Q2MBrandsAndDrop() {
               )}
           </div>
 
-          <Link href="/drops" className="q2m-btn-primary w-fit">
+          <Link href="/drops" className="group q2m-btn-primary w-fit">
             {tDrops('notifyMe')}
-            <ArrowUpRight size={14} strokeWidth={1.5} />
+            <ArrowUpRight
+              size={14}
+              strokeWidth={1.5}
+              className="transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 rtl:-scale-x-100"
+            />
           </Link>
         </motion.div>
       </div>

@@ -20,7 +20,7 @@ export default function ContactPage() {
 
   return (
     <main style={{ background: Q2M.bg, fontFamily: Q2M_FONT }}>
-      <section className="mx-auto max-w-[1440px] px-6 pt-24 pb-16 lg:px-12">
+      <section className="mx-auto max-w-[1440px] px-5 sm:px-10 pt-24 pb-16 lg:px-14">
         <motion.p
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -49,7 +49,7 @@ export default function ContactPage() {
         </motion.p>
       </section>
 
-      <section className="mx-auto grid max-w-[1440px] grid-cols-1 gap-10 px-6 pb-24 lg:grid-cols-[1fr_1.2fr] lg:px-12">
+      <section className="mx-auto grid max-w-[1440px] grid-cols-1 gap-10 px-5 sm:px-10 pb-24 lg:grid-cols-[1fr_1.2fr] lg:px-14">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}

@@ -8,7 +8,9 @@ import {
   BarChart3,
   CalendarDays,
   ChevronLeft,
+  ExternalLink,
   LayoutDashboard,
+  LogOut,
   Menu,
   Package,
   ShoppingCart,
@@ -18,6 +20,17 @@ import {
 } from 'lucide-react'
 import { signOut } from '@/app/actions/auth'
 import { useLocale, useTranslations } from 'next-intl'
+import { Button } from '@/components/ui/button'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Separator } from '@/components/ui/separator'
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from '@/components/ui/sheet'
+import { cn } from '@/lib/utils'
 import type { SessionUser } from '@/lib/session'
 import { Q2M, Q2M_BRAND_IMAGES } from '@/lib/q2m-tokens'
 
@@ -32,6 +45,129 @@ const NAV = [
   { key: 'settings', href: '/dashboard/settings', icon: Settings },
 ] as const
 
+function LogoLink({ collapsed }: { collapsed?: boolean }) {
+  const t = useTranslations('dashboard')
+
+  return (
+    <Link
+      href="/dashboard"
+      aria-label={Q2M.brand}
+      className={cn(
+        'flex items-center gap-2.5',
+        collapsed ? 'mx-auto flex h-9 w-9 items-center justify-center' : ''
+      )}
+    >
+      <Image
+        src={Q2M_BRAND_IMAGES.logo}
+        alt={`${Q2M.brand} ${t('title')}`}
+        width={36}
+        height={36}
+        className="q2m-logo h-9 w-9 shrink-0 rounded-sm object-contain object-[50%_25%]"
+      />
+      {!collapsed && (
+        <span className="text-sm font-semibold tracking-[0.18em] text-[var(--q2m-ink)]">
+          {Q2M.brand}
+        </span>
+      )}
+    </Link>
+  )
+}
+
+function NavItems({
+  pathname,
+  collapsed,
+  onNavigate,
+  locale,
+  user,
+}: {
+  pathname: string
+  collapsed?: boolean
+  onNavigate?: () => void
+  locale: string
+  user: SessionUser
+}) {
+  const t = useTranslations('dashboard')
+  const tNav = useTranslations('nav')
+  const displayName = [user.firstName, user.lastName].filter(Boolean).join(' ') || user.email
+  const initial = (user.firstName ?? user.email ?? 'A').charAt(0).toUpperCase()
+
+  return (
+    <>
+      <nav className="flex-1 overflow-y-auto px-3 py-4">
+        {NAV.map((item) => {
+          const active = pathname === item.href
+          const Icon = item.icon
+
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              onClick={onNavigate}
+              title={t(item.key)}
+              className={cn(
+                'mb-1 flex items-center gap-3 rounded-sm border-s-2 px-3 py-2.5 text-sm font-medium transition-colors',
+                active
+                  ? 'border-[var(--q2m-accent)] bg-[var(--q2m-bone)] text-[var(--q2m-ink)]'
+                  : 'border-transparent text-[var(--q2m-ink-mute)] hover:bg-[var(--q2m-bone)] hover:text-[var(--q2m-ink)]',
+                collapsed && 'justify-center border-s-0 px-0'
+              )}
+            >
+              <Icon
+                className={cn(
+                  'h-5 w-5 shrink-0',
+                  active ? 'text-[var(--q2m-accent-text)]' : ''
+                )}
+              />
+              {!collapsed && <span className="whitespace-nowrap">{t(item.key)}</span>}
+            </Link>
+          )
+        })}
+      </nav>
+
+      <div className="border-t border-[var(--q2m-line-soft)] px-3 py-4">
+        <div
+          className={cn(
+            'mb-2 flex items-center gap-3 rounded-sm bg-[var(--q2m-bone)] px-3 py-3',
+            collapsed && 'justify-center px-0'
+          )}
+        >
+          <Avatar className="h-9 w-9 shrink-0 rounded-full">
+            <AvatarFallback className="bg-[var(--q2m-ink)] text-sm font-semibold text-[var(--q2m-bg-elevated)]">
+              {initial}
+            </AvatarFallback>
+          </Avatar>
+          {!collapsed && (
+            <span className="min-w-0">
+              <span className="block truncate text-sm font-medium text-[var(--q2m-ink)]">
+                {displayName}
+              </span>
+              <span className="block truncate text-xs text-[var(--q2m-ink-stone)]">
+                {user.email}
+              </span>
+            </span>
+          )}
+        </div>
+
+        <form action={signOut}>
+          <input type="hidden" name="locale" value={locale} />
+          <Button
+            type="submit"
+            variant="ghost"
+            size="sm"
+            className={cn(
+              'w-full justify-start gap-2 px-3 text-sm font-medium text-[var(--q2m-ink-mute)] hover:bg-[var(--q2m-alert)]/10 hover:text-[var(--q2m-alert)]',
+              collapsed && 'justify-center px-0'
+            )}
+          >
+            <LogOut className="h-4 w-4" />
+            {!collapsed && tNav('signOut')}
+          </Button>
+        </form>
+      </div>
+    </>
+  )
+}
+
 export function DashboardShell({
   user,
   children,
@@ -42,137 +178,66 @@ export function DashboardShell({
   const pathname = usePathname()
   const locale = useLocale()
   const t = useTranslations('dashboard')
-  const tNav = useTranslations('nav')
-  const logoSrc = Q2M_BRAND_IMAGES.logo
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [mobileOpen, setMobileOpen] = useState(false)
 
-  const displayName = [user.firstName, user.lastName].filter(Boolean).join(' ') || user.email
-  const initial = (user.firstName ?? user.email ?? 'A').charAt(0).toUpperCase()
   const current = NAV.find((item) => pathname === item.href)
 
   return (
     <div className="flex min-h-screen bg-[var(--q2m-bg)]">
-      {mobileOpen && (
-        <div
-          className="fixed inset-0 z-30 bg-black/60 lg:hidden"
-          onClick={() => setMobileOpen(false)}
-        />
-      )}
+      {/* Coque mobile : Sheet shadcn */}
+      <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+        <SheetContent
+          side="left"
+          className="w-[300px] border-e border-[var(--q2m-line-soft)] bg-[var(--q2m-bg-elevated)] p-0 sm:max-w-[300px]"
+        >
+          <SheetHeader className="flex-row items-center justify-start gap-2.5 border-b border-[var(--q2m-line-soft)] px-4 py-5">
+            <LogoLink />
+            <SheetTitle className="sr-only">{t('title')}</SheetTitle>
+            <SheetDescription className="sr-only">{user.email}</SheetDescription>
+          </SheetHeader>
+          <div className="flex min-h-0 flex-1 flex-col">
+            <NavItems
+              pathname={pathname}
+              locale={locale}
+              user={user}
+              onNavigate={() => setMobileOpen(false)}
+            />
+          </div>
+        </SheetContent>
+      </Sheet>
 
+      {/* Sidebar desktop repliable */}
       <motion.aside
         initial={false}
         animate={{ width: sidebarOpen ? '16rem' : '4.5rem' }}
         transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-        className={`fixed inset-y-0 start-0 z-40 flex flex-col border-e border-[var(--q2m-line-soft)] bg-[var(--q2m-bg-elevated)] lg:static ${
-          mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
-        }`}
+        className="hidden border-e border-[var(--q2m-line-soft)] bg-[var(--q2m-bg-elevated)] lg:flex lg:flex-col"
       >
         <div className="flex items-center justify-between border-b border-[var(--q2m-line-soft)] px-4 py-5">
-          {sidebarOpen ? (
-            <Link href="/dashboard" className="flex items-center gap-2.5" aria-label={Q2M.brand}>
-              <Image
-                src={logoSrc}
-                alt={`${Q2M.brand} dashboard`}
-                width={36}
-                height={36}
-                unoptimized
-                className="q2m-logo h-9 w-9 shrink-0 rounded-sm object-contain object-[50%_25%]"
-              />
-              <span className="text-sm font-semibold tracking-[0.18em] text-[var(--q2m-ink)]">
-                Q2M
-              </span>
-            </Link>
-          ) : (
-            <Link
-              href="/dashboard"
-              aria-label={Q2M.brand}
-              className="mx-auto flex h-9 w-9 items-center justify-center"
-            >
-              <Image
-                src={logoSrc}
-                alt={`${Q2M.brand} dashboard`}
-                width={36}
-                height={36}
-                unoptimized
-                className="q2m-logo h-9 w-9 object-contain object-[50%_25%]"
-              />
-            </Link>
-          )}
-          <button
+          <LogoLink collapsed={!sidebarOpen} />
+          <Button
             onClick={() => setSidebarOpen(!sidebarOpen)}
             aria-label={sidebarOpen ? t('collapseSidebar') : t('expandSidebar')}
-            className="hidden p-1.5 text-[var(--q2m-ink-stone)] transition-colors hover:text-[var(--q2m-ink)] lg:block"
+            variant="ghost"
+            size="icon"
+            className="hidden h-8 w-8 text-[var(--q2m-ink-stone)] hover:text-[var(--q2m-ink)] lg:inline-flex"
           >
             <ChevronLeft
-              className={`h-4 w-4 transition-transform duration-300 ${sidebarOpen ? '' : 'rotate-180'}`}
+              className={cn(
+                'h-4 w-4 transition-transform duration-300',
+                !sidebarOpen && 'rotate-180'
+              )}
             />
-          </button>
+          </Button>
         </div>
 
-        <nav className="flex-1 overflow-y-auto px-3 py-4">
-          {NAV.map((item) => {
-            const active = pathname === item.href
-            const Icon = item.icon
-
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={() => setMobileOpen(false)}
-                title={t(item.key)}
-                className={`mb-1 flex items-center gap-3 rounded-sm border-s-2 px-3 py-2.5 text-sm font-medium transition-colors ${
-                  active
-                    ? 'border-[var(--q2m-accent)] bg-[var(--q2m-bone)] text-[var(--q2m-ink)]'
-                    : 'border-transparent text-[var(--q2m-ink-mute)] hover:bg-[var(--q2m-bone)] hover:text-[var(--q2m-ink)]'
-                }`}
-              >
-                <Icon
-                  className={`h-5 w-5 shrink-0 ${
-                    active ? 'text-[var(--q2m-accent-text)]' : ''
-                  }`}
-                />
-                {sidebarOpen && <span className="whitespace-nowrap">{t(item.key)}</span>}
-              </Link>
-            )
-          })}
-        </nav>
-
-        <div className="border-t border-[var(--q2m-line-soft)] px-3 py-4">
-          <div
-            className={`mb-2 flex items-center gap-3 rounded-sm bg-[var(--q2m-bone)] px-3 py-3 ${
-              sidebarOpen ? '' : 'justify-center px-0'
-            }`}
-          >
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[var(--q2m-ink)]">
-              <span className="text-sm font-semibold text-[var(--q2m-bg-elevated)]">
-                {initial}
-              </span>
-            </span>
-            {sidebarOpen && (
-              <span className="min-w-0">
-                <span className="block truncate text-sm font-medium text-[var(--q2m-ink)]">
-                  {displayName}
-                </span>
-                <span className="block truncate text-xs text-[var(--q2m-ink-stone)]">
-                  {user.email}
-                </span>
-              </span>
-            )}
-          </div>
-
-          <form action={signOut}>
-            <input type="hidden" name="locale" value={locale} />
-            <button
-              type="submit"
-              className={`w-full px-3 py-2.5 text-start text-sm font-medium text-[var(--q2m-ink-mute)] transition-colors hover:bg-[var(--q2m-alert)]/10 hover:text-[var(--q2m-alert)] ${
-                sidebarOpen ? '' : 'text-center'
-              }`}
-            >
-              {sidebarOpen ? tNav('signOut') : '↩'}
-            </button>
-          </form>
-        </div>
+        <NavItems
+          pathname={pathname}
+          collapsed={!sidebarOpen}
+          locale={locale}
+          user={user}
+        />
       </motion.aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
@@ -180,13 +245,15 @@ export function DashboardShell({
         <header className="sticky top-0 z-20 border-b border-white/10 bg-black px-4 py-4 md:px-8">
           <div className="flex items-center justify-between gap-4">
             <div className="flex min-w-0 items-center gap-4">
-              <button
+              <Button
                 onClick={() => setMobileOpen(!mobileOpen)}
                 aria-label={t('openNavigationMenu')}
-                className="p-2 text-[var(--q2m-on-dark-soft)] transition-colors hover:text-[var(--q2m-accent)] lg:hidden"
+                variant="ghost"
+                size="icon"
+                className="p-2 text-[var(--q2m-on-dark-soft)] hover:text-[var(--q2m-accent)] lg:hidden"
               >
                 <Menu className="h-5 w-5" />
-              </button>
+              </Button>
               <motion.div
                 key={pathname}
                 initial={{ opacity: 0, y: -8 }}
@@ -203,12 +270,12 @@ export function DashboardShell({
               </motion.div>
             </div>
 
-            <Link
-              href="/"
-              className="shrink-0 rounded-sm border border-white/20 px-3 py-2 text-xs font-medium text-[var(--q2m-on-dark-soft)] transition-colors hover:border-[var(--q2m-accent)] hover:text-[var(--q2m-accent)]"
-            >
-              {t('backToStore')}
-            </Link>
+            <Button asChild variant="ghost" size="sm" className="text-[var(--q2m-on-dark-soft)] hover:text-[var(--q2m-accent)]">
+              <Link href="/">
+                {t('backToStore')}
+                <ExternalLink className="ms-2 h-3.5 w-3.5" />
+              </Link>
+            </Button>
           </div>
         </header>
 

@@ -1,9 +1,11 @@
 'use server'
 
-import { cookies } from 'next/headers'
+import { cookies, headers } from 'next/headers'
 import { redirect } from '@/i18n/navigation'
 import { createAuthActions } from '@insforge/sdk/ssr'
+import { rateLimit } from '@/lib/rate-limit'
 import { routing, type Locale } from '@/i18n/routing'
+import { safeReturnPath } from '@/lib/safe-redirect'
 
 /**
  * Machine-readable failure reasons. The action stays locale-agnostic and the
@@ -14,6 +16,25 @@ export type AuthErrorCode = 'missing' | 'invalid'
 
 export interface AuthActionState {
   error: AuthErrorCode | null
+}
+
+/**
+ * Cliente IP « fiable » pour le throttle : x-real-ip quand le frontal le
+ * renseigne, sinon le dernier segment de x-forwarded-for (ajoute par le proxy
+ * de confiance) ; a defaut une cle commune 'unknown' qui limite collectivement.
+ */
+async function requestIp(): Promise<string> {
+  const h = await headers()
+  const real = h.get('x-real-ip')?.trim()
+  if (real) return real
+
+  const forwarded = h.get('x-forwarded-for')
+  const segments = forwarded
+    ?.split(',')
+    .map((segment) => segment.trim())
+    .filter(Boolean)
+  const last = segments?.[segments.length - 1]
+  return last ?? 'unknown'
 }
 
 /**
@@ -42,6 +63,17 @@ export async function signIn(
     return { error: 'missing' }
   }
 
+  // Throttle anti brute-force (pentest F-SIGNUP-1) : 5 essais/min/email et
+  // 20 essais/min/IP. La reponse reste generique ('invalid') pour ne pas
+  // reveler ni la politique de debit ni la validite d'un email.
+  const ip = await requestIp()
+  const emailKeyLimit = rateLimit(`signin:${email.toLowerCase().trim()}`, 5, 60_000)
+  const ipKeyLimit = rateLimit(`signin:ip:${ip}`, 20, 60_000)
+
+  if (!emailKeyLimit.ok || !ipKeyLimit.ok) {
+    return { error: 'invalid' }
+  }
+
   const auth = createAuthActions({ cookies: await cookies() })
   const { error } = await auth.signInWithPassword({ email, password })
 
@@ -49,10 +81,10 @@ export async function signIn(
     return { error: 'invalid' }
   }
 
-  // Destination demandée avant la connexion (ex. /checkout) : seule une route
-  // interne est rejouée, une URL absolue ou protocole-externe est ignorée.
-  const rawNext = String(formData.get('next') ?? '')
-  const next = rawNext.startsWith('/') && !rawNext.startsWith('//') ? rawNext : null
+  // Destination demandee avant la connexion (ex. /checkout) : seule une route
+  // interne est rejouee, une URL absolue ou une destination reinterpretee
+  // comme externe (/evil.com, //evil.com, /\evil.com) est ignoree.
+  const next = safeReturnPath(String(formData.get('next') ?? ''))
 
   redirect({ href: next ?? '/dashboard', locale: readLocale(formData) })
 }

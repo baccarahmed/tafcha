@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
+import { buildMetadata } from '@/lib/seo'
 import FavoritesView from './favorites-view'
 
 interface PageProps {
@@ -10,10 +11,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const { locale } = await params
   const t = await getTranslations({ locale, namespace: 'favorites' })
 
-  return {
+  return buildMetadata({
+    locale,
     title: t('metaTitle'),
     description: t('metaDescription'),
-  }
+    path: '/favorites',
+    noIndex: true,
+  })
 }
 
 export default async function FavoritesPage({ params }: PageProps) {

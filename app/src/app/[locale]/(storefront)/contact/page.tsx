@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
+import { buildMetadata } from '@/lib/seo';
 import ContactView from './contact-view';
 
 interface PageProps {
@@ -10,10 +11,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: 'contact' });
 
-  return {
+  return buildMetadata({
+    locale,
     title: t('metaTitle'),
     description: t('metaDescription'),
-  };
+    path: '/contact',
+  });
 }
 
 export default async function ContactPage({ params }: PageProps) {
