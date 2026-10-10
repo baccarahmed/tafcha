@@ -78,6 +78,18 @@ export const MANIFESTO_KEYS = ['curated', 'limited', 'independent', 'shipping'] 
 export const BENEFIT_KEYS = ['authenticity', 'shipping', 'returns', 'studio'] as const;
 
 /**
+ * Visuels du bandeau USP (`public/images/q2m/usp/`), dans le meme ordre que
+ * `BENEFIT_KEYS`. Placeholders tant que les photos client ne sont pas
+ * fournies : remplacer le fichier suffit, aucun changement de composant.
+ */
+export const Q2M_USP_IMAGES: Record<(typeof BENEFIT_KEYS)[number], string> = {
+  authenticity: '/images/q2m/usp/authenticity.svg',
+  shipping: '/images/q2m/usp/shipping.svg',
+  returns: '/images/q2m/usp/returns.svg',
+  studio: '/images/q2m/usp/studio.svg',
+};
+
+/**
  * Assets visuels premium du brand Q2M — couronne or + argent + drapeau FR.
  * Logo réel fourni par le client : `/images/q2m/logo q2m.png`
  * (460×471, fond transparent, traits sombres + or).
