@@ -4,7 +4,6 @@ import { Q2MProductGrid } from "@/components/storefront/Q2MProductCard";
 import { Q2MCategories } from "@/components/storefront/Q2MCategories";
 import { Q2MBrandsAndDrop } from "@/components/storefront/Q2MBrandsAndDrop";
 import { Q2MBenefits } from "@/components/storefront/Q2MBenefits";
-import { Q2MUspShutter } from "@/components/storefront/Q2MUspShutter";
 import { Q2MNewsletter } from "@/components/storefront/Q2MNewsletter";
 import { getTranslations } from "next-intl/server";
 import { getProducts } from "@/lib/catalog";
@@ -47,7 +46,6 @@ export default async function HomePage() {
         />
       )}
       <Q2MBenefits />
-      <Q2MUspShutter />
       <Q2MNewsletter />
     </main>
   );
