@@ -74,7 +74,7 @@ function toProduct(row: ProductRow): SneakerProduct {
 
 const asRows = (data: unknown): ProductRow[] => (data ?? []) as ProductRow[]
 
-const toVariant = (product: SneakerProduct): ProductVariant => ({
+export const toVariant = (product: SneakerProduct): ProductVariant => ({
   id: product.id,
   slug: product.slug,
   colorway: product.colorway,
@@ -91,7 +91,7 @@ const toVariant = (product: SneakerProduct): ProductVariant => ({
  * qu'une carte ne retombe pas sur le visuel procedural alors qu'un coloris est
  * photographie.
  */
-function groupByModel(products: SneakerProduct[]): SneakerProduct[] {
+export function groupByModel(products: SneakerProduct[]): SneakerProduct[] {
   const groups = new Map<string, SneakerProduct[]>()
 
   for (const product of products) {

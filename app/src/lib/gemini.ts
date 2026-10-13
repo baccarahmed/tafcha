@@ -95,7 +95,7 @@ interface GeminiResponse {
  * L'IA peut renvoyer une reference avec des espaces ou des accents. On la
  * normalise en majuscules compactes : c'est un code, pas un libelle.
  */
-function normalizeSku(value: unknown, brand: string): string {
+export function normalizeSku(value: unknown, brand: string): string {
   const raw = typeof value === 'string' ? value : ''
 
   const cleaned = raw
@@ -118,7 +118,7 @@ function normalizeSku(value: unknown, brand: string): string {
  * L'API Gemini rend un schema JSON quand on fixe `responseSchema` : on
  * n'obtient donc pas de JSON libre a parser, mais un objet deja type.
  */
-function toDraft(raw: unknown): ProductDraft | null {
+export function toDraft(raw: unknown): ProductDraft | null {
   if (typeof raw !== 'object' || raw === null) return null
 
   const value = raw as Record<string, unknown>
