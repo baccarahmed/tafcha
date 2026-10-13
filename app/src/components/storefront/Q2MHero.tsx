@@ -97,7 +97,7 @@ export function Q2MHero() {
         aria-hidden="true"
         tabIndex={-1}
         onCanPlay={() => setVideoReady(true)}
-        className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-700 ${
+        className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-500 ease-q2m ${
           videoVisible ? "opacity-100" : "opacity-0"
         }`}
       />
@@ -198,7 +198,7 @@ export function Q2MHero() {
             <ArrowUpRight
               size={15}
               strokeWidth={1.5}
-              className="transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 rtl:-scale-x-100"
+              className="transition-transform duration-140 ease-q2m group-hover:-translate-y-0.5 group-hover:translate-x-0.5 rtl:-scale-x-100"
             />
           </Link>
           <Link
@@ -209,7 +209,7 @@ export function Q2MHero() {
             <ArrowUpRight
               size={15}
               strokeWidth={1.5}
-              className="transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 rtl:-scale-x-100"
+              className="transition-transform duration-140 ease-q2m group-hover:-translate-y-0.5 group-hover:translate-x-0.5 rtl:-scale-x-100"
             />
           </Link>
         </motion.div>

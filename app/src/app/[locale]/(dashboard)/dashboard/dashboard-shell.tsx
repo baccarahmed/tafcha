@@ -9,6 +9,7 @@ import {
   CalendarDays,
   ChevronLeft,
   ExternalLink,
+  Images,
   LayoutDashboard,
   LogOut,
   Menu,
@@ -31,6 +32,8 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet'
 import { cn } from '@/lib/utils'
+import { ThemeToggle } from '@/components/storefront/ThemeToggle'
+import { LanguageSwitcher } from '@/components/storefront/LanguageSwitcher'
 import type { SessionUser } from '@/lib/session'
 import { Q2M, Q2M_BRAND_IMAGES } from '@/lib/q2m-tokens'
 
@@ -41,6 +44,7 @@ const NAV = [
   { key: 'users', href: '/dashboard/users', icon: Users },
   { key: 'promotions', href: '/dashboard/promotions', icon: Tag },
   { key: 'drops', href: '/dashboard/drops', icon: CalendarDays },
+  { key: 'photoGallery', href: '/dashboard/gallery', icon: Images },
   { key: 'analytics', href: '/dashboard/analytics', icon: BarChart3 },
   { key: 'settings', href: '/dashboard/settings', icon: Settings },
 ] as const
@@ -104,6 +108,7 @@ function NavItems({
               href={item.href}
               onClick={onNavigate}
               title={t(item.key)}
+              aria-current={active ? 'page' : undefined}
               className={cn(
                 'mb-1 flex items-center gap-3 rounded-sm border-s-2 px-3 py-2.5 text-sm font-medium transition-colors',
                 active
@@ -207,12 +212,14 @@ export function DashboardShell({
         </SheetContent>
       </Sheet>
 
-      {/* Sidebar desktop repliable */}
-      <motion.aside
-        initial={false}
-        animate={{ width: sidebarOpen ? '16rem' : '4.5rem' }}
-        transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-        className="hidden border-e border-[var(--q2m-line-soft)] bg-[var(--q2m-bg-elevated)] lg:flex lg:flex-col"
+      {/* Sidebar desktop repliable — animation CSS (width) plutôt que Framer :
+         évite de piloter la mise en page depuis le thread JS et honore
+         `prefers-reduced-motion` via la règle globale. */}
+      <aside
+        className={cn(
+          'hidden border-e border-[var(--q2m-line-soft)] bg-[var(--q2m-bg-elevated)] transition-[width] duration-240 ease-q2m lg:flex lg:flex-col',
+          sidebarOpen ? 'w-64' : 'w-[4.5rem]'
+        )}
       >
         <div className="flex items-center justify-between border-b border-[var(--q2m-line-soft)] px-4 py-5">
           <LogoLink collapsed={!sidebarOpen} />
@@ -225,7 +232,7 @@ export function DashboardShell({
           >
             <ChevronLeft
               className={cn(
-                'h-4 w-4 transition-transform duration-300',
+                'h-4 w-4 transition-transform duration-240 ease-q2m',
                 !sidebarOpen && 'rotate-180'
               )}
             />
@@ -238,7 +245,7 @@ export function DashboardShell({
           locale={locale}
           user={user}
         />
-      </motion.aside>
+      </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
         {/* Topbar noir #000000 dans les deux modes — même chrome que la vitrine */}
@@ -270,12 +277,16 @@ export function DashboardShell({
               </motion.div>
             </div>
 
-            <Button asChild variant="ghost" size="sm" className="text-[var(--q2m-on-dark-soft)] hover:text-[var(--q2m-accent)]">
-              <Link href="/">
-                {t('backToStore')}
-                <ExternalLink className="ms-2 h-3.5 w-3.5" />
-              </Link>
-            </Button>
+            <div className="flex items-center gap-2 sm:gap-3">
+              <LanguageSwitcher />
+              <ThemeToggle />
+              <Button asChild variant="ghost" size="sm" className="text-[var(--q2m-on-dark-soft)] hover:text-[var(--q2m-accent)]">
+                <Link href="/">
+                  <span className="hidden sm:inline">{t('backToStore')}</span>
+                  <ExternalLink className="h-3.5 w-3.5 sm:ms-2" />
+                </Link>
+              </Button>
+            </div>
           </div>
         </header>
 

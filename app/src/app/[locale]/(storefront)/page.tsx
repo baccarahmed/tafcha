@@ -4,13 +4,18 @@ import { Q2MProductGrid } from "@/components/storefront/Q2MProductCard";
 import { Q2MCategories } from "@/components/storefront/Q2MCategories";
 import { Q2MBrandsAndDrop } from "@/components/storefront/Q2MBrandsAndDrop";
 import { Q2MBenefits } from "@/components/storefront/Q2MBenefits";
+import { Q2MOrbitGallery } from "@/components/storefront/Q2MOrbitGallery";
 import { Q2MNewsletter } from "@/components/storefront/Q2MNewsletter";
 import { getTranslations } from "next-intl/server";
 import { getProducts } from "@/lib/catalog";
+import { getSiteSettings } from "@/lib/admin-settings";
 
 export default async function HomePage() {
   const t = await getTranslations("home");
   const products = await getProducts().catch(() => []);
+  const galleryImages = await getSiteSettings()
+    .then((settings) => settings.galleryImages)
+    .catch(() => []);
   const newDrops = products.filter((p) => p.isNewDrop).slice(0, 4);
   const bestSellers = products.filter((p) => p.featured).slice(0, 4);
 
@@ -46,6 +51,7 @@ export default async function HomePage() {
         />
       )}
       <Q2MBenefits />
+      <Q2MOrbitGallery images={galleryImages} />
       <Q2MNewsletter />
     </main>
   );

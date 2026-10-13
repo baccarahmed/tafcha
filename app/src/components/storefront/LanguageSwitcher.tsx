@@ -50,14 +50,14 @@ export function LanguageSwitcher() {
         aria-label={t('label')}
         aria-expanded={open}
         aria-haspopup="listbox"
-        className="flex h-10 items-center gap-1.5 rounded-sm border border-white/15 px-3 text-[var(--q2m-on-dark-soft)] transition-colors hover:border-[var(--q2m-accent)] hover:text-[var(--q2m-accent)] focus-visible:border-[var(--q2m-accent)]"
+        className="flex h-10 items-center gap-1.5 rounded-sm border border-white/15 px-3 text-[var(--q2m-on-dark-soft)] transition-[color,border-color,transform] duration-180 ease-q2m hover:border-[var(--q2m-accent)] hover:text-[var(--q2m-accent)] focus-visible:border-[var(--q2m-accent)] active:scale-[0.98]"
       >
         <Languages size={16} strokeWidth={1.75} />
         <span className="text-[11px] font-extrabold tracking-[0.08em]">{current.native}</span>
         <ChevronDown
           size={13}
           strokeWidth={2}
-          className={`transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+          className={`transition-transform duration-140 ease-q2m ${open ? 'rotate-180' : ''}`}
         />
       </button>
 
@@ -65,7 +65,7 @@ export function LanguageSwitcher() {
         <ul
           role="listbox"
           aria-label={t('label')}
-          className="absolute end-0 top-[calc(100%+0.5rem)] z-50 min-w-[10rem] overflow-hidden rounded-sm border border-white/10 bg-black py-1 shadow-2xl"
+          className="absolute end-0 top-[calc(100%+0.5rem)] z-50 min-w-[10rem] origin-top-right overflow-hidden rounded-sm border border-white/10 bg-black py-1 shadow-2xl transition-[opacity,transform] duration-140 ease-q2m starting:-translate-y-1 starting:opacity-0 rtl:origin-top-left"
         >
           {routing.locales.map((code) => {
             const item = LOCALE_LABELS[code]
@@ -78,7 +78,7 @@ export function LanguageSwitcher() {
                   disabled={pending}
                   onClick={() => select(code)}
                   lang={code}
-                  className={`flex w-full items-center gap-2.5 px-3.5 py-2.5 text-start text-sm transition-colors ${
+                  className={`flex w-full items-center gap-2.5 px-3.5 py-2.5 text-start text-sm transition-colors duration-140 ease-q2m ${
                     active
                       ? 'bg-white/5 text-[var(--q2m-accent)]'
                       : 'text-[var(--q2m-on-dark-soft)] hover:bg-white/5 hover:text-[var(--q2m-on-dark)]'

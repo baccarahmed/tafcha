@@ -8,6 +8,16 @@ type BaseProps = {
   children: React.ReactNode
 } & Record<string, unknown>
 
+/**
+ * R3F augmente `JSX.IntrinsicElements` avec les balises three.js : un
+ * `ElementType` brut devient une union dont `children` s'effondre en `never`.
+ * On fige donc le composant polymorphe sur une forme unique.
+ */
+type PolymorphicProps = {
+  className?: string
+  children?: React.ReactNode
+} & Record<string, unknown>
+
 export function HoverBorderGradient({
   as,
   containerClassName,
@@ -15,7 +25,7 @@ export function HoverBorderGradient({
   children,
   ...rest
 }: BaseProps) {
-  const Comp = (as || "button") as ElementType
+  const Comp = (as || "button") as React.ComponentType<PolymorphicProps>
   return (
     <div
       className={cn(

@@ -23,3 +23,5 @@ opencode.json
 # Runtime uploads (served from the server, never committed)
 public/uploads/*
 !public/uploads/.gitkeep
+
+.vercel

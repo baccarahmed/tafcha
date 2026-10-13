@@ -25,7 +25,7 @@ import { LanguageSwitcher } from "@/components/storefront/LanguageSwitcher";
  */
 const CHROME_TEXT = "text-[var(--q2m-on-dark-soft)]";
 const CHROME_HOVER =
-  "transition-colors hover:text-[var(--q2m-accent)] focus-visible:text-[var(--q2m-accent)]";
+  "transition-colors duration-180 ease-q2m hover:text-[var(--q2m-accent)] focus-visible:text-[var(--q2m-accent)]";
 
 export function StorefrontNavbar({ genders = [] }: { genders?: string[] }) {
   const [open, setOpen] = useState(false);
@@ -126,7 +126,7 @@ export function StorefrontNavbar({ genders = [] }: { genders?: string[] }) {
               <Link
                 key={l.href}
                 href={l.href}
-                className={`group relative text-[10px] font-bold tracking-[0.16em] uppercase ${CHROME_TEXT} ${CHROME_HOVER} after:absolute after:-bottom-2 after:left-0 after:h-px after:w-0 after:bg-[var(--q2m-accent)] after:transition-all after:duration-300 hover:after:w-full`}
+                className={`group relative text-[10px] font-bold tracking-[0.16em] uppercase ${CHROME_TEXT} ${CHROME_HOVER} after:absolute after:-bottom-2 after:left-0 after:h-px after:w-0 after:bg-[var(--q2m-accent)] after:transition-[width] after:duration-200 after:ease-q2m hover:after:w-full`}
               >
                 {l.label}
               </Link>
@@ -143,7 +143,7 @@ export function StorefrontNavbar({ genders = [] }: { genders?: string[] }) {
                 key={label}
                 href={href}
                 aria-label={label}
-                className={`relative hidden h-10 w-10 items-center justify-center rounded-full transition-transform duration-150 hover:scale-105 active:scale-95 sm:flex hover:bg-white/5 ${CHROME_TEXT} ${CHROME_HOVER}`}
+                className={`relative hidden h-10 w-10 items-center justify-center rounded-full transition-transform duration-140 ease-q2m hover:scale-105 active:scale-95 sm:flex hover:bg-white/5 ${CHROME_TEXT} ${CHROME_HOVER}`}
               >
                 <Icon size={18} strokeWidth={1.5} />
                 {count > 0 && (
@@ -165,7 +165,7 @@ export function StorefrontNavbar({ genders = [] }: { genders?: string[] }) {
               type="button"
               aria-label={t("cart")}
               onClick={openCart}
-              className={`relative flex h-10 w-10 items-center justify-center rounded-full transition-transform duration-150 hover:scale-105 active:scale-95 hover:bg-white/5 ${CHROME_TEXT} ${CHROME_HOVER}`}
+              className={`relative flex h-10 w-10 items-center justify-center rounded-full transition-transform duration-140 ease-q2m hover:scale-105 active:scale-95 hover:bg-white/5 ${CHROME_TEXT} ${CHROME_HOVER}`}
             >
               <ShoppingBag size={18} strokeWidth={1.5} />
               {totalItems > 0 && (
@@ -185,8 +185,10 @@ export function StorefrontNavbar({ genders = [] }: { genders?: string[] }) {
             <button
               type="button"
               aria-label={open ? t("closeMenu") : t("openMenu")}
+              aria-expanded={open}
+              aria-controls="storefront-mobile-menu"
               onClick={() => setOpen(!open)}
-              className={`flex h-10 w-10 items-center justify-center rounded-full transition-transform duration-150 hover:scale-105 active:scale-95 hover:bg-white/5 lg:hidden ${CHROME_TEXT} ${CHROME_HOVER}`}
+              className={`flex h-10 w-10 items-center justify-center rounded-full transition-transform duration-140 ease-q2m hover:scale-105 active:scale-95 hover:bg-white/5 lg:hidden ${CHROME_TEXT} ${CHROME_HOVER}`}
             >
               {open ? <X size={20} /> : <Menu size={20} />}
             </button>
@@ -197,6 +199,7 @@ export function StorefrontNavbar({ genders = [] }: { genders?: string[] }) {
       {/* Mobile menu — même noir que la barre */}
       {open && (
         <div
+          id="storefront-mobile-menu"
           className="fixed inset-x-0 top-[113px] bottom-0 z-40 overflow-y-auto lg:hidden"
           style={{ background: "#000000" }}
         >

@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { Link } from '@/i18n/navigation';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -75,7 +75,7 @@ export function CartDrawer({
               transition={springTransition}
               className="flex h-full flex-col"
             >
-              {/* Header du drawer : mÃªme chrome noir que la navbar */}
+              {/* Header du drawer : même chrome noir que la navbar */}
               <div className="flex items-center justify-between border-b border-white/10 bg-black px-6 py-5">
                 <div className="flex items-center gap-3">
                   <Drawer.Title className="text-xl font-extrabold tracking-tight text-[#f6f4ef]">

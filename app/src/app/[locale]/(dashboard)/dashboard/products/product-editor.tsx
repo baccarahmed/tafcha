@@ -1,11 +1,16 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useRef, useState, useTransition } from 'react'
 import { useRouter } from '@/i18n/navigation'
 import { useTranslations } from 'next-intl'
-import { AlertCircle, Pencil, Plus, Save, Trash2, X } from 'lucide-react'
+import { AlertCircle, ImagePlus, Loader2, Pencil, Plus, Save, Trash2, X } from 'lucide-react'
 import { updateProductAction } from '@/app/actions/admin'
+import {
+  deleteProductImageAction,
+  uploadProductImageAction,
+} from '@/app/actions/products'
 import { MAX_PRODUCT_IMAGES, cn } from '@/lib/utils'
+import { ACCEPTED_IMAGE_TYPES, toCompressedBase64 } from '@/lib/image-compress'
 import type { ProductGender, SneakerPalette } from '@/types/product'
 import { Button } from '@/components/ui/button'
 import {
@@ -53,6 +58,7 @@ export interface EditableProduct {
   isNewDrop: boolean
   releaseDate: string | null
   dropEndsAt: string | null
+  parentId: string | null
 }
 
 /**
@@ -66,9 +72,11 @@ export interface EditableProduct {
 export default function ProductEditor({
   product,
   categories,
+  models,
 }: {
   product: EditableProduct
   categories: { id: string; name: string }[]
+  models: { id: string; name: string; colorway: string | null }[]
 }) {
   const t = useTranslations('dashboard')
   const router = useRouter()
@@ -88,12 +96,24 @@ export default function ProductEditor({
     product.comparePrice === null ? '' : String(product.comparePrice)
   )
   const [categoryId, setCategoryId] = useState(product.categoryId ?? '')
+  const [parentId, setParentId] = useState(product.parentId ?? '')
   const [gender, setGender] = useState<ProductGender>(product.gender)
   const [palette, setPalette] = useState<SneakerPalette>(product.palette)
   const [images, setImages] = useState(product.images)
   const [sizes, setSizes] = useState(product.sizes)
   const [releaseDate, setReleaseDate] = useState(product.releaseDate ?? '')
   const [dropEndsAt, setDropEndsAt] = useState(product.dropEndsAt ?? '')
+
+  const [uploading, setUploading] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  /**
+   * URL des visuels televerses pendant cette session d'edition, pas encore
+   * rattaches a la fiche. Fermer sans enregistrer les rendrait orphelins : on
+   * les retire alors du bucket. Les visuels deja en base, eux, sont purges par
+   * `updateProduct` une fois l'ecriture confirmee.
+   */
+  const sessionUploads = useRef<Set<string>>(new Set())
 
   function reload(source: EditableProduct) {
     setName(source.name)
@@ -105,6 +125,7 @@ export default function ProductEditor({
     setPrice(String(source.price))
     setComparePrice(source.comparePrice === null ? '' : String(source.comparePrice))
     setCategoryId(source.categoryId ?? '')
+    setParentId(source.parentId ?? '')
     setGender(source.gender)
     setPalette(source.palette)
     setImages(source.images)
@@ -117,6 +138,73 @@ export default function ProductEditor({
     setSizes((rows) =>
       rows.map((row, i) => (i === index ? { ...row, ...patch } : row))
     )
+  }
+
+  function handleOpenChange(next: boolean) {
+    // Fermeture sans enregistrer : les uploads de la session n'existent que
+    // dans le bucket, on les supprime pour ne pas laisser d'orphelins.
+    if (!next && sessionUploads.current.size > 0) {
+      const orphans = [...sessionUploads.current]
+      sessionUploads.current.clear()
+
+      void Promise.all(orphans.map((url) => deleteProductImageAction(url)))
+    }
+
+    setOpen(next)
+  }
+
+  async function handleFiles(fileList: FileList | null) {
+    if (!fileList || fileList.length === 0) return
+
+    const room = MAX_PRODUCT_IMAGES - images.length
+    if (room <= 0) {
+      setError('images')
+      return
+    }
+
+    setUploading(true)
+    setError(null)
+
+    const next = [...images]
+
+    for (const file of Array.from(fileList).slice(0, room)) {
+      if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
+        setError('unsupported')
+        continue
+      }
+
+      try {
+        const compressed = await toCompressedBase64(file)
+        const result = await uploadProductImageAction(product.id, compressed)
+
+        if (result.ok) {
+          next.push(result.url)
+          sessionUploads.current.add(result.url)
+        } else {
+          setError(result.reason)
+        }
+      } catch {
+        setError('uploadFailed')
+      }
+    }
+
+    if (fileInputRef.current) fileInputRef.current.value = ''
+    setImages(next)
+    setUploading(false)
+  }
+
+  function handleRemoveImage(index: number) {
+    const url = images[index]
+    if (!url) return
+
+    setImages((rows) => rows.filter((_, i) => i !== index))
+
+    // Un visuel deja en base reste dans le bucket jusqu'a l'enregistrement (le
+    // serveur purge alors le diff). Un visuel de la session n'existe que dans
+    // le bucket : on le supprime tout de suite.
+    if (sessionUploads.current.delete(url)) {
+      void deleteProductImageAction(url)
+    }
   }
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -135,6 +223,7 @@ export default function ProductEditor({
         price: Number(price),
         comparePrice: comparePrice.trim() === '' ? null : Number(comparePrice),
         categoryId: categoryId === '' ? null : categoryId,
+        parentId: parentId === '' ? null : parentId,
         gender,
         palette,
         sizes: sizes.map((row) => ({
@@ -153,6 +242,8 @@ export default function ProductEditor({
         return
       }
 
+      // Les visuels de la session sont desormais en base : plus rien a purger.
+      sessionUploads.current.clear()
       setOpen(false)
       router.refresh()
     })
@@ -160,8 +251,52 @@ export default function ProductEditor({
 
   const units = sizes.reduce((sum, row) => sum + (Number(row.stock) || 0), 0)
 
+  /**
+   * Bandeau d'erreur generique. Les erreurs de champ sont deja rendues a cote de
+   * leur input ; les raisons d'upload n'ont pas de cle `manageError_*` et
+   * reutilisent les libelles du formulaire de creation.
+   */
+  function renderError() {
+    if (!error) return null
+
+    if (
+      [
+        'name',
+        'slug',
+        'slugTaken',
+        'sku',
+        'skuTaken',
+        'price',
+        'comparePrice',
+        'sizes',
+        'date',
+        'parent',
+        'parentNotFound',
+        'parentNotRoot',
+        'parentHasChildren',
+      ].includes(error)
+    )
+      return null
+
+    const uploadKey =
+      error === 'unsupported'
+        ? 'aiError_unsupported'
+        : error === 'tooLarge'
+          ? 'aiError_tooLarge'
+          : error === 'uploadFailed'
+            ? 'error_uploadFailed'
+            : null
+
+    return (
+      <p className="inline-flex items-center gap-2 text-sm text-[var(--q2m-alert)]">
+        <AlertCircle className="h-4 w-4" />
+        {uploadKey ? t(uploadKey) : t(`manageError_${error}`)}
+      </p>
+    )
+  }
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       {/* Bouton d'edition */}
       <Button
         asChild
@@ -269,6 +404,29 @@ export default function ProductEditor({
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+
+            <div>
+              <Label>{t('fieldParentModel')}</Label>
+              <Select
+                value={parentId || 'none'}
+                onValueChange={(value) => setParentId(value === 'none' ? '' : value)}
+              >
+                <SelectTrigger className={cn('w-full', fieldClass)}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">{t('parentNone')}</SelectItem>
+                  {models.map((model) => (
+                    <SelectItem key={model.id} value={model.id}>
+                      {model.colorway ? `${model.name} · ${model.colorway}` : model.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {['parent', 'parentNotFound', 'parentNotRoot', 'parentHasChildren'].includes(
+                error ?? ''
+              ) && <p className={errorClass}>{t(`manageError_${error}`)}</p>}
             </div>
 
             <div>
@@ -465,9 +623,7 @@ export default function ProductEditor({
 
                   <button
                     type="button"
-                    onClick={() =>
-                      setImages((rows) => rows.filter((_, i) => i !== index))
-                    }
+                    onClick={() => handleRemoveImage(index)}
                     aria-label={t('removeImage')}
                     className="absolute right-1 top-1 rounded-sm bg-[var(--q2m-ink)]/80 p-1 text-[var(--q2m-bg-elevated)] transition-colors hover:bg-[var(--q2m-alert)]"
                   >
@@ -477,22 +633,42 @@ export default function ProductEditor({
               ))}
             </div>
 
-            <p className="mt-2 text-xs text-[var(--q2m-ink-stone)]">{t('galleryHint')}</p>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept={ACCEPTED_IMAGE_TYPES.join(',')}
+              multiple
+              className="hidden"
+              onChange={(event) => handleFiles(event.target.files)}
+            />
+
+            <div className="mt-3 flex items-center gap-3">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={pending || uploading || images.length >= MAX_PRODUCT_IMAGES}
+              >
+                {uploading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <ImagePlus className="h-4 w-4" />
+                )}
+                {t('addImages')}
+              </Button>
+              <p className="text-xs text-[var(--q2m-ink-stone)]">{t('galleryHint')}</p>
+            </div>
           </div>
 
-          {error && !['name', 'slug', 'slugTaken', 'sku', 'skuTaken', 'price', 'comparePrice', 'sizes', 'date'].includes(error) && (
-            <p className="inline-flex items-center gap-2 text-sm text-[var(--q2m-alert)]">
-              <AlertCircle className="h-4 w-4" />
-              {t(`manageError_${error}`)}
-            </p>
-          )}
+          {renderError()}
 
           <div className="flex items-center gap-3">
             <Button type="submit" disabled={pending}>
               <Save className="h-4 w-4" />
               {pending ? t('saving') : t('save')}
             </Button>
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+            <Button type="button" variant="outline" onClick={() => handleOpenChange(false)}>
               {t('cancel')}
             </Button>
           </div>

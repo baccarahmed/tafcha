@@ -429,6 +429,8 @@ export interface AdminEditableProduct {
   isNewDrop: boolean
   releaseDate: string | null
   dropEndsAt: string | null
+  /** Modele parent : null pour la fiche de reference, renseigne pour un coloris. */
+  parentId: string | null
 }
 
 const PALETTES: SneakerPalette[] = ['crimson', 'ember', 'void', 'volt', 'onyx']
@@ -444,7 +446,7 @@ export async function getAdminEditableProducts(): Promise<AdminEditableProduct[]
     .database.from('products')
     .select(
       'id,name,slug,sku,brand,description,colorway,images,price,compare_price,' +
-        'category_id,gender,palette,sizes,featured,active,is_new_drop,release_date,drop_ends_at'
+        'category_id,gender,palette,sizes,featured,active,is_new_drop,release_date,drop_ends_at,parent_id'
     )
     .order('created_at', { ascending: false })
 
@@ -470,6 +472,7 @@ export async function getAdminEditableProducts(): Promise<AdminEditableProduct[]
     is_new_drop: boolean
     release_date: string | null
     drop_ends_at: string | null
+    parent_id: string | null
   }>).map((row) => ({
     id: row.id,
     name: row.name,
@@ -497,6 +500,7 @@ export async function getAdminEditableProducts(): Promise<AdminEditableProduct[]
     isNewDrop: row.is_new_drop,
     releaseDate: row.release_date,
     dropEndsAt: row.drop_ends_at,
+    parentId: row.parent_id,
   }))
 }
 

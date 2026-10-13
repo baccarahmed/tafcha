@@ -4,8 +4,10 @@ import { revalidatePath } from 'next/cache'
 import { getSessionUser } from '@/lib/session'
 import {
   deleteProduct,
+  duplicateProduct,
   ProductValidationError,
   updateProduct,
+  type DuplicateOptions,
   type ProductPatch,
 } from '@/lib/admin-products'
 import {
@@ -76,6 +78,34 @@ export async function deleteProductAction(id: string): Promise<ActionResult> {
     refresh()
 
     return { ok: true }
+  } catch (error) {
+    if (error instanceof ProductValidationError) return { ok: false, field: error.field }
+
+    throw error
+  }
+}
+
+export type DuplicateProductResult =
+  | { ok: true; id: string; slug: string }
+  | { ok: false; field: string }
+
+/**
+ * Cree un coloris a partir d'une fiche existante. Meme garde que les autres
+ * ecritures produit : le role est relu en base avant toute chose.
+ */
+export async function duplicateProductAction(
+  sourceId: string,
+  options: DuplicateOptions = {}
+): Promise<DuplicateProductResult> {
+  const user = await getSessionUser()
+
+  if (!user || user.role !== 'ADMIN') return { ok: false, field: 'forbidden' }
+
+  try {
+    const created = await duplicateProduct(sourceId, options)
+    refresh()
+
+    return { ok: true, id: created.id, slug: created.slug }
   } catch (error) {
     if (error instanceof ProductValidationError) return { ok: false, field: error.field }
 

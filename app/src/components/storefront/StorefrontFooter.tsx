@@ -46,7 +46,7 @@ export function StorefrontFooter() {
 
   return (
     <footer
-      className="w-full"
+      className="w-full pb-[calc(4.5rem+env(safe-area-inset-bottom))] lg:pb-0"
       style={{
         background: "#000000",
         borderTop: "1px solid rgba(255, 255, 255, 0.08)",
@@ -90,7 +90,7 @@ export function StorefrontFooter() {
                     <li key={link.label}>
                       <Link
                         href={link.href}
-                        className="inline-block py-1.5 text-sm font-normal transition-colors hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--q2m-accent)]"
+                        className="inline-block py-1.5 text-sm font-normal transition-colors duration-180 ease-q2m hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--q2m-accent)]"
                         style={{ color: Q2M.onDarkSoft }}
                       >
                         {link.label}
@@ -123,21 +123,21 @@ export function StorefrontFooter() {
           >
             <Link
               href="/terms"
-              className="transition-colors hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--q2m-accent)]"
+              className="transition-colors duration-180 ease-q2m hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--q2m-accent)]"
             >
               {t("terms")}
             </Link>
             <span aria-hidden>•</span>
             <Link
               href="/privacy"
-              className="transition-colors hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--q2m-accent)]"
+              className="transition-colors duration-180 ease-q2m hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--q2m-accent)]"
             >
               {t("privacy")}
             </Link>
             <span aria-hidden>•</span>
             <Link
               href="/cookies"
-              className="transition-colors hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--q2m-accent)]"
+              className="transition-colors duration-180 ease-q2m hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--q2m-accent)]"
             >
               {t("cookies")}
             </Link>

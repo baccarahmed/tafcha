@@ -46,8 +46,8 @@ export default function LoginForm({ next }: { next?: string | null }) {
           name="email"
           required
           autoComplete="email"
-          className="border bg-transparent px-4 py-3 text-sm text-ink outline-none transition-colors placeholder:text-ink-mute focus:border-accent"
-          style={{ borderColor: Q2M.lineStrong }}
+          className="q2m-input"
+          style={{ background: Q2M.bgElevated }}
           placeholder={t('emailPlaceholder')}
         />
       </label>

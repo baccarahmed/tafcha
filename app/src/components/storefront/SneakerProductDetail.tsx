@@ -15,6 +15,7 @@ import {
   Truck,
 } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
+import { Link } from '@/i18n/navigation';
 import SneakerVisual from '@/components/storefront/SneakerVisual';
 import { Q2MProductCard } from '@/components/storefront/Q2MProductCard';
 import { Q2M, Q2M_FONT } from '@/lib/q2m-tokens';
@@ -61,6 +62,15 @@ function buildViews(product: CatalogProduct): SneakerPalette[] {
   const base = [product.palette, product.hoverPalette ?? product.palette];
   return [...base, ...base];
 }
+
+/** Pastille de secours d'un coloris sans photo, dérivée de sa palette. */
+const PALETTE_SWATCH: Record<SneakerPalette, string> = {
+  crimson: '#B3121C',
+  ember: '#C2410C',
+  void: '#111111',
+  volt: '#C6FF00',
+  onyx: '#2B2B2B',
+};
 
 export default function SneakerProductDetail({
   product,
@@ -225,7 +235,7 @@ export default function SneakerProductDetail({
                 onClick={() => setImageIndex(idx)}
                 aria-label={t('viewAlt', { name: product.name, count: idx + 1 })}
                 aria-pressed={imageIndex === idx}
-                className="relative h-16 w-16 shrink-0 overflow-hidden transition-all active:scale-95"
+                className="relative h-16 w-16 shrink-0 overflow-hidden transition-[border-color,transform] duration-140 ease-q2m active:scale-95"
                 style={{
                   borderRadius: 4,
                   border: `1px solid ${imageIndex === idx ? Q2M.accent : Q2M.line}`,
@@ -271,7 +281,7 @@ export default function SneakerProductDetail({
                   slug: product.slug,
                 })
               }
-              className="flex h-9 w-9 items-center justify-center rounded-full transition-all hover:scale-110 hover:bg-[var(--q2m-bone)] active:scale-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--q2m-accent)]"
+              className="flex h-9 w-9 items-center justify-center rounded-full transition-[transform,background-color,color] duration-140 ease-q2m hover:scale-110 hover:bg-[var(--q2m-bone)] active:scale-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--q2m-accent)]"
               style={{ color: isInWishlist ? Q2M.accent : Q2M.inkMute }}
             >
               <Heart size={20} strokeWidth={1.5} fill={isInWishlist ? 'currentColor' : 'none'} />
@@ -300,19 +310,52 @@ export default function SneakerProductDetail({
             <span className="text-xs font-extrabold" style={{ color: Q2M.ink }}>
               {t('colorLabel', { colorway: product.colorway })}
             </span>
-            <div className="flex gap-2">
-              {[Q2M.bgDark, Q2M.bgElevated, Q2M.accent, Q2M.line].map((swatch, i) => (
-                <span
-                  key={swatch + i}
-                  className="h-6 w-6"
-                  style={{
-                    background: swatch,
-                    borderRadius: "999px",
-                    border: `1px solid ${Q2M.line}`,
-                  }}
-                />
-              ))}
-            </div>
+            {product.variants && product.variants.length > 1 ? (
+              <div className="flex flex-wrap gap-2">
+                {product.variants.map((variant) => {
+                  const current = variant.id === product.id;
+                  return (
+                    <Link
+                      key={variant.id}
+                      href={`/product/${variant.slug}`}
+                      aria-label={variant.colorway}
+                      title={variant.colorway}
+                      aria-current={current ? 'page' : undefined}
+                      className="relative h-9 w-9 overflow-hidden rounded-full"
+                      style={{
+                        border: current ? `2px solid ${Q2M.ink}` : `1px solid ${Q2M.line}`,
+                        background: PALETTE_SWATCH[variant.palette],
+                      }}
+                    >
+                      {variant.image && (
+                        <Image
+                          src={variant.image}
+                          alt={variant.colorway}
+                          fill
+                          sizes="36px"
+                          unoptimized
+                          className="object-cover"
+                        />
+                      )}
+                    </Link>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="flex gap-2">
+                {[Q2M.bgDark, Q2M.bgElevated, Q2M.accent, Q2M.line].map((swatch, i) => (
+                  <span
+                    key={swatch + i}
+                    className="h-6 w-6"
+                    style={{
+                      background: swatch,
+                      borderRadius: "999px",
+                      border: `1px solid ${Q2M.line}`,
+                    }}
+                  />
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Pointure */}
@@ -334,9 +377,10 @@ export default function SneakerProductDetail({
                   <button
                     key={String(size)}
                     type="button"
+                    aria-pressed={selected}
                     disabled={soldOut}
                     onClick={() => setSelectedSize(size)}
-                    className={`h-[42px] w-[54px] rounded border text-sm transition-all active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--q2m-accent)] disabled:cursor-not-allowed disabled:opacity-35 disabled:active:scale-100 ${
+                    className={`h-[42px] w-[54px] rounded border text-sm transition-[border-color,background-color,color,transform] duration-140 ease-q2m active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--q2m-accent)] disabled:cursor-not-allowed disabled:opacity-35 disabled:active:scale-100 ${
                       selected
                         ? 'border-[var(--q2m-accent)] bg-[var(--q2m-bg-dark)] font-bold text-white'
                         : 'border-[var(--q2m-line-strong)] bg-[var(--q2m-bg-elevated)] text-[var(--q2m-ink-mute)] hover:border-[var(--q2m-ink-mute)] hover:text-[var(--q2m-ink)]'
@@ -545,7 +589,7 @@ function ReviewForm({ productId }: { productId: string }) {
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="group inline-flex items-center gap-2 py-2.5 text-[10px] font-bold uppercase tracking-[0.16em] transition-all hover:text-[var(--q2m-accent-text)] active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--q2m-accent)]"
+        className="group inline-flex items-center gap-2 py-2.5 text-[10px] font-bold uppercase tracking-[0.16em] transition-[color,transform] duration-140 ease-q2m hover:text-[var(--q2m-accent-text)] active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--q2m-accent)]"
         style={{ color: Q2M.ink }}
         aria-expanded={open}
       >
@@ -553,7 +597,7 @@ function ReviewForm({ productId }: { productId: string }) {
         <ArrowUpRight
           size={14}
           strokeWidth={1.5}
-          className="transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 rtl:-scale-x-100"
+          className="transition-transform duration-140 ease-q2m group-hover:-translate-y-0.5 group-hover:translate-x-0.5 rtl:-scale-x-100"
         />
       </button>
 
@@ -581,7 +625,7 @@ function ReviewForm({ productId }: { productId: string }) {
                   onClick={() => setRating(value)}
                   onMouseEnter={() => setHovered(value)}
                   onMouseLeave={() => setHovered(0)}
-                  className="transition-transform hover:scale-110 active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--q2m-accent)]"
+                  className="transition-transform duration-140 ease-q2m hover:scale-110 active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--q2m-accent)]"
                 >
                   <Star
                     size={24}

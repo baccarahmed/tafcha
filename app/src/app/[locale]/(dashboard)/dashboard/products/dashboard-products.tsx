@@ -72,6 +72,31 @@ export default function DashboardProducts({
   const soldOutCount = rows.filter((row) => row.totalStock === 0).length
   const draftCount = products.filter((product) => !product.active).length
 
+  /** Modeles (racines) proposes comme parent a l'edition d'un coloris. */
+  const models = useMemo(
+    () =>
+      products
+        .filter((product) => product.parentId === null)
+        .map((product) => ({
+          id: product.id,
+          name: product.name,
+          colorway: product.colorway,
+        })),
+    [products]
+  )
+
+  /** Nombre de coloris par modele, pour signaler un modele multi-coloris. */
+  const colorCounts = useMemo(() => {
+    const counts = new Map<string, number>()
+
+    for (const product of products) {
+      const root = product.parentId ?? product.id
+      counts.set(root, (counts.get(root) ?? 0) + 1)
+    }
+
+    return counts
+  }, [products])
+
   const stockTone = (stock: number) =>
     stock === 0
       ? {
@@ -166,6 +191,8 @@ export default function DashboardProducts({
               <TableBody>
                 {rows.map(({ product, totalStock, sellable }) => {
                   const tone = stockTone(totalStock)
+                  const root = product.parentId ?? product.id
+                  const colorCount = colorCounts.get(root) ?? 1
 
                   return (
                     <TableRow key={product.id}>
@@ -194,6 +221,14 @@ export default function DashboardProducts({
                                 .filter(Boolean)
                                 .join(' · ')}
                             </p>
+                            {product.parentId === null && colorCount > 1 && (
+                              <Badge
+                                variant="outline"
+                                className="mt-1 uppercase text-[var(--q2m-ink-stone)]"
+                              >
+                                {t('variantCount', { count: colorCount })}
+                              </Badge>
+                            )}
                           </div>
                         </div>
                       </TableCell>
@@ -219,12 +254,17 @@ export default function DashboardProducts({
                         <div className="flex items-center justify-end gap-1.5">
                           <ProductRowActions
                             productId={product.id}
+                            productName={product.name}
                             isActive={product.active}
                             isFeatured={product.featured}
                             isNewDrop={product.isNewDrop}
                           />
 
-                          <ProductEditor product={product} categories={categories} />
+                          <ProductEditor
+                            product={product}
+                            categories={categories}
+                            models={models.filter((model) => model.id !== product.id)}
+                          />
 
                           <Button asChild variant="outline" size="icon" className="h-7 w-7 text-[var(--q2m-ink-stone)]">
                             <Link

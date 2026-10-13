@@ -11,9 +11,17 @@ export default async function DashboardProductsPage() {
     getCategories().catch(() => []),
   ]);
 
+  const models = products
+    .filter((product) => product.parentId === null)
+    .map((product) => ({
+      id: product.id,
+      name: product.name,
+      colorway: product.colorway,
+    }));
+
   return (
     <div className="space-y-6">
-      <ProductForm categories={categories} />
+      <ProductForm categories={categories} models={models} />
       <DashboardProducts
         products={products}
         categories={categories.map((category) => ({

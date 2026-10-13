@@ -21,6 +21,8 @@ export interface SiteSettings {
   announcementText: string
   freeShippingThreshold: number
   shippingCost: number
+  /** URLs de la galerie orbitale (section « Authenticité garantie »). */
+  galleryImages: string[]
 }
 
 type SettingsRow = {
@@ -35,6 +37,19 @@ type SettingsRow = {
   announcement_text: string | null
   free_shipping_threshold_dnt: number | null
   shipping_cost_dnt: number | null
+  gallery_images: unknown
+}
+
+/**
+ * `gallery_images` arrive en jsonb : on ne fait confiance qu'a un tableau de
+ * chaines non vides, tout le reste retombe sur un tableau vide.
+ */
+function mapGalleryImages(value: unknown): string[] {
+  if (!Array.isArray(value)) return []
+
+  return value.filter(
+    (item): item is string => typeof item === 'string' && item.trim().length > 0
+  )
 }
 
 function mapSettings(row: SettingsRow): SiteSettings {
@@ -50,6 +65,7 @@ function mapSettings(row: SettingsRow): SiteSettings {
     announcementText: row.announcement_text ?? '',
     freeShippingThreshold: row.free_shipping_threshold_dnt ?? 200,
     shippingCost: row.shipping_cost_dnt ?? 10,
+    galleryImages: mapGalleryImages(row.gallery_images),
   }
 }
 
@@ -59,7 +75,7 @@ export async function getSiteSettings(): Promise<SiteSettings> {
     .select(
       'hero_title,hero_subtitle,contact_email,contact_phone,contact_address,' +
         'newsletter_enabled,maintenance_mode,announcement_enabled,announcement_text,' +
-        'free_shipping_threshold_dnt,shipping_cost_dnt',
+        'free_shipping_threshold_dnt,shipping_cost_dnt,gallery_images',
     )
     .eq('id', 'main')
     .maybeSingle()
@@ -78,6 +94,7 @@ export async function getSiteSettings(): Promise<SiteSettings> {
     announcement_text: '',
     free_shipping_threshold_dnt: 200,
     shipping_cost_dnt: 10,
+    gallery_images: [],
   }
 
   return mapSettings((data as SettingsRow | null) ?? defaults)
@@ -113,6 +130,21 @@ export async function saveSiteSettings(input: SiteSettingsInput): Promise<void> 
       free_shipping_threshold_dnt: input.freeShippingThreshold,
       shipping_cost_dnt: input.shippingCost,
     })
+    .eq('id', 'main')
+
+  if (error) throw new Error(`site_settings: ${error.message}`)
+}
+
+/**
+ * Remplace uniquement les visuels de la galerie. Le formulaire de reglages
+ * ecrit ailleurs : les deux editions ne se marchent pas dessus.
+ */
+export async function saveGalleryImages(images: string[]): Promise<void> {
+  const clean = images.filter((url) => typeof url === 'string' && url.trim().length > 0)
+
+  const { error } = await insforgeAdmin()
+    .database.from('site_settings')
+    .update({ gallery_images: clean })
     .eq('id', 'main')
 
   if (error) throw new Error(`site_settings: ${error.message}`)

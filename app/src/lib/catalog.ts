@@ -1,7 +1,7 @@
 import 'server-only'
 
 import { insforgeAdmin } from './insforge-admin'
-import type { SneakerPalette, ProductGender } from '@/types/product'
+import type { SneakerPalette, ProductGender, ProductVariant } from '@/types/product'
 import type { CatalogProduct, DbCategory, SiteSettings } from '@/types/catalog'
 
 export type SneakerProduct = CatalogProduct
@@ -26,6 +26,7 @@ interface ProductRow {
   active: boolean
   gender: ProductGender | null
   category_id: string | null
+  parent_id: string | null
   release_date: string | null
   is_new_drop: boolean
   drop_ends_at: string | null
@@ -34,7 +35,7 @@ interface ProductRow {
 }
 
 const PRODUCT_COLUMNS =
-  'id, name, slug, sku, brand, description, colorway, palette, hover_palette, price, compare_price, stock, sizes, images, featured, active, gender, category_id, release_date, is_new_drop, drop_ends_at, created_at, categories(slug, name)'
+  'id, name, slug, sku, brand, description, colorway, palette, hover_palette, price, compare_price, stock, sizes, images, featured, active, gender, category_id, parent_id, release_date, is_new_drop, drop_ends_at, created_at, categories(slug, name)'
 
 const PALETTES: SneakerPalette[] = ['crimson', 'ember', 'void', 'volt', 'onyx']
 
@@ -67,10 +68,53 @@ function toProduct(row: ProductRow): SneakerProduct {
     isSoldOut: !row.active || toNumber(row.stock) === 0,
     categorySlug: row.categories?.slug,
     dropEndsAt: row.drop_ends_at ?? undefined,
+    parentId: row.parent_id ?? null,
   }
 }
 
 const asRows = (data: unknown): ProductRow[] => (data ?? []) as ProductRow[]
+
+const toVariant = (product: SneakerProduct): ProductVariant => ({
+  id: product.id,
+  slug: product.slug,
+  colorway: product.colorway,
+  palette: product.palette,
+  image: product.images[0],
+  price: product.price,
+  isSoldOut: Boolean(product.isSoldOut),
+})
+
+/**
+ * Regroupe les fiches en modeles : une carte par modele, quel que soit le
+ * nombre de coloris. La fiche de reference (`parentId` null) sert de visuel
+ * quand elle a une photo ; sinon on prend le premier coloris qui en a une, pour
+ * qu'une carte ne retombe pas sur le visuel procedural alors qu'un coloris est
+ * photographie.
+ */
+function groupByModel(products: SneakerProduct[]): SneakerProduct[] {
+  const groups = new Map<string, SneakerProduct[]>()
+
+  for (const product of products) {
+    const root = product.parentId ?? product.id
+    const bucket = groups.get(root)
+    if (bucket) bucket.push(product)
+    else groups.set(root, [product])
+  }
+
+  return [...groups.values()].map((group) => {
+    const parent = group.find((item) => item.parentId === null)
+    const representative =
+      (parent && parent.images.length > 0 ? parent : undefined) ??
+      group.find((item) => item.images.length > 0) ??
+      parent ??
+      group[0]
+
+    return {
+      ...representative,
+      variants: group.map(toVariant),
+    }
+  })
+}
 
 export async function getProducts(): Promise<SneakerProduct[]> {
   const { data, error } = await insforgeAdmin()
@@ -80,7 +124,7 @@ export async function getProducts(): Promise<SneakerProduct[]> {
     .order('created_at', { ascending: false })
 
   if (error) throw new Error(`Failed to load products: ${error.message}`)
-  return asRows(data).map(toProduct)
+  return groupByModel(asRows(data).map(toProduct))
 }
 
 export async function getFeaturedProducts(limit = 4): Promise<SneakerProduct[]> {
@@ -90,10 +134,9 @@ export async function getFeaturedProducts(limit = 4): Promise<SneakerProduct[]> 
     .eq('active', true)
     .eq('featured', true)
     .order('created_at', { ascending: false })
-    .limit(limit)
 
   if (error) throw new Error(`Failed to load featured products: ${error.message}`)
-  return asRows(data).map(toProduct)
+  return groupByModel(asRows(data).map(toProduct)).slice(0, limit)
 }
 
 export async function getDrops(limit = 4): Promise<SneakerProduct[]> {
@@ -103,10 +146,43 @@ export async function getDrops(limit = 4): Promise<SneakerProduct[]> {
     .eq('is_new_drop', true)
     .eq('active', true)
     .order('drop_ends_at', { ascending: true })
-    .limit(limit)
 
   if (error) throw new Error(`Failed to load drops: ${error.message}`)
-  return asRows(data).map(toProduct)
+  return groupByModel(asRows(data).map(toProduct)).slice(0, limit)
+}
+
+/**
+ * Charge une fiche et les coloris de son modele. Le modele est identifie par la
+ * fiche de reference (`parent_id` null) : que l'on ouvre la reference ou l'un de
+ * ses coloris, on retombe sur le meme ensemble de variantes.
+ */
+async function loadVariants(product: SneakerProduct): Promise<ProductVariant[]> {
+  const rootId = product.parentId ?? product.id
+
+  const [children, root] = await Promise.all([
+    insforgeAdmin()
+      .database.from('products')
+      .select('id, slug, colorway, palette, price, stock, active, images, parent_id')
+      .eq('parent_id', rootId)
+      .eq('active', true),
+    insforgeAdmin()
+      .database.from('products')
+      .select('id, slug, colorway, palette, price, stock, active, images, parent_id')
+      .eq('id', rootId)
+      .eq('active', true)
+      .maybeSingle(),
+  ])
+
+  const rows: ProductRow[] = []
+
+  if (root.error === null && root.data) rows.push(root.data as unknown as ProductRow)
+  if (children.error === null) rows.push(...((children.data ?? []) as unknown as ProductRow[]))
+
+  const seen = new Set<string>()
+
+  return rows
+    .filter((row) => (seen.has(row.id) ? false : seen.add(row.id)))
+    .map((row) => toVariant(toProduct(row)))
 }
 
 export async function getProductBySlug(slug: string): Promise<SneakerProduct | null> {
@@ -118,8 +194,27 @@ export async function getProductBySlug(slug: string): Promise<SneakerProduct | n
     .maybeSingle()
 
   if (error) throw new Error(`Failed to load product: ${error.message}`)
+  if (!data) return null
   // The SDK types embedded many-to-one relations as arrays, but the API returns an object.
-  return data ? toProduct(data as unknown as ProductRow) : null
+  const product = toProduct(data as unknown as ProductRow)
+
+  return { ...product, variants: await loadVariants(product) }
+}
+
+/**
+ * Tous les slugs actifs, coloris compris. Le sitemap doit lister chaque page
+ * produit : le regroupement en modeles de `getProducts()` masquerait les
+ * coloris, qui restent pourtant des pages indexables.
+ */
+export async function getAllProductSlugs(): Promise<string[]> {
+  const { data, error } = await insforgeAdmin()
+    .database.from('products')
+    .select('slug')
+    .eq('active', true)
+
+  if (error) throw new Error(`Failed to load product slugs: ${error.message}`)
+
+  return ((data ?? []) as unknown as { slug: string }[]).map((row) => row.slug)
 }
 
 export async function getCategories(): Promise<DbCategory[]> {

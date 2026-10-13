@@ -6,9 +6,9 @@
   :root {
     --background: 36 28% 95%;
     --foreground: 0 0% 4%;
-    --card: 36 28% 96%;
+    --card: 0 0% 100%;
     --card-foreground: 0 0% 4%;
-    --popover: 36 28% 96%;
+    --popover: 0 0% 100%;
     --popover-foreground: 0 0% 4%;
     --primary: 36 41% 57%;
     --primary-foreground: 0 0% 4%;
@@ -20,10 +20,10 @@
     --accent-foreground: 0 0% 4%;
     --destructive: 14 76% 52%;
     --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 20%;
+    --border: 41 14% 81%;
     --input: 0 0% 20%;
     --ring: 36 41% 57%;
-    --radius: 0.25rem;
+    --radius: 0.5rem;
 
     --sidebar-background: 0 0% 4%;
     --sidebar-foreground: 36 28% 96%;
@@ -63,9 +63,48 @@
     --q2m-status-soon-bg: rgba(143, 83, 16, 0.1);
     --q2m-status-neutral: #4f4c47;
     --q2m-status-neutral-bg: rgba(79, 76, 71, 0.1);
+
+    /* Motion — courbes d'easing custom, plus franches que les courbes CSS
+       natives (qui démarrent trop doucement). Une animation `ease-out` avec
+       cette courbe paraît plus rapide et plus intentionnelle à durée égale. */
+    --q2m-ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+    --q2m-ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+    --q2m-ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+    --q2m-dur-press: 140ms;
+    --q2m-dur-fast: 180ms;
+    --q2m-dur-base: 240ms;
   }
 
   .dark {
+    --background: 0 0% 4%;
+    --foreground: 36 28% 96%;
+    --card: 0 0% 8%;
+    --card-foreground: 36 28% 96%;
+    --popover: 0 0% 8%;
+    --popover-foreground: 36 28% 96%;
+    --primary: 36 41% 57%;
+    --primary-foreground: 0 0% 4%;
+    --secondary: 36 10% 18%;
+    --secondary-foreground: 36 28% 96%;
+    --muted: 0 0% 13%;
+    --muted-foreground: 36 6% 62%;
+    --accent: 36 41% 57%;
+    --accent-foreground: 0 0% 4%;
+    --destructive: 14 76% 52%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 18%;
+    --input: 0 0% 30%;
+    --ring: 36 41% 57%;
+
+    --sidebar-background: 0 0% 4%;
+    --sidebar-foreground: 36 28% 96%;
+    --sidebar-primary: 36 41% 57%;
+    --sidebar-primary-foreground: 0 0% 4%;
+    --sidebar-accent: 36 41% 57%;
+    --sidebar-accent-foreground: 0 0% 4%;
+    --sidebar-border: 0 0% 18%;
+    --sidebar-ring: 36 41% 57%;
+
     --q2m-bg: #0a0a0a;
     --q2m-bg-elevated: #141414;
     --q2m-bg-dark: #050505;
@@ -99,7 +138,7 @@
   }
 
   * {
-    @apply border-border;
+    @apply border-border outline-none;
   }
 
   html {
@@ -112,10 +151,22 @@
   body {
     font-family: 'Inter', system-ui, sans-serif;
     font-feature-settings: "rlig" 1, "calt" 1, "cv11" 1;
+    font-optical-sizing: auto;
     background-color: var(--q2m-bg);
     color: var(--q2m-ink);
     overflow-x: hidden;
-    transition: background-color 0.25s ease, color 0.25s ease;
+    transition: background-color var(--q2m-dur-base) var(--q2m-ease-out), color var(--q2m-dur-base) var(--q2m-ease-out);
+  }
+
+  /* Évite les titres orphelins et les paragraphes à une seule ligne courte.
+     Les navigateurs modernes gèrent les deux propriétés comme un no-op si
+     elles ne sont pas supportées. */
+  h1, h2, h3 {
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
   }
 
   ::selection {
@@ -146,6 +197,47 @@
 
   ::-webkit-scrollbar-thumb:hover {
     background: var(--q2m-accent-soft);
+  }
+
+  @keyframes skeleton-shimmer {
+    0% {
+      background-position: -200% 0;
+    }
+    100% {
+      background-position: 200% 0;
+    }
+  }
+
+  .animate-skeleton {
+    animation: skeleton-shimmer 1.6s linear infinite;
+    background: linear-gradient(
+      90deg,
+      hsl(var(--muted)) 25%,
+      color-mix(in srgb, hsl(var(--muted)) 70%, hsl(var(--foreground)) 5%) 37%,
+      hsl(var(--muted)) 63%
+    );
+    background-size: 400% 100%;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .animate-skeleton {
+      animation: none;
+    }
+  }
+
+  /* Contraste renforcé : on assombrit les hairlines et le texte secondaire
+     uniquement quand l'utilisateur le demande dans son OS. */
+  @media (prefers-contrast: more) {
+    :root:not(.dark) {
+      --q2m-line-soft: #b8b3a9;
+      --q2m-ink-mute: #3a3733;
+      --q2m-ink-stone: #47433d;
+    }
+    .dark {
+      --q2m-line-soft: #4a4a4a;
+      --q2m-ink-mute: #d6d2c9;
+      --q2m-ink-stone: #c4c0b8;
+    }
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -215,7 +307,7 @@
     border: 1px solid var(--q2m-accent);
     border-radius: 4px;
     cursor: pointer;
-    transition: transform 0.16s ease, box-shadow 0.16s ease, background 0.16s ease, color 0.16s ease, border-color 0.16s ease;
+    transition: transform var(--q2m-dur-press) var(--q2m-ease-out), box-shadow var(--q2m-dur-press) var(--q2m-ease-out), background-color var(--q2m-dur-press) var(--q2m-ease-out), color var(--q2m-dur-press) var(--q2m-ease-out), border-color var(--q2m-dur-press) var(--q2m-ease-out);
     font-family: 'Inter', sans-serif;
     font-weight: 700;
     font-size: 12px;
@@ -226,11 +318,15 @@
     min-width: fit-content;
   }
 
-  .q2m-btn-primary:hover {
-    background: var(--q2m-on-accent);
-    color: var(--q2m-accent);
-    border-color: var(--q2m-on-accent);
-    box-shadow: 0 10px 28px rgba(148, 113, 54, 0.28);
+  /* Le survol est réservé aux appareils à pointeur précis : sur écran tactile
+     le `:hover` reste « collé » après un tap et fige l'état inversé. */
+  @media (hover: hover) and (pointer: fine) {
+    .q2m-btn-primary:hover {
+      background: var(--q2m-on-accent);
+      color: var(--q2m-accent);
+      border-color: var(--q2m-on-accent);
+      box-shadow: 0 10px 28px rgba(148, 113, 54, 0.28);
+    }
   }
 
   .q2m-btn-secondary {
@@ -245,7 +341,7 @@
     border: 1px solid var(--q2m-on-accent);
     border-radius: 4px;
     cursor: pointer;
-    transition: transform 0.16s ease, box-shadow 0.16s ease, background 0.16s ease, color 0.16s ease, border-color 0.16s ease;
+    transition: transform var(--q2m-dur-press) var(--q2m-ease-out), box-shadow var(--q2m-dur-press) var(--q2m-ease-out), background-color var(--q2m-dur-press) var(--q2m-ease-out), color var(--q2m-dur-press) var(--q2m-ease-out), border-color var(--q2m-dur-press) var(--q2m-ease-out);
     font-family: 'Inter', sans-serif;
     font-weight: 700;
     font-size: 12px;
@@ -256,10 +352,12 @@
     min-width: fit-content;
   }
 
-  .q2m-btn-secondary:hover {
-    background: var(--q2m-accent);
-    color: var(--q2m-on-accent);
-    box-shadow: 0 10px 28px rgba(15, 15, 15, 0.24);
+  @media (hover: hover) and (pointer: fine) {
+    .q2m-btn-secondary:hover {
+      background: var(--q2m-accent);
+      color: var(--q2m-on-accent);
+      box-shadow: 0 10px 28px rgba(15, 15, 15, 0.24);
+    }
   }
 
   .q2m-btn-ghost {
@@ -274,7 +372,7 @@
     border: 1px solid var(--q2m-line);
     border-radius: 4px;
     cursor: pointer;
-    transition: transform 0.16s ease, box-shadow 0.16s ease, background 0.16s ease, color 0.16s ease, border-color 0.16s ease;
+    transition: transform var(--q2m-dur-press) var(--q2m-ease-out), box-shadow var(--q2m-dur-press) var(--q2m-ease-out), background-color var(--q2m-dur-press) var(--q2m-ease-out), color var(--q2m-dur-press) var(--q2m-ease-out), border-color var(--q2m-dur-press) var(--q2m-ease-out);
     font-family: 'Inter', sans-serif;
     font-weight: 700;
     font-size: 12px;
@@ -285,15 +383,17 @@
     min-width: fit-content;
   }
 
-  .q2m-btn-ghost:hover {
-    background: var(--q2m-ink);
-    color: var(--q2m-bg);
+  @media (hover: hover) and (pointer: fine) {
+    .q2m-btn-ghost:hover {
+      background: var(--q2m-ink);
+      color: var(--q2m-bg);
+    }
   }
 
   .q2m-btn-primary:active,
   .q2m-btn-secondary:active,
   .q2m-btn-ghost:active {
-    transform: translateY(1px) scale(0.99);
+    transform: scale(0.97);
     box-shadow: none;
   }
 
@@ -352,12 +452,16 @@
     background: var(--q2m-bone);
     border-radius: 8px;
     overflow: hidden;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    transition: transform var(--q2m-dur-base) var(--q2m-ease-out), box-shadow var(--q2m-dur-base) var(--q2m-ease-out);
   }
 
-  .q2m-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 14px 36px rgba(0, 0, 0, 0.16);
+  /* Le survol n'anime que les appareils à pointeur précis : sur écran tactile
+     le `hover` reste « collé » après un tap et donne un état fantôme. */
+  @media (hover: hover) and (pointer: fine) {
+    .q2m-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 14px 36px rgba(0, 0, 0, 0.16);
+    }
   }
 
   .q2m-tag {
@@ -389,7 +493,7 @@
   }
 
   .q2m-section {
-    padding: 64px 56px;
+    padding: clamp(40px, 6vw, 64px) clamp(20px, 5vw, 56px);
   }
 
   .q2m-eyebrow {
@@ -404,9 +508,10 @@
   .q2m-display {
     font-family: 'Inter', sans-serif;
     font-weight: 900;
-    font-size: 42px;
-    line-height: 1.21;
-    letter-spacing: -0.01em;
+    font-size: clamp(30px, 6vw, 42px);
+    line-height: 1.12;
+    letter-spacing: -0.015em;
+    text-wrap: balance;
     text-transform: uppercase;
     color: var(--q2m-ink);
   }
@@ -414,10 +519,11 @@
   .q2m-mega {
     font-family: 'Inter', sans-serif;
     font-weight: 900;
-    font-size: 82px;
-    line-height: 0.86;
+    font-size: clamp(38px, 9vw, 82px);
+    line-height: 0.9;
     text-transform: uppercase;
-    letter-spacing: -0.02em;
+    letter-spacing: -0.025em;
+    text-wrap: balance;
     color: var(--q2m-ink);
   }
 
@@ -447,16 +553,61 @@
     font-family: 'Inter', sans-serif;
     font-size: 14px;
     color: var(--q2m-ink);
-    transition: border-color 0.15s ease;
+    transition: border-color var(--q2m-dur-fast) var(--q2m-ease-out), box-shadow var(--q2m-dur-fast) var(--q2m-ease-out);
   }
 
   .q2m-input:focus {
     outline: none;
     border-color: var(--q2m-accent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--q2m-accent) 24%, transparent);
   }
 
   .q2m-input::placeholder {
     color: var(--q2m-ink-stone);
+  }
+
+  /* Voile derrière les surfaces modales. `backdrop-filter` est coûteux et
+     peut être source de vertige : on le retire quand l'OS demande moins de
+     transparence, et on assombrit le voile pour garder le contraste. */
+  .q2m-scrim {
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+  }
+
+  @media (prefers-reduced-transparency: reduce) {
+    .q2m-scrim {
+      background-color: rgba(0, 0, 0, 0.82);
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+    }
+  }
+
+  /* Barre de navigation mobile : matériau translucide noir (comme le chrome),
+     le contenu défile dessous. `safe-area` garde la barre au-dessus du
+     home-indicator iOS ; on fige en noir opaque si l'OS réduit la transparence
+     ou demande plus de contraste. */
+  .q2m-bottom-nav {
+    background-color: rgba(0, 0, 0, 0.72);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  @media (prefers-reduced-transparency: reduce) {
+    .q2m-bottom-nav {
+      background-color: #000000;
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+    }
+  }
+
+  @media (prefers-contrast: more) {
+    .q2m-bottom-nav {
+      background-color: #000000;
+      border-top-color: rgba(255, 255, 255, 0.4);
+    }
   }
 }
 

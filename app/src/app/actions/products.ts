@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { getSessionUser } from '@/lib/session'
 import {
   createProduct,
+  getProductSlug,
   ProductValidationError,
   type ProductInput,
 } from '@/lib/admin-products'
@@ -11,6 +12,7 @@ import { analyzeProductImage, AiConfigError, type ProductDraft } from '@/lib/gem
 import {
   uploadProductImage,
   deleteProductImage,
+  storageKeyFromUrl,
   ImageUploadError,
   ALLOWED_IMAGE_MIME,
   MAX_IMAGE_BYTES,
@@ -140,4 +142,66 @@ export async function analyzeProductImageAction(
 
     return { ok: false, error: 'failed' }
   }
+}
+
+export type ProductImageUploadResult =
+  | { ok: true; url: string; key: string }
+  | {
+      ok: false
+      reason: 'forbidden' | 'notFound' | 'unsupported' | 'tooLarge' | 'uploadFailed'
+    }
+
+/**
+ * Ajoute un visuel a une fiche existante.
+ *
+ * L'edition ne permettait jusqu'ici que de retirer des photos : ce point
+ * d'entree comble le manque, avec les memes garde-fous que la creation (role
+ * relu en base, formats et taille verifies dans `uploadProductImage`). La cle
+ * du dossier est relue depuis le slug courant, pas du client.
+ */
+export async function uploadProductImageAction(
+  productId: string,
+  image: { base64: string; mimeType: string }
+): Promise<ProductImageUploadResult> {
+  const user = await getSessionUser()
+
+  if (!user || user.role !== 'ADMIN') return { ok: false, reason: 'forbidden' }
+
+  try {
+    const slug = await getProductSlug(productId)
+
+    if (!slug) return { ok: false, reason: 'notFound' }
+
+    const uploaded = await uploadProductImage(image, slug)
+
+    return { ok: true, url: uploaded.url, key: uploaded.key }
+  } catch (error) {
+    if (error instanceof ImageUploadError) return { ok: false, reason: error.reason }
+
+    console.error('upload produit :', error)
+
+    return { ok: false, reason: 'uploadFailed' }
+  }
+}
+
+/**
+ * Supprime un objet du bucket a partir de son URL publique.
+ *
+ * Ne concerne que les visuels pas encore rattaches a la fiche : un visuel ajoute
+ * puis retire avant l'enregistrement, ou un upload abandonne a la fermeture du
+ * dialogue. Les visuels deja en base sont purges par `updateProduct`, qui
+ * compare ancienne et nouvelle liste une fois l'ecriture confirmee.
+ */
+export async function deleteProductImageAction(url: string): Promise<{ ok: boolean }> {
+  const user = await getSessionUser()
+
+  if (!user || user.role !== 'ADMIN') return { ok: false }
+
+  const key = storageKeyFromUrl(url)
+
+  if (!key) return { ok: false }
+
+  await deleteProductImage(key).catch(() => undefined)
+
+  return { ok: true }
 }

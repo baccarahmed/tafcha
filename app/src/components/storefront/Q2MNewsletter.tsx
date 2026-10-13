@@ -91,7 +91,7 @@ export function Q2MNewsletter() {
                 <button
                   type="submit"
                   disabled={pending || status === "loading"}
-                  className="group inline-flex h-[44px] shrink-0 items-center justify-center gap-2.5 px-6 text-xs font-bold tracking-[0.16em] uppercase transition-all hover:scale-[1.02] hover:brightness-110 active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--q2m-ink)] disabled:cursor-not-allowed disabled:opacity-60"
+                  className="group inline-flex h-[44px] shrink-0 items-center justify-center gap-2.5 px-6 text-xs font-bold tracking-[0.16em] uppercase transition-[transform,filter] duration-140 ease-q2m hover:scale-[1.02] hover:brightness-110 active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--q2m-ink)] disabled:cursor-not-allowed disabled:opacity-60"
                   style={{
                     background: Q2M.onAccent,
                     color: Q2M.bgElevated,

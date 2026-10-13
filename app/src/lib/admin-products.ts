@@ -1,6 +1,7 @@
 import 'server-only'
 
 import { insforgeAdmin } from '@/lib/insforge-admin'
+import { deleteProductImages } from '@/lib/admin-storage'
 import { MAX_PRODUCT_IMAGES, slugify } from '@/lib/utils'
 import type { SneakerPalette, ProductGender } from '@/types/product'
 
@@ -47,6 +48,8 @@ export interface ProductInput {
   featured: boolean
   active: boolean
   isNewDrop: boolean
+  /** Modele parent : renseigne pour un coloris, absent pour la fiche de reference. */
+  parentId?: string | null
   /** Date de lancement (drop à venir) : `YYYY-MM-DD` ou null. */
   releaseDate?: string | null
   /** Fin des ventes (drop en cours) : `YYYY-MM-DD` ou null. */
@@ -176,6 +179,66 @@ async function assertSlugFree(slug: string, exceptId?: string): Promise<void> {
   if (data) throw new ProductValidationError('slugTaken')
 }
 
+async function slugExists(slug: string): Promise<boolean> {
+  const { data, error } = await insforgeAdmin()
+    .database.from('products')
+    .select('id')
+    .eq('slug', slug)
+    .maybeSingle()
+
+  if (error) throw new Error(`products: ${error.message}`)
+
+  return data !== null
+}
+
+/** Slug libre le plus proche de `base`, suffixe numerique en cas de collision. */
+async function freeSlug(base: string): Promise<string> {
+  if (!(await slugExists(base))) return base
+
+  for (let suffix = 2; suffix <= 99; suffix += 1) {
+    const candidate = `${base}-${suffix}`
+    if (!(await slugExists(candidate))) return candidate
+  }
+
+  throw new ProductValidationError('slugTaken')
+}
+
+async function hasChildren(id: string): Promise<boolean> {
+  const { data, error } = await insforgeAdmin()
+    .database.from('products')
+    .select('id')
+    .eq('parent_id', id)
+
+  if (error) throw new Error(`products: ${error.message}`)
+
+  return (data ?? []).length > 0
+}
+
+/**
+ * La hierarchie reste volontairement plate : un modele (racine, `parent_id`
+ * null) et ses coloris. Un parent doit donc etre une racine, et une fiche qui a
+ * deja des coloris ne peut pas devenir elle-meme un coloris — sinon les petits
+ * coloris se retrouveraient orphelins sous une fiche desormais rattachee.
+ */
+async function assertParentValid(parentId: string, selfId?: string): Promise<void> {
+  if (selfId && parentId === selfId) throw new ProductValidationError('parent')
+
+  const { data, error } = await insforgeAdmin()
+    .database.from('products')
+    .select('id, parent_id')
+    .eq('id', parentId)
+    .maybeSingle()
+
+  if (error) throw new Error(`products: ${error.message}`)
+  if (!data) throw new ProductValidationError('parentNotFound')
+
+  if ((data as unknown as { parent_id: string | null }).parent_id !== null)
+    throw new ProductValidationError('parentNotRoot')
+
+  if (selfId && (await hasChildren(selfId)))
+    throw new ProductValidationError('parentHasChildren')
+}
+
 export interface UpdateResult {
   id: string
   slug: string
@@ -192,6 +255,9 @@ export async function createProduct(input: ProductInput): Promise<CreateResult> 
   const sizes = [...input.sizes].sort((a, b) => a.size - b.size)
   const images = input.images.map((image) => image.trim()).filter(Boolean)
   const sku = input.sku.trim() ? await suggestFreeSku(input.sku) : null
+
+  const parentId = input.parentId ?? null
+  if (parentId !== null) await assertParentValid(parentId)
 
   const { data, error } = await insforgeAdmin()
     .database
@@ -214,6 +280,7 @@ export async function createProduct(input: ProductInput): Promise<CreateResult> 
       featured: input.featured,
       active: input.active,
       is_new_drop: input.isNewDrop,
+      parent_id: parentId,
       release_date: normalizeDate(input.releaseDate ?? null),
       drop_ends_at: normalizeDate(input.dropEndsAt ?? null),
     })
@@ -251,6 +318,7 @@ export interface ProductPatch {
   featured?: boolean
   active?: boolean
   isNewDrop?: boolean
+  parentId?: string | null
   releaseDate?: string | null
   dropEndsAt?: string | null
 }
@@ -269,14 +337,19 @@ export interface ProductPatch {
 export async function updateProduct(id: string, patch: ProductPatch): Promise<UpdateResult> {
   const { data: current, error: readError } = await insforgeAdmin()
     .database.from('products')
-    .select('id,slug,price')
+    .select('id,slug,price,images')
     .eq('id', id)
     .maybeSingle()
 
   if (readError) throw new Error(`products: ${readError.message}`)
   if (!current) throw new ProductValidationError('notFound')
 
-  const existing = current as unknown as { id: string; slug: string; price: number }
+  const existing = current as unknown as {
+    id: string
+    slug: string
+    price: number
+    images: string[] | null
+  }
   const row: Record<string, unknown> = {}
 
   if (patch.name !== undefined) {
@@ -292,7 +365,7 @@ export async function updateProduct(id: string, patch: ProductPatch): Promise<Up
   }
 
   if (patch.sku !== undefined) {
-    const sku = patch.sku?.trim() || null
+    const sku = patch.sku?.trim().toUpperCase() || null
     if (sku !== null && (await isSkuTakenByOther(sku, id)))
       throw new ProductValidationError('skuTaken')
     row.sku = sku
@@ -325,6 +398,15 @@ export async function updateProduct(id: string, patch: ProductPatch): Promise<Up
   }
 
   if (patch.categoryId !== undefined) row.category_id = patch.categoryId
+
+  if (patch.parentId !== undefined) {
+    if (patch.parentId === null) {
+      row.parent_id = null
+    } else {
+      await assertParentValid(patch.parentId, id)
+      row.parent_id = patch.parentId
+    }
+  }
 
   if (patch.gender !== undefined) {
     if (!GENDER_OPTIONS.includes(patch.gender)) throw new ProductValidationError('gender')
@@ -367,6 +449,17 @@ export async function updateProduct(id: string, patch: ProductPatch): Promise<Up
     throw new Error(`products: ${error.message}`)
   }
 
+  /**
+   * Les visuels retires de la fiche sont supprimes du bucket uniquement une
+   * fois la mise a jour confirmee — sinon un echec laisserait la fiche pointee
+   * sur des objets deja detruits. On compare l'ancienne liste a la nouvelle.
+   */
+  if (patch.images !== undefined) {
+    const nextImages = row.images as string[]
+    const removed = (existing.images ?? []).filter((url) => !nextImages.includes(url))
+    await deleteProductImages(removed)
+  }
+
   return data as unknown as UpdateResult
 }
 
@@ -392,6 +485,14 @@ async function isSkuTakenByOther(sku: string, exceptId: string): Promise<boolean
  * « top produits » perdraient leur sens. L'admin doit le desactiver plutot.
  */
 export async function deleteProduct(id: string): Promise<void> {
+  const { data: current, error: readError } = await insforgeAdmin()
+    .database.from('products')
+    .select('images')
+    .eq('id', id)
+    .maybeSingle()
+
+  if (readError) throw new Error(`products: ${readError.message}`)
+
   const { error } = await insforgeAdmin().database.from('products').delete().eq('id', id)
 
   if (error) {
@@ -399,4 +500,131 @@ export async function deleteProduct(id: string): Promise<void> {
       throw new ProductValidationError('hasSales')
     throw new Error(`products: ${error.message}`)
   }
+
+  /**
+   * Une fois la ligne supprimee seulement, on purge les visuels du bucket :
+   * supprimer les objets d'abord laisserait une fiche cassee si le DELETE
+   * echouait (produit deja vendu, ON DELETE RESTRICT).
+   */
+  const images = (current as unknown as { images: string[] | null } | null)?.images ?? []
+  await deleteProductImages(images)
+}
+
+/**
+ * Retourne le slug d'un produit, ou null s'il n'existe pas. Sert aux actions qui
+ * doivent nommer un dossier de stockage avant l'ecriture.
+ */
+export async function getProductSlug(id: string): Promise<string | null> {
+  const { data, error } = await insforgeAdmin()
+    .database.from('products')
+    .select('slug')
+    .eq('id', id)
+    .maybeSingle()
+
+  if (error) throw new Error(`products: ${error.message}`)
+
+  return (data as unknown as { slug: string } | null)?.slug ?? null
+}
+
+interface DuplicateSource {
+  id: string
+  name: string
+  slug: string
+  sku: string | null
+  brand: string | null
+  description: string | null
+  colorway: string | null
+  palette: string
+  hover_palette: string | null
+  price: number | string
+  compare_price: number | string | null
+  category_id: string | null
+  gender: ProductGender | null
+  parent_id: string | null
+  release_date: string | null
+  drop_ends_at: string | null
+  sizes: { size: number | string; stock: number }[] | null
+}
+
+export interface DuplicateOptions {
+  colorway?: string
+  sku?: string | null
+}
+
+/**
+ * Cree un coloris a partir d'une fiche existante.
+ *
+ * Les champs descriptifs sont recopies, mais le stock repart a zero et les
+ * visuels sont vides : un coloris a ses propres photos et son propre stock, il
+ * ne les partage pas avec la fiche source. La nouvelle fiche rejoint le meme
+ * modele — on rattache a la racine de la source, pas a la source elle-meme, pour
+ * qu'une copie de coloris reste au meme niveau que ses freres.
+ */
+export async function duplicateProduct(
+  sourceId: string,
+  options: DuplicateOptions = {}
+): Promise<CreateResult> {
+  const { data, error } = await insforgeAdmin()
+    .database.from('products')
+    .select(
+      'id, name, slug, sku, brand, description, colorway, palette, hover_palette, price, compare_price, category_id, gender, parent_id, release_date, drop_ends_at, sizes'
+    )
+    .eq('id', sourceId)
+    .maybeSingle()
+
+  if (error) throw new Error(`products: ${error.message}`)
+  if (!data) throw new ProductValidationError('notFound')
+
+  const source = data as unknown as DuplicateSource
+  const root = source.parent_id ?? source.id
+
+  const colorway = options.colorway?.trim() || `${source.colorway ?? 'Standard'} (copie)`
+
+  const baseSlug = slugify(`${source.slug}-${colorway}`)
+  const slug = await freeSlug(baseSlug.length > 0 ? baseSlug : `${source.slug}-2`)
+
+  const skuSeed = options.sku?.trim() || source.sku
+  const sku = skuSeed ? await suggestFreeSku(skuSeed) : null
+
+  const sizes = (source.sizes ?? []).map((entry) => ({
+    size: Number(entry.size),
+    stock: 0,
+  }))
+
+  const { data: created, error: insertError } = await insforgeAdmin()
+    .database
+    .from('products')
+    .insert({
+      name: source.name,
+      slug,
+      sku,
+      brand: source.brand,
+      description: source.description,
+      colorway,
+      palette: source.palette,
+      hover_palette: source.hover_palette,
+      price: source.price,
+      compare_price: source.compare_price,
+      stock: 0,
+      sizes,
+      images: [],
+      category_id: source.category_id,
+      gender: source.gender,
+      featured: false,
+      active: true,
+      is_new_drop: false,
+      parent_id: root,
+      release_date: source.release_date,
+      drop_ends_at: source.drop_ends_at,
+    })
+    .select('id, slug')
+    .single()
+
+  if (insertError) {
+    if (/duplicate key|unique/i.test(insertError.message))
+      throw new ProductValidationError('slugTaken')
+    throw new Error(`products: ${insertError.message}`)
+  }
+
+  return created as unknown as CreateResult
 }

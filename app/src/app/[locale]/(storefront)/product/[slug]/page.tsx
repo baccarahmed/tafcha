@@ -44,8 +44,9 @@ export default async function ProductPage({ params }: PageProps) {
 
   if (!product) notFound();
 
+  const rootId = product.parentId ?? product.id;
   const related = (await getProducts().catch(() => []))
-    .filter((p) => p.id !== product.id)
+    .filter((p) => (p.parentId ?? p.id) !== rootId)
     .slice(0, 4);
 
   const reviews = await getProductReviews(product.id).catch(() => []);

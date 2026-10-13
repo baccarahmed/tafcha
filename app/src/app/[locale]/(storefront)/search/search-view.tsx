@@ -86,7 +86,7 @@ export default function SearchView({ products }: { products: CatalogProduct[] })
               type="button"
               onClick={() => setQuery('')}
               aria-label={t('clear')}
-              className="absolute end-4 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full text-ink-mute transition-all hover:bg-bone hover:text-[var(--q2m-alert)] active:scale-90"
+              className="absolute end-4 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full text-ink-mute transition-[background-color,color,transform] duration-140 ease-q2m hover:bg-bone hover:text-[var(--q2m-alert)] active:scale-90"
             >
               <X size={16} />
             </button>

@@ -10,6 +10,16 @@ import { formatCurrency } from "@/lib/utils";
 import SneakerVisual from "@/components/storefront/SneakerVisual";
 import { useWishlistStore } from "@/store/wishlist-store";
 import type { CatalogProduct } from "@/types/catalog";
+import type { SneakerPalette } from "@/types/product";
+
+/** Pastille d'un coloris (carte) : rendu compact de sa palette. */
+const PALETTE_SWATCH: Record<SneakerPalette, string> = {
+  crimson: "#B3121C",
+  ember: "#C2410C",
+  void: "#111111",
+  volt: "#C6FF00",
+  onyx: "#2B2B2B",
+};
 
 /** Cles `shop.badge_*` resolues dans le composant. */
 type TagKey = "badgeNew" | "badgeBestSeller" | "badgeRare" | null;
@@ -70,7 +80,7 @@ export function Q2MProductCard({ product }: { product: CatalogProduct }) {
       <Link href={`/product/${product.slug}`} className="block">
         {/* Image card — bone bg, padded inner frame, liseré or au survol */}
         <div
-          className="relative aspect-[319/300] w-full overflow-hidden border border-transparent p-3.5 transition-[border-color] duration-300 group-hover:border-[var(--q2m-accent)]"
+          className="relative aspect-[319/300] w-full overflow-hidden border border-transparent p-3.5 transition-[border-color] duration-200 ease-q2m group-hover:border-[var(--q2m-accent)]"
           style={{
             background: Q2M.bone,
             borderRadius: 8,
@@ -96,7 +106,7 @@ export function Q2MProductCard({ product }: { product: CatalogProduct }) {
               fill
               sizes="(max-width: 1024px) 50vw, 25vw"
               unoptimized
-              className="object-cover transition-transform duration-700 group-hover:scale-105"
+              className="object-cover transition-transform duration-300 ease-q2m group-hover:scale-105"
             />
           ) : (
             <SneakerVisual variant={product.palette} />
@@ -107,7 +117,7 @@ export function Q2MProductCard({ product }: { product: CatalogProduct }) {
         <div className="mt-3 flex flex-col gap-1">
           <div className="flex items-baseline justify-between gap-2">
             <span
-              className="text-[10px] font-bold tracking-[0.16em] uppercase text-[var(--q2m-ink-mute)] transition-colors group-hover:text-[var(--q2m-accent-text)]"
+              className="text-[10px] font-bold tracking-[0.16em] uppercase text-[var(--q2m-ink-mute)] transition-colors duration-180 ease-q2m group-hover:text-[var(--q2m-accent-text)]"
             >
               {product.brand ?? "—"}
             </span>
@@ -130,6 +140,24 @@ export function Q2MProductCard({ product }: { product: CatalogProduct }) {
           >
             {describeProduct(product, usage)}
           </p>
+          {product.variants && product.variants.length > 1 && (
+            <div className="mt-1 flex items-center gap-1.5">
+              {product.variants.map((variant) => (
+                <span
+                  key={variant.id}
+                  title={variant.colorway}
+                  className="h-3 w-3 rounded-full"
+                  style={{
+                    background: PALETTE_SWATCH[variant.palette],
+                    border:
+                      variant.id === product.id
+                        ? `1.5px solid ${Q2M.ink}`
+                        : `1px solid ${Q2M.line}`,
+                  }}
+                />
+              ))}
+            </div>
+          )}
         </div>
       </Link>
 
@@ -146,7 +174,7 @@ export function Q2MProductCard({ product }: { product: CatalogProduct }) {
             slug: product.slug,
           })
         }
-        className="absolute right-3.5 top-3.5 z-10 flex h-8 w-8 items-center justify-center transition-all duration-200 hover:scale-110 hover:border hover:border-[var(--q2m-accent)] active:scale-90"
+        className="absolute right-3.5 top-3.5 z-10 flex h-8 w-8 items-center justify-center transition-[transform,border-color,color] duration-140 ease-q2m hover:scale-110 hover:border hover:border-[var(--q2m-accent)] active:scale-90"
         style={{
           background: Q2M.bgElevated,
           borderRadius: "999px",
@@ -201,7 +229,7 @@ export function Q2MProductGrid({
               {link.label}
               <ArrowUpRight
                 size={14}
-                className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 rtl:-scale-x-100"
+                className="transition-transform duration-140 ease-q2m group-hover:translate-x-0.5 group-hover:-translate-y-0.5 rtl:-scale-x-100"
               />
             </Link>
           )}

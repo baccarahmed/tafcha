@@ -86,7 +86,7 @@ export default function ContactPage() {
             className="group q2m-btn-primary"
           >
             {t("discoverCta")}
-            <ArrowRight size={15} className="transition-transform group-hover:translate-x-1 dir:rotate-180" />
+            <ArrowRight size={15} className="transition-transform duration-140 ease-q2m group-hover:translate-x-1 dir:rotate-180" />
           </Link>
         </motion.div>
 
@@ -134,7 +134,7 @@ function ContactForm() {
             setSent(false);
             setError(null);
           }}
-          className="mt-7 text-[10px] font-bold tracking-[0.16em] text-ink-mute transition-colors hover:text-accent"
+          className="mt-7 text-[10px] font-bold tracking-[0.16em] text-ink-mute transition-colors duration-140 ease-q2m hover:text-accent"
         >
           {t("sendAnother")}
         </button>
@@ -182,13 +182,13 @@ function ContactForm() {
           <label htmlFor="c-name" className="mb-2 block text-[10px] font-bold tracking-[0.16em] text-ink-soft">
             {t("name")}
           </label>
-          <input id="c-name" name="name" required placeholder={t("namePlaceholder")} className="h-12 w-full border px-4 text-sm outline-none focus:border-accent" style={inputStyle} />
+          <input id="c-name" name="name" required placeholder={t("namePlaceholder")} className="h-12 w-full border px-4 text-sm outline-none transition-[border-color] duration-140 ease-q2m focus:border-accent" style={inputStyle} />
         </div>
         <div>
           <label htmlFor="c-email" className="mb-2 block text-[10px] font-bold tracking-[0.16em] text-ink-soft">
             {t("email")}
           </label>
-          <input id="c-email" name="email" type="email" required placeholder={t("emailPlaceholder")} className="h-12 w-full border px-4 text-sm outline-none focus:border-accent" style={inputStyle} />
+          <input id="c-email" name="email" type="email" required placeholder={t("emailPlaceholder")} className="h-12 w-full border px-4 text-sm outline-none transition-[border-color] duration-140 ease-q2m focus:border-accent" style={inputStyle} />
         </div>
       </div>
 
@@ -196,14 +196,14 @@ function ContactForm() {
         <label htmlFor="c-subject" className="mb-2 block text-[10px] font-bold tracking-[0.16em] text-ink-soft">
           {t("subject")}
         </label>
-        <input id="c-subject" name="subject" required placeholder={t("subjectPlaceholder")} className="h-12 w-full border px-4 text-sm outline-none focus:border-accent" style={inputStyle} />
+        <input id="c-subject" name="subject" required placeholder={t("subjectPlaceholder")} className="h-12 w-full border px-4 text-sm outline-none transition-[border-color] duration-140 ease-q2m focus:border-accent" style={inputStyle} />
       </div>
 
       <div>
         <label htmlFor="c-message" className="mb-2 block text-[10px] font-bold tracking-[0.16em] text-ink-soft">
           {t("message")}
         </label>
-        <textarea id="c-message" name="message" rows={6} required placeholder={t("messagePlaceholder")} className="w-full resize-none border px-4 py-3 text-sm outline-none focus:border-accent" style={inputStyle} />
+        <textarea id="c-message" name="message" rows={6} required placeholder={t("messagePlaceholder")} className="w-full resize-none border px-4 py-3 text-sm outline-none transition-[border-color] duration-140 ease-q2m focus:border-accent" style={inputStyle} />
       </div>
 
       <button

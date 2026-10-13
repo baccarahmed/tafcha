@@ -85,7 +85,7 @@ export function Q2MBrandsAndDrop() {
             <ArrowUpRight
               size={14}
               strokeWidth={1.5}
-              className="transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 rtl:-scale-x-100"
+              className="transition-transform duration-140 ease-q2m group-hover:-translate-y-0.5 group-hover:translate-x-0.5 rtl:-scale-x-100"
             />
           </Link>
         </motion.div>
@@ -178,7 +178,7 @@ export function Q2MBrandsAndDrop() {
             <ArrowUpRight
               size={14}
               strokeWidth={1.5}
-              className="transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 rtl:-scale-x-100"
+              className="transition-transform duration-140 ease-q2m group-hover:-translate-y-0.5 group-hover:translate-x-0.5 rtl:-scale-x-100"
             />
           </Link>
         </motion.div>

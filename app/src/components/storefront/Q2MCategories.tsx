@@ -64,7 +64,7 @@ export function Q2MCategories({ genders = [] }: { genders?: string[] }) {
                   fill
                   sizes="(max-width: 768px) 100vw, 33vw"
                   unoptimized={!cat.image.startsWith("/")}
-                  className="object-cover transition-transform duration-700 group-hover:scale-105"
+                  className="object-cover transition-transform duration-300 ease-q2m group-hover:scale-105"
                 />
                 <div
                   className="absolute inset-0"
@@ -77,7 +77,7 @@ export function Q2MCategories({ genders = [] }: { genders?: string[] }) {
                   {tShop(`gender_${cat.gender}`)}
                 </span>
                 <span
-                  className="absolute right-5 top-5 flex h-11 w-11 items-center justify-center opacity-0 transition-all duration-300 group-hover:opacity-100 group-focus-visible:opacity-100"
+                  className="absolute right-5 top-5 flex h-11 w-11 translate-y-1 items-center justify-center opacity-0 transition-[opacity,transform] duration-200 ease-q2m group-hover:translate-y-0 group-hover:opacity-100 group-focus-visible:translate-y-0 group-focus-visible:opacity-100"
                   style={{
                     background: Q2M.accent,
                     color: Q2M.onAccent,

@@ -71,6 +71,23 @@ export async function uploadProductImage(
   image: { base64: string; mimeType: string },
   slug: string
 ): Promise<UploadedImage> {
+  return uploadImage(image, slug)
+}
+
+/**
+ * Visuels de la galerie orbitale : meme bucket, dossier `gallery/` pour garder
+ * les objets ranges. Reutilise les memes garde-fous (type, taille).
+ */
+export async function uploadGalleryImage(
+  image: { base64: string; mimeType: string }
+): Promise<UploadedImage> {
+  return uploadImage(image, 'gallery')
+}
+
+async function uploadImage(
+  image: { base64: string; mimeType: string },
+  folder: string
+): Promise<UploadedImage> {
   if (!ALLOWED_IMAGE_MIME.has(image.mimeType)) {
     throw new ImageUploadError('unsupported')
   }
@@ -81,7 +98,7 @@ export async function uploadProductImage(
   }
 
   const bucket = insforgeAdmin().storage.from(BUCKET)
-  const key = buildKey(slug, image.mimeType)
+  const key = buildKey(folder, image.mimeType)
 
   const { data, error } = await bucket.upload(
     key,
@@ -101,4 +118,42 @@ export async function uploadProductImage(
  */
 export async function deleteProductImage(key: string): Promise<void> {
   await insforgeAdmin().storage.from(BUCKET).remove(key)
+}
+
+/**
+ * Re-derive la cle objet a partir de l'URL publique InsForge. Seule l'URL est
+ * persistee en base (`products.images`), il faut donc retrouver la cle pour
+ * pouvoir supprimer l'objet du bucket. Retourne null si l'URL n'est pas une URL
+ * de bucket (visuel local livre avec le code, lien externe).
+ */
+export function storageKeyFromUrl(url: string): string | null {
+  const marker = '/objects/'
+  const index = url.indexOf(marker)
+
+  if (index === -1) return null
+
+  try {
+    return decodeURIComponent(url.slice(index + marker.length).split('?')[0])
+  } catch {
+    return null
+  }
+}
+
+/**
+ * Supprime un lot de visuels du bucket a partir de leurs URLs publiques.
+ *
+ * Les URL sans cle resolvable (visuels locaux, liens externes) sont ignorees :
+ * on ne retire que ce qui vit reellement dans le bucket. Best-effort — un echec
+ * de suppression ne doit pas faire echouer l'operation metier appelante.
+ */
+export async function deleteProductImages(urls: string[]): Promise<void> {
+  const keys = [
+    ...new Set(
+      urls.map(storageKeyFromUrl).filter((key): key is string => Boolean(key))
+    ),
+  ]
+
+  if (keys.length === 0) return
+
+  await insforgeAdmin().storage.from(BUCKET).remove(keys).catch(() => undefined)
 }

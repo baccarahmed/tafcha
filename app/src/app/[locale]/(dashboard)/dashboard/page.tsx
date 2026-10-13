@@ -79,7 +79,7 @@ export default async function DashboardOverviewPage() {
                 {overview.revenueSeries.map((point) => (
                   <div key={point.label} className="group flex flex-1 flex-col items-center gap-2">
                     <div
-                      className="w-full rounded-t-sm bg-[var(--q2m-accent)] transition-opacity group-hover:opacity-80"
+                      className="w-full rounded-t-sm bg-[var(--q2m-accent)] transition-opacity duration-140 ease-q2m group-hover:opacity-80"
                       style={{
                         height: `${Math.max((point.value / peak) * 100, 2)}%`,
                       }}

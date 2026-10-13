@@ -589,7 +589,7 @@ export default function ShopCatalog({ products }: { products: CatalogProduct[] }
                 aria-label={t('previousPage')}
                 disabled={currentPage === 1}
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
-                className="flex h-9 w-9 items-center justify-center rounded border border-[var(--q2m-line-strong)] bg-[var(--q2m-bg-elevated)] text-[var(--q2m-ink)] transition-all hover:border-[var(--q2m-accent)] active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:border-[var(--q2m-line-strong)]"
+                className="flex h-9 w-9 items-center justify-center rounded border border-[var(--q2m-line-strong)] bg-[var(--q2m-bg-elevated)] text-[var(--q2m-ink)] transition-[transform,border-color] duration-140 ease-q2m hover:border-[var(--q2m-accent)] active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:border-[var(--q2m-line-strong)]"
               >
                 <ChevronLeft size={14} className="rtl:-scale-x-100" />
               </button>
@@ -601,8 +601,8 @@ export default function ShopCatalog({ products }: { products: CatalogProduct[] }
                   aria-current={n === currentPage ? 'page' : undefined}
                   className={
                     n === currentPage
-                      ? 'h-9 w-9 rounded border border-[var(--q2m-accent)] bg-[var(--q2m-bg-dark)] text-xs font-bold text-white transition-all'
-                      : 'h-9 w-9 rounded border border-[var(--q2m-line-strong)] bg-[var(--q2m-bg-elevated)] text-xs text-[var(--q2m-ink)] transition-all hover:border-[var(--q2m-accent)] active:scale-95'
+                      ? 'h-9 w-9 rounded border border-[var(--q2m-accent)] bg-[var(--q2m-bg-dark)] text-xs font-bold text-white transition-[border-color,background-color,color] duration-140 ease-q2m'
+                      : 'h-9 w-9 rounded border border-[var(--q2m-line-strong)] bg-[var(--q2m-bg-elevated)] text-xs text-[var(--q2m-ink)] transition-[border-color,background-color,color,transform] duration-140 ease-q2m hover:border-[var(--q2m-accent)] active:scale-95'
                   }
                 >
                   {n}
@@ -613,7 +613,7 @@ export default function ShopCatalog({ products }: { products: CatalogProduct[] }
                 aria-label={t('nextPage')}
                 disabled={currentPage === pageCount}
                 onClick={() => setPage((p) => Math.min(pageCount, p + 1))}
-                className="flex h-9 w-9 items-center justify-center rounded border border-[var(--q2m-line-strong)] bg-[var(--q2m-bg-elevated)] text-[var(--q2m-ink)] transition-all hover:border-[var(--q2m-accent)] active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:border-[var(--q2m-line-strong)]"
+                className="flex h-9 w-9 items-center justify-center rounded border border-[var(--q2m-line-strong)] bg-[var(--q2m-bg-elevated)] text-[var(--q2m-ink)] transition-[transform,border-color] duration-140 ease-q2m hover:border-[var(--q2m-accent)] active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:border-[var(--q2m-line-strong)]"
               >
                 <ChevronRight size={14} className="rtl:-scale-x-100" />
               </button>

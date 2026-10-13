@@ -78,10 +78,10 @@ export default async function LoginPage({ params, searchParams }: PageProps) {
           />
         </div>
 
-        <p className="mb-3 text-center text-[11px] font-extrabold tracking-[0.16em] text-accent">
+        <p className="q2m-eyebrow mb-3 text-center">
           {t('loginKicker')}
         </p>
-        <h1 className="mb-8 text-4xl font-black leading-none tracking-[-0.02em]">
+        <h1 className="q2m-display mb-8 text-center">
           {t('loginTitle')}
         </h1>
 

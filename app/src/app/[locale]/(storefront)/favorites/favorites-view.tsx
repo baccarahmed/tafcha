@@ -48,7 +48,7 @@ function FavoriteCard({ item, index }: { item: WishlistItem; index: number }) {
         type="button"
         aria-label={t('remove')}
         onClick={() => remove(item.productId)}
-        className="absolute right-3.5 top-3.5 z-10 flex h-8 w-8 items-center justify-center transition-all duration-200 hover:border hover:border-[var(--q2m-alert)] active:scale-90"
+        className="absolute right-3.5 top-3.5 z-10 flex h-8 w-8 items-center justify-center transition-[transform,border-color,color] duration-140 ease-q2m hover:border hover:border-[var(--q2m-alert)] active:scale-90"
         style={{ background: Q2M.bgElevated, borderRadius: '999px', color: Q2M.accent }}
       >
         <Heart size={15} strokeWidth={1.5} fill="currentColor" />

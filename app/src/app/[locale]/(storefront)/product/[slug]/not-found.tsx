@@ -20,7 +20,7 @@ export default async function ProductNotFound() {
         </p>
         <Link
           href="/shop"
-          className="inline-flex items-center bg-accent px-8 py-4 text-sm font-bold tracking-[0.08em] text-on-accent transition-transform hover:scale-[1.02]"
+          className="inline-flex items-center bg-accent px-8 py-4 text-sm font-bold tracking-[0.08em] text-on-accent transition-transform duration-140 ease-q2m hover:scale-[1.02] active:scale-[0.98]"
         >
           {t('notFoundCta')}
         </Link>

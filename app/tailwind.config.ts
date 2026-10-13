@@ -3,6 +3,12 @@ import tailwindcssAnimate from "tailwindcss-animate";
 
 const config: Config = {
   darkMode: ["class"],
+  // N'applique les variants `hover:`/`group-hover:` que sur les appareils à
+  // pointeur précis. Sur mobile, un `hover` reste « collé » après un tap et
+  // révèle un état fantôme (zoom d'image, bouton surligné, etc.).
+  future: {
+    hoverOnlyWhenSupported: true,
+  },
   content: [
     "./src/app/**/*.{ts,tsx,mdx}",
     "./src/components/**/*.{ts,tsx,mdx}",
@@ -125,6 +131,18 @@ const config: Config = {
         tighterest: "-0.05em",
         ultra: "0.25em",
       },
+      // Courbes d'easing custom, alignées sur les tokens CSS `--q2m-ease-*`.
+      // Plus franches que `ease-out` natif : même durée, sensation plus vive.
+      // Clés -> classes générées : `q2m` => `ease-q2m`, `q2m-in-out` => `ease-q2m-in-out`.
+      transitionTimingFunction: {
+        q2m: "cubic-bezier(0.23, 1, 0.32, 1)",
+        "q2m-in-out": "cubic-bezier(0.77, 0, 0.175, 1)",
+      },
+      transitionDuration: {
+        140: "140ms",
+        180: "180ms",
+        240: "240ms",
+      },
       keyframes: {
         marquee: {
           "0%": { transform: "translateX(0%)" },
@@ -150,6 +168,10 @@ const config: Config = {
           from: { height: "var(--radix-accordion-content-height)" },
           to: { height: "0" },
         },
+        "skeleton-shimmer": {
+          "0%": { backgroundPosition: "-200% 0" },
+          "100%": { backgroundPosition: "200% 0" },
+        },
       },
       animation: {
         marquee: "marquee 28s linear infinite",
@@ -158,6 +180,7 @@ const config: Config = {
         "scroll-bounce": "scroll-bounce 2s ease-in-out infinite",
         "accordion-down": "accordion-down 0.3s ease-out",
         "accordion-up": "accordion-up 0.3s ease-out",
+        "skeleton-shimmer": "skeleton-shimmer 1.6s linear infinite",
       },
     },
   },

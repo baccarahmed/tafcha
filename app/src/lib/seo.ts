@@ -121,7 +121,31 @@ export function productSchema(product: CatalogProduct, locale: string) {
     description: `${product.name}${product.colorway ? ` (${product.colorway})` : ''}`,
     image: images,
     sku: product.sku ?? product.slug,
+    color: product.colorway || undefined,
     brand: { '@type': 'Brand', name: product.brand || SITE_NAME },
+    ...(product.variants && product.variants.length > 1
+      ? {
+          hasVariant: product.variants.map((variant) => ({
+            '@type': 'Product',
+            name: `${product.name}${variant.colorway ? ` (${variant.colorway})` : ''}`,
+            sku: variant.slug,
+            color: variant.colorway || undefined,
+            image: variant.image
+              ? [isAbsolute(variant.image) ? variant.image : absoluteUrl(variant.image)]
+              : undefined,
+            url: absoluteUrl(`/${locale}/product/${variant.slug}`),
+            offers: {
+              '@type': 'Offer',
+              url: absoluteUrl(`/${locale}/product/${variant.slug}`),
+              price: Number(variant.price),
+              priceCurrency: STORE_CURRENCY,
+              availability: variant.isSoldOut
+                ? 'https://schema.org/OutOfStock'
+                : 'https://schema.org/InStock',
+            },
+          })),
+        }
+      : {}),
     offers: {
       '@type': 'Offer',
       url: absoluteUrl(`/${locale}/product/${product.slug}`),

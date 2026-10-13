@@ -114,7 +114,7 @@ export default function AboutPage() {
             {t("shopCta")}
             <ArrowRight
               size={15}
-              className="transition-transform group-hover:translate-x-1 rtl:rotate-180"
+              className="transition-transform duration-140 ease-q2m group-hover:translate-x-1 rtl:rotate-180"
             />
           </Link>
         </motion.div>

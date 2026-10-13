@@ -3,9 +3,10 @@
 import { useState, useTransition } from 'react'
 import { useRouter } from '@/i18n/navigation'
 import { useTranslations } from 'next-intl'
-import { AlertCircle, Check, Star, Trash2 } from 'lucide-react'
+import { AlertCircle, Check, CopyPlus, Star, Trash2 } from 'lucide-react'
 import {
   deleteProductAction,
+  duplicateProductAction,
   updateProductAction,
 } from '@/app/actions/admin'
 import { cn } from '@/lib/utils'
@@ -21,6 +22,15 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 
 /**
  * Actions d'une fiche produit dans la liste du back-office.
@@ -32,11 +42,13 @@ import {
  */
 export default function ProductRowActions({
   productId,
+  productName,
   isActive,
   isFeatured,
   isNewDrop,
 }: {
   productId: string
+  productName: string
   isActive: boolean
   isFeatured: boolean
   isNewDrop: boolean
@@ -48,6 +60,10 @@ export default function ProductRowActions({
   const [error, setError] = useState<string | null>(null)
   const [confirming, setConfirming] = useState(false)
   const [saved, setSaved] = useState(false)
+
+  const [duplicating, setDuplicating] = useState(false)
+  const [colorway, setColorway] = useState('')
+  const [duplicateError, setDuplicateError] = useState<string | null>(null)
 
   function toggle(patch: { active?: boolean; featured?: boolean; isNewDrop?: boolean }) {
     setError(null)
@@ -62,6 +78,25 @@ export default function ProductRowActions({
 
       setSaved(true)
       setTimeout(() => setSaved(false), 1500)
+      router.refresh()
+    })
+  }
+
+  function duplicate() {
+    setDuplicateError(null)
+
+    startTransition(async () => {
+      const result = await duplicateProductAction(productId, {
+        colorway: colorway.trim() || undefined,
+      })
+
+      if (!result.ok) {
+        setDuplicateError(result.field)
+        return
+      }
+
+      setDuplicating(false)
+      setColorway('')
       router.refresh()
     })
   }
@@ -106,6 +141,66 @@ export default function ProductRowActions({
         disabled={pending}
         onClick={() => toggle({ isNewDrop: !isNewDrop })}
       />
+
+      <Dialog
+        open={duplicating}
+        onOpenChange={(open) => {
+          setDuplicating(open)
+          if (!open) setDuplicateError(null)
+        }}
+      >
+        <Button
+          asChild
+          variant="outline"
+          size="icon"
+          disabled={pending}
+        >
+          <button type="button" aria-label={t('duplicateColor')} className="h-7 w-7 text-[var(--q2m-ink-stone)]">
+            <CopyPlus className="h-3.5 w-3.5" />
+          </button>
+        </Button>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>{t('duplicateColorTitle')}</DialogTitle>
+            <p className="truncate text-xs text-[var(--q2m-ink-stone)]">{productName}</p>
+          </DialogHeader>
+
+          <form
+            onSubmit={(event) => {
+              event.preventDefault()
+              void duplicate()
+            }}
+            className="space-y-4"
+          >
+            <div>
+              <Label htmlFor={`duplicate-color-${productId}`}>{t('fieldColorway')}</Label>
+              <Input
+                id={`duplicate-color-${productId}`}
+                value={colorway}
+                onChange={(event) => setColorway(event.target.value)}
+                placeholder={t('duplicateColorPlaceholder')}
+                className="border-[var(--q2m-line-soft)] focus-visible:ring-transparent"
+              />
+              <p className="mt-1.5 text-xs text-[var(--q2m-ink-stone)]">
+                {t('duplicateColorHint')}
+              </p>
+            </div>
+
+            {duplicateError && (
+              <p className="inline-flex items-center gap-2 text-sm text-[var(--q2m-alert)]">
+                <AlertCircle className="h-4 w-4" />
+                {t(`manageError_${duplicateError}`)}
+              </p>
+            )}
+
+            <DialogFooter>
+              <Button type="submit" disabled={pending}>
+                {t('duplicateColor')}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
 
       <AlertDialog open={confirming} onOpenChange={setConfirming}>
         <AlertDialogTrigger asChild>

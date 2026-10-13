@@ -9,6 +9,7 @@ import {
   createProductAction,
 } from '@/app/actions/products'
 import { MAX_PRODUCT_IMAGES, cn, slugify } from '@/lib/utils'
+import { ACCEPTED_IMAGE_TYPES, toCompressedBase64 } from '@/lib/image-compress'
 import type { DbCategory } from '@/types/catalog'
 import type { ProductGender, SneakerPalette } from '@/types/product'
 import { Button } from '@/components/ui/button'
@@ -49,37 +50,19 @@ interface PendingImage {
   preview: string
 }
 
-const ACCEPTED = ['image/jpeg', 'image/png', 'image/webp']
+const ACCEPTED = ACCEPTED_IMAGE_TYPES
 
 /**
- * Reduit la photo avant envoi : une image de smartphone fait plusieurs Mo et
- * Gemini n'a pas besoin de plus que 1024 px pour lire une silhouette.
+ * Le formulaire cree la fiche a la validee : les photos restent en memoire
+ * jusqu'a la creation et l'upload n'a lieu qu'une fois le slug connu.
  */
-async function toCompressedBase64(file: File): Promise<{ base64: string; mimeType: string }> {
-  const bitmap = await createImageBitmap(file)
-
-  const maxEdge = 1024
-  const scale = Math.min(1, maxEdge / Math.max(bitmap.width, bitmap.height))
-
-  const canvas = document.createElement('canvas')
-  canvas.width = Math.round(bitmap.width * scale)
-  canvas.height = Math.round(bitmap.height * scale)
-
-  const context = canvas.getContext('2d')
-  if (!context) throw new Error('canvas indisponible')
-
-  context.drawImage(bitmap, 0, 0, canvas.width, canvas.height)
-  bitmap.close()
-
-  const dataUrl = canvas.toDataURL('image/jpeg', 0.82)
-
-  return {
-    base64: dataUrl.slice(dataUrl.indexOf(',') + 1),
-    mimeType: 'image/jpeg',
-  }
-}
-
-export default function ProductForm({ categories }: { categories: DbCategory[] }) {
+export default function ProductForm({
+  categories,
+  models,
+}: {
+  categories: DbCategory[]
+  models: { id: string; name: string; colorway: string | null }[]
+}) {
   const t = useTranslations('dashboard')
   const router = useRouter()
   const locale = useLocale()
@@ -99,6 +82,7 @@ export default function ProductForm({ categories }: { categories: DbCategory[] }
   const [price, setPrice] = useState('')
   const [comparePrice, setComparePrice] = useState('')
   const [categoryId, setCategoryId] = useState('')
+  const [parentId, setParentId] = useState('')
   const [gender, setGender] = useState<ProductGender>('unisexe')
   const [palette, setPalette] = useState<SneakerPalette>('onyx')
   const [sizes, setSizes] = useState<SizeRow[]>([{ size: 42, stock: 1 }])
@@ -157,6 +141,7 @@ export default function ProductForm({ categories }: { categories: DbCategory[] }
     setPrice('')
     setComparePrice('')
     setCategoryId('')
+    setParentId('')
     setGender('unisexe')
     setPalette('onyx')
     setSizes([{ size: 42, stock: 1 }])
@@ -283,6 +268,7 @@ export default function ProductForm({ categories }: { categories: DbCategory[] }
           price: Number(price),
           comparePrice: compare,
           categoryId: categoryId === '' ? null : categoryId,
+          parentId: parentId === '' ? null : parentId,
           gender,
           palette,
           sizes: sizes.map((row) => ({
@@ -532,6 +518,28 @@ export default function ProductForm({ categories }: { categories: DbCategory[] }
                     {categories.map((category) => (
                       <SelectItem key={category.id} value={category.id}>
                         {category.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label>{t('fieldParentModel')}</Label>
+                <Select
+                  value={parentId || 'none'}
+                  onValueChange={(value) =>
+                    setParentId(value === 'none' ? '' : value)
+                  }
+                >
+                  <SelectTrigger className={cn('w-full', fieldClass)}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">{t('parentNone')}</SelectItem>
+                    {models.map((model) => (
+                      <SelectItem key={model.id} value={model.id}>
+                        {model.colorway ? `${model.name} · ${model.colorway}` : model.name}
                       </SelectItem>
                     ))}
                   </SelectContent>

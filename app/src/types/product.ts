@@ -1,5 +1,20 @@
 export type SneakerPalette = 'crimson' | 'ember' | 'void' | 'volt' | 'onyx';
 
+/**
+ * Un coloris d'un modele. Le modele regroupe plusieurs fiches produit (une par
+ * coloris) ; chaque variante est une fiche complete avec son propre stock.
+ */
+export interface ProductVariant {
+  id: string;
+  slug: string;
+  colorway: string;
+  palette: SneakerPalette;
+  /** Photo de couverture du coloris, pour la pastille du selecteur. */
+  image?: string;
+  price: number;
+  isSoldOut: boolean;
+}
+
 export interface SneakerProduct {
   id: string;
   slug: string;
@@ -22,6 +37,10 @@ export interface SneakerProduct {
   releaseDate?: string;
   isNewDrop?: boolean;
   isSoldOut?: boolean;
+  /** Modele parent ; null pour la fiche de reference, renseigne pour un coloris. */
+  parentId?: string | null;
+  /** Tous les coloris du modele, fiche courante comprise. */
+  variants?: ProductVariant[];
 }
 
 export type ProductGender = 'homme' | 'femme' | 'enfant' | 'unisexe';

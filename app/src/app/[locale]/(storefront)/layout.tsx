@@ -1,5 +1,6 @@
 import { StorefrontNavbar } from '@/components/storefront/StorefrontNavbar';
 import { StorefrontFooter } from '@/components/storefront/StorefrontFooter';
+import { StorefrontBottomNav } from '@/components/storefront/StorefrontBottomNav';
 import { CartDrawer } from '@/components/storefront/CartDrawer';
 import { MotionPageContainer } from '@/components/motion/motion-container';
 import { getProducts, getSiteSettings } from '@/lib/catalog';
@@ -36,6 +37,7 @@ export default async function StorefrontLayout({
         shippingCost={shippingCost}
       />
       <StorefrontFooter />
+      <StorefrontBottomNav />
     </>
   );
 }

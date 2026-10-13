@@ -1,7 +1,7 @@
 import type { MetadataRoute } from 'next';
 import { routing } from '@/i18n/routing';
 import { absoluteUrl } from '@/lib/site';
-import { getProducts } from '@/lib/catalog';
+import { getAllProductSlugs } from '@/lib/catalog';
 
 export const dynamic = 'force-dynamic';
 
@@ -15,7 +15,7 @@ function languagesFor(path: string): Record<string, string> {
 }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const products = await getProducts().catch(() => []);
+  const slugs = await getAllProductSlugs().catch(() => []);
 
   const paths: { path: string; priority: number }[] = [
     { path: '', priority: 1 },
@@ -27,8 +27,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { path: '/privacy', priority: 0.3 },
     { path: '/cookies', priority: 0.3 },
     { path: '/returns', priority: 0.3 },
-    ...products.map((product) => ({
-      path: `/product/${product.slug}`,
+    ...slugs.map((slug) => ({
+      path: `/product/${slug}`,
       priority: 0.8,
     })),
   ];
