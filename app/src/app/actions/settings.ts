@@ -1,6 +1,6 @@
 'use server'
 
-import { revalidatePath } from 'next/cache'
+import { revalidateCatalog } from '@/lib/revalidate-catalog'
 import { saveSiteSettings, type SiteSettingsInput } from '@/lib/admin-settings'
 import { getSessionUser } from '@/lib/session'
 
@@ -21,7 +21,7 @@ export async function updateSiteSettings(
 
   await saveSiteSettings(input)
 
-  revalidatePath('/', 'layout')
+  revalidateCatalog()
 
   return { ok: true }
 }

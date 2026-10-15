@@ -30,9 +30,10 @@ export default async function CheckoutPage({ params }: PageProps) {
 
   // Commande invitee : aucun compte n'est requis. On pre-remplit simplement le
   // formulaire quand une session existe, sinon les champs sont vides.
-  const user = await getSessionUser();
-
-  const settings = await getSiteSettings().catch(() => null);
+  const [user, settings] = await Promise.all([
+    getSessionUser(),
+    getSiteSettings().catch(() => null),
+  ]);
 
   return (
     <CheckoutView

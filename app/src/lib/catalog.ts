@@ -1,6 +1,10 @@
 import 'server-only'
 
+import { cache } from 'react'
+import { unstable_cache } from 'next/cache'
+
 import { insforgeAdmin } from './insforge-admin'
+import { CATALOG_TAGS } from './cache-tags'
 import {
   applyPercentage,
   getActivePromotions,
@@ -149,7 +153,7 @@ export function groupByModel(products: SneakerProduct[]): SneakerProduct[] {
   })
 }
 
-export async function getProducts(): Promise<SneakerProduct[]> {
+async function loadProducts(): Promise<SneakerProduct[]> {
   const [rows, promotions] = await Promise.all([
     insforgeAdmin()
       .database.from('products')
@@ -164,7 +168,22 @@ export async function getProducts(): Promise<SneakerProduct[]> {
   return groupByModel(withPromotions(asRows(data).map(toProduct), promotions))
 }
 
-export async function getFeaturedProducts(limit = 4): Promise<SneakerProduct[]> {
+/**
+ * Catalogue complet, groupe par modele.
+ *
+ * Deux niveaux de cache : `cache` dedoublonne les appels d'un meme rendu (le
+ * layout et la page partagent une seule requete), `unstable_cache` sert les
+ * navigations suivantes depuis le Data Cache. Toute ecriture back-office purge
+ * via `revalidateTag` (cf. `lib/revalidate-catalog.ts`).
+ */
+export const getProducts = cache(
+  unstable_cache(loadProducts, ['catalog-products'], {
+    tags: [CATALOG_TAGS.products],
+    revalidate: 300,
+  })
+)
+
+async function loadFeaturedProducts(limit = 4): Promise<SneakerProduct[]> {
   const [rows, promotions] = await Promise.all([
     insforgeAdmin()
       .database.from('products')
@@ -180,7 +199,14 @@ export async function getFeaturedProducts(limit = 4): Promise<SneakerProduct[]> 
   return groupByModel(withPromotions(asRows(data).map(toProduct), promotions)).slice(0, limit)
 }
 
-export async function getDrops(limit = 4): Promise<SneakerProduct[]> {
+export const getFeaturedProducts = cache(
+  unstable_cache(loadFeaturedProducts, ['catalog-featured'], {
+    tags: [CATALOG_TAGS.products],
+    revalidate: 300,
+  })
+)
+
+async function loadDrops(limit = 4): Promise<SneakerProduct[]> {
   const [rows, promotions] = await Promise.all([
     insforgeAdmin()
       .database.from('products')
@@ -195,6 +221,13 @@ export async function getDrops(limit = 4): Promise<SneakerProduct[]> {
   if (error) throw new Error(`Failed to load drops: ${error.message}`)
   return groupByModel(withPromotions(asRows(data).map(toProduct), promotions)).slice(0, limit)
 }
+
+export const getDrops = cache(
+  unstable_cache(loadDrops, ['catalog-drops'], {
+    tags: [CATALOG_TAGS.products],
+    revalidate: 300,
+  })
+)
 
 /**
  * Charge une fiche et les coloris de son modele. Le modele est identifie par la
@@ -233,7 +266,7 @@ async function loadVariants(
     .map((row) => toVariant(withPromotion(toProduct(row), promotions)))
 }
 
-export async function getProductBySlug(slug: string): Promise<SneakerProduct | null> {
+async function loadProductBySlug(slug: string): Promise<SneakerProduct | null> {
   const [rows, promotions] = await Promise.all([
     insforgeAdmin()
       .database.from('products')
@@ -254,6 +287,20 @@ export async function getProductBySlug(slug: string): Promise<SneakerProduct | n
 }
 
 /**
+ * Une fiche produit et ses coloris, memoisée par slug.
+ *
+ * `generateMetadata` et la page appellent tous deux `getProductBySlug(slug)` :
+ * `cache` les fait converger vers une seule requete et `unstable_cache` evite de
+ * la rejouer a chaque navigation.
+ */
+export const getProductBySlug = cache(
+  unstable_cache(loadProductBySlug, ['catalog-product'], {
+    tags: [CATALOG_TAGS.products],
+    revalidate: 300,
+  })
+)
+
+/**
  * Tous les slugs actifs, coloris compris. Le sitemap doit lister chaque page
  * produit : le regroupement en modeles de `getProducts()` masquerait les
  * coloris, qui restent pourtant des pages indexables.
@@ -269,7 +316,7 @@ export async function getAllProductSlugs(): Promise<string[]> {
   return ((data ?? []) as unknown as { slug: string }[]).map((row) => row.slug)
 }
 
-export async function getCategories(): Promise<DbCategory[]> {
+async function loadCategories(): Promise<DbCategory[]> {
   const { data, error } = await insforgeAdmin()
     .database.from('categories')
     .select('*')
@@ -279,7 +326,14 @@ export async function getCategories(): Promise<DbCategory[]> {
   return (data ?? []) as DbCategory[]
 }
 
-export async function getSiteSettings(): Promise<SiteSettings | null> {
+export const getCategories = cache(
+  unstable_cache(loadCategories, ['catalog-categories'], {
+    tags: [CATALOG_TAGS.products],
+    revalidate: 300,
+  })
+)
+
+async function loadSiteSettings(): Promise<SiteSettings | null> {
   const { data, error } = await insforgeAdmin()
     .database.from('site_settings')
     .select('*')
@@ -289,6 +343,44 @@ export async function getSiteSettings(): Promise<SiteSettings | null> {
   if (error) throw new Error(`Failed to load site settings: ${error.message}`)
   return (data as SiteSettings) ?? null
 }
+
+export const getSiteSettings = cache(
+  unstable_cache(loadSiteSettings, ['catalog-site-settings'], {
+    tags: [CATALOG_TAGS.settings],
+    revalidate: 300,
+  })
+)
+
+/**
+ * Genres effectivement presents au catalogue, pour la navigation.
+ *
+ * Le layout vitrine n'a besoin que de cette liste : charger tout le catalogue
+ * (colonnes, promotions, regroupement en modeles) a chaque page etait le plus
+ * gros cout de navigation. Une seule colonne suffit.
+ */
+async function loadGenders(): Promise<ProductGender[]> {
+  const { data, error } = await insforgeAdmin()
+    .database.from('products')
+    .select('gender')
+    .eq('active', true)
+
+  if (error) throw new Error(`Failed to load product genders: ${error.message}`)
+
+  const genders = new Set<ProductGender>()
+
+  for (const row of (data ?? []) as unknown as { gender: ProductGender | null }[]) {
+    if (row.gender) genders.add(row.gender)
+  }
+
+  return [...genders]
+}
+
+export const getGenders = cache(
+  unstable_cache(loadGenders, ['catalog-genders'], {
+    tags: [CATALOG_TAGS.products],
+    revalidate: 300,
+  })
+)
 
 /**
  * L'INSERT est reserve au client project_admin (insforgeAdmin) : les droits

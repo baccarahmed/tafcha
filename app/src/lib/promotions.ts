@@ -1,5 +1,7 @@
 import 'server-only'
 
+import { cache } from 'react'
+
 import { insforgeAdmin } from './insforge-admin'
 
 export interface ActivePromotion {
@@ -38,7 +40,7 @@ function toTargets(value: string[] | string | null): string[] {
  * La date est filtree en base plutot que cote applicatif pour que la vitrine et
  * le checkout partagent la meme fenetre, y compris sur un serveur en UTC.
  */
-export async function getActivePromotions(now: Date = new Date()): Promise<ActivePromotion[]> {
+async function loadActivePromotions(now: Date): Promise<ActivePromotion[]> {
   const iso = now.toISOString()
 
   const { data, error } = await insforgeAdmin()
@@ -57,6 +59,21 @@ export async function getActivePromotions(now: Date = new Date()): Promise<Activ
     targets: toTargets(row.targets),
     percentage: Number(row.percentage) || 0,
   }))
+}
+
+/**
+ * Horloge figee une fois par requete : sans cela, chaque `getActivePromotions()`
+ * creerait un `new Date()` distinct, donc une cle de memoisation distincte, et
+ * le catalogue rejouerait la requete promotions a chaque appel.
+ */
+const getActivePromotionsCached = cache(() => loadActivePromotions(new Date()))
+
+/**
+ * `now` reste expose pour les appelants qui doivent fixer la fenetre (tests,
+ * outils) ; le chemin courant, sans argument, est memorise par requete.
+ */
+export function getActivePromotions(now?: Date): Promise<ActivePromotion[]> {
+  return now ? loadActivePromotions(now) : getActivePromotionsCached()
 }
 
 export interface PromotionTargetable {

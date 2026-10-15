@@ -11,11 +11,14 @@ import { getProducts } from "@/lib/catalog";
 import { getSiteSettings } from "@/lib/admin-settings";
 
 export default async function HomePage() {
-  const t = await getTranslations("home");
-  const products = await getProducts().catch(() => []);
-  const galleryImages = await getSiteSettings()
-    .then((settings) => settings.galleryImages)
-    .catch(() => []);
+  const [t, products, galleryImages] = await Promise.all([
+    getTranslations("home"),
+    getProducts().catch(() => []),
+    getSiteSettings()
+      .then((settings) => settings.galleryImages)
+      .catch(() => []),
+  ]);
+
   const newDrops = products.filter((p) => p.isNewDrop).slice(0, 4);
   const bestSellers = products.filter((p) => p.featured).slice(0, 4);
 

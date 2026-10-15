@@ -26,7 +26,7 @@ vi.mock('@/lib/gemini', () => ({
   analyzeProductImage: vi.fn(),
   AiConfigError: class AiConfigError extends Error {},
 }))
-vi.mock('next/cache', () => ({ revalidatePath: vi.fn() }))
+vi.mock('next/cache', () => ({ revalidatePath: vi.fn(), revalidateTag: vi.fn() }))
 
 import { getSessionUser } from '@/lib/session'
 import {

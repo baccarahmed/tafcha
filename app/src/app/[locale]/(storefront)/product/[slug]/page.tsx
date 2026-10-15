@@ -40,17 +40,21 @@ export default async function ProductPage({ params }: PageProps) {
   const { locale, slug } = await params;
   setRequestLocale(locale);
 
-  const product = await getProductBySlug(slug).catch(() => null);
+  const [product, allProducts, user] = await Promise.all([
+    getProductBySlug(slug).catch(() => null),
+    getProducts().catch(() => []),
+    getSessionUser().catch(() => null),
+  ]);
 
   if (!product) notFound();
 
   const rootId = product.parentId ?? product.id;
-  const related = (await getProducts().catch(() => []))
+  const related = allProducts
     .filter((p) => (p.parentId ?? p.id) !== rootId)
     .slice(0, 4);
 
   const reviews = await getProductReviews(product.id).catch(() => []);
-  const signedIn = (await getSessionUser().catch(() => null)) !== null;
+  const signedIn = user !== null;
 
   return (
     <>

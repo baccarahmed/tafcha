@@ -1,6 +1,6 @@
 'use server'
 
-import { revalidatePath } from 'next/cache'
+import { revalidateCatalog } from '@/lib/revalidate-catalog'
 import { getSessionUser } from '@/lib/session'
 import { saveGalleryImages } from '@/lib/admin-settings'
 import {
@@ -58,7 +58,7 @@ export async function updateGalleryImages(
 
   await saveGalleryImages(clean)
 
-  revalidatePath('/', 'layout')
+  revalidateCatalog()
 
   return { ok: true }
 }

@@ -3,7 +3,7 @@ import { StorefrontFooter } from '@/components/storefront/StorefrontFooter';
 import { StorefrontBottomNav } from '@/components/storefront/StorefrontBottomNav';
 import { CartDrawer } from '@/components/storefront/CartDrawer';
 import { MotionPageContainer } from '@/components/motion/motion-container';
-import { getProducts, getSiteSettings } from '@/lib/catalog';
+import { getGenders, getSiteSettings } from '@/lib/catalog';
 
 export default async function StorefrontLayout({
   children,
@@ -12,19 +12,16 @@ export default async function StorefrontLayout({
 }) {
   // Le panier ne doit pas tomber si `site_settings` est momentanement
   // injoignable : on garde les seuils par defaut plutot que de casser la vitrine.
-  const [settings, products] = await Promise.all([
+  // Les genres viennent d'une requete legere (une colonne) : charger tout le
+  // catalogue a chaque navigation n'etait pas necessaire pour la navbar.
+  const [settings, genders] = await Promise.all([
     getSiteSettings().catch(() => null),
-    getProducts().catch(() => []),
+    getGenders().catch(() => []),
   ]);
 
   const freeShippingThreshold =
     Number(settings?.free_shipping_threshold_dnt) || 200;
   const shippingCost = Number(settings?.shipping_cost_dnt) || 10;
-
-  // Un lien de navigation vers un genre sans produit ouvre une grille vide.
-  const genders = Array.from(
-    new Set(products.map((p) => p.gender).filter((g): g is NonNullable<typeof g> => Boolean(g)))
-  );
 
   return (
     <>

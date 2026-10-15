@@ -1,6 +1,10 @@
 import 'server-only'
 
+import { cache } from 'react'
+import { unstable_cache } from 'next/cache'
+
 import { insforgeAdmin } from '@/lib/insforge-admin'
+import { CATALOG_TAGS } from '@/lib/cache-tags'
 
 /**
  * Lecture et ecriture de la ligne unique public.site_settings (id = 'main').
@@ -69,7 +73,7 @@ function mapSettings(row: SettingsRow): SiteSettings {
   }
 }
 
-export async function getSiteSettings(): Promise<SiteSettings> {
+async function loadSiteSettings(): Promise<SiteSettings> {
   const { data, error } = await insforgeAdmin()
     .database.from('site_settings')
     .select(
@@ -99,6 +103,17 @@ export async function getSiteSettings(): Promise<SiteSettings> {
 
   return mapSettings((data as SettingsRow | null) ?? defaults)
 }
+
+/**
+ * Reglages vitrine (forme camelCase). Meme cache que `catalog.getSiteSettings` :
+ * les ecritures back-office purgent l'etiquette `settings`.
+ */
+export const getSiteSettings = cache(
+  unstable_cache(loadSiteSettings, ['admin-site-settings'], {
+    tags: [CATALOG_TAGS.settings],
+    revalidate: 300,
+  })
+)
 
 export interface SiteSettingsInput {
   heroTitle: string

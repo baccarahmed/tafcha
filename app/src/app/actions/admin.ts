@@ -1,6 +1,6 @@
 'use server'
 
-import { revalidatePath } from 'next/cache'
+import { revalidateCatalog } from '@/lib/revalidate-catalog'
 import { getSessionUser } from '@/lib/session'
 import {
   deleteProduct,
@@ -45,7 +45,7 @@ export type ActionResult = { ok: true } | { ok: false; field: string }
 
 /** Revalide le dashboard et la vitrine : les deux lisent les memes tables. */
 function refresh(): void {
-  revalidatePath('/', 'layout')
+  revalidateCatalog()
 }
 
 export async function updateProductAction(

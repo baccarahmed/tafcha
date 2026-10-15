@@ -1,6 +1,6 @@
 'use server'
 
-import { revalidatePath } from 'next/cache'
+import { revalidateCatalog } from '@/lib/revalidate-catalog'
 import { getSessionUser } from '@/lib/session'
 import {
   createProduct,
@@ -65,7 +65,7 @@ export async function createProductAction(
 
       const created = await createProduct({ ...input, images: urls })
 
-      revalidatePath('/', 'layout')
+      revalidateCatalog()
 
       return { ok: true, slug: created.slug }
     } catch (error) {
