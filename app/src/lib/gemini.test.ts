@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest'
-import { normalizeSku, toDraft } from '@/lib/gemini'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { AiConfigError, analyzeProductImage, normalizeSku, toDraft } from '@/lib/gemini'
 
 describe('normalizeSku', () => {
   it('majuscules, espaces en tirets', () => {
@@ -79,5 +79,90 @@ describe('toDraft', () => {
     const draft = toDraft({ name: 'Model X', gender: 'robot', palette: 'rose' })
     expect(draft?.gender).toBe('unisexe')
     expect(draft?.palette).toBe('onyx')
+  })
+})
+
+describe('analyzeProductImage', () => {
+  const ORIGINAL_KEY = process.env.GEMINI_API_KEY
+  const ORIGINAL_MODEL = process.env.GEMINI_MODEL
+
+  const draftText = JSON.stringify({
+    name: 'Model',
+    brand: 'Q2M',
+    sku: 'A-1',
+    colorway: 'Bone',
+    description: 'desc',
+    gender: 'unisexe',
+    palette: 'onyx',
+  })
+
+  const okBody = { candidates: [{ content: { parts: [{ text: draftText }] } }] }
+
+  const jsonResponse = (body: unknown, ok = true, status = 200) => ({
+    ok,
+    status,
+    json: async () => body,
+  })
+
+  beforeEach(() => {
+    process.env.GEMINI_API_KEY = 'test-key'
+    delete process.env.GEMINI_MODEL
+  })
+
+  afterEach(() => {
+    vi.unstubAllGlobals()
+    process.env.GEMINI_API_KEY = ORIGINAL_KEY
+    process.env.GEMINI_MODEL = ORIGINAL_MODEL
+  })
+
+  it('leve AiConfigError sans cle', async () => {
+    delete process.env.GEMINI_API_KEY
+    await expect(
+      analyzeProductImage({ base64: 'a', mimeType: 'image/jpeg' }, 'fr'),
+    ).rejects.toBeInstanceOf(AiConfigError)
+  })
+
+  it('joint un signal de timeout a la requete', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(jsonResponse(okBody))
+    vi.stubGlobal('fetch', fetchMock)
+
+    await analyzeProductImage({ base64: 'a', mimeType: 'image/jpeg' }, 'fr')
+
+    const options = fetchMock.mock.calls[0][1] as RequestInit
+    expect(options.signal).toBeInstanceOf(AbortSignal)
+  })
+
+  it('bascule sur le modele suivant apres une panne reseau', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockRejectedValueOnce(new TypeError('fetch failed'))
+      .mockResolvedValueOnce(jsonResponse(okBody))
+    vi.stubGlobal('fetch', fetchMock)
+
+    const draft = await analyzeProductImage({ base64: 'a', mimeType: 'image/jpeg' }, 'fr')
+
+    expect(draft.name).toBe('Model')
+    expect(fetchMock).toHaveBeenCalledTimes(2)
+  })
+
+  it('bascule apres une reponse non-ok', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(jsonResponse({ error: { message: 'high demand' } }, false, 503))
+      .mockResolvedValueOnce(jsonResponse(okBody))
+    vi.stubGlobal('fetch', fetchMock)
+
+    const draft = await analyzeProductImage({ base64: 'a', mimeType: 'image/jpeg' }, 'fr')
+
+    expect(draft.name).toBe('Model')
+    expect(fetchMock).toHaveBeenCalledTimes(2)
+  })
+
+  it('echoue avec le dernier motif si tous les modeles tombent', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new TypeError('fetch failed')))
+
+    await expect(
+      analyzeProductImage({ base64: 'a', mimeType: 'image/jpeg' }, 'fr'),
+    ).rejects.toThrow(/gemini: fetch failed/)
   })
 })

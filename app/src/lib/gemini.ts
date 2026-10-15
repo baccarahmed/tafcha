@@ -145,9 +145,22 @@ export function toDraft(raw: unknown): ProductDraft | null {
 }
 
 /**
+ * Delai maximal d'une tentative.
+ *
+ * Le defaut d'undici est de 5 minutes : un socket muet (IPv6 blackhole, reseau
+ * qui tombe) bloquerait l'action tout ce temps avant de remonter un
+ * `HeadersTimeoutError`. On coupe court pour pouvoir tenter le modele suivant.
+ */
+const REQUEST_TIMEOUT_MS = 25_000
+
+/**
  * Gemini renvoie 503 « high demand » de facon aleatoire sur les modeles les
  * plus demandes. Un seul appel echoue donc de maniere aleatoire : on tente les
  * modeles dans l'ordre et on garde la premiere reponse exploitable.
+ *
+ * Une panne reseau (timeout compris) est traitee comme un echec de ce modele
+ * uniquement : sans ce `try`, un unique stall faisait echouer toute l'analyse
+ * alors que les autres modeles etaient disponibles.
  */
 async function request(
   apiKey: string,
@@ -158,36 +171,43 @@ async function request(
   let lastError = 'aucun modele disponible'
 
   for (const model of models) {
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
-        body: JSON.stringify({
-          contents: [
-            {
-              role: 'user',
-              parts: [
-                { text: `${PROMPT}\nLangue de la description : ${locale}.` },
-                { inline_data: { mime_type: image.mimeType, data: image.base64 } },
-              ],
+    try {
+      const response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
+          body: JSON.stringify({
+            contents: [
+              {
+                role: 'user',
+                parts: [
+                  { text: `${PROMPT}\nLangue de la description : ${locale}.` },
+                  { inline_data: { mime_type: image.mimeType, data: image.base64 } },
+                ],
+              },
+            ],
+            generationConfig: {
+              responseMimeType: 'application/json',
+              responseSchema: RESPONSE_SCHEMA,
             },
-          ],
-          generationConfig: {
-            responseMimeType: 'application/json',
-            responseSchema: RESPONSE_SCHEMA,
-          },
-        }),
-      },
-    )
+          }),
+          signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+        },
+      )
 
-    const body = (await response.json()) as GeminiResponse
+      const body = (await response.json()) as GeminiResponse
 
-    if (response.ok && body.candidates?.[0]?.content?.parts?.[0]?.text) {
-      return body
+      if (response.ok && body.candidates?.[0]?.content?.parts?.[0]?.text) {
+        return body
+      }
+
+      lastError = body.error?.message ?? String(response.status)
+    } catch (error) {
+      // Timeout, DNS ou socket casse : on retient le motif et on passe au
+      // modele suivant plutot que d'abandonner l'analyse.
+      lastError = error instanceof Error ? error.message : String(error)
     }
-
-    lastError = body.error?.message ?? String(response.status)
   }
 
   throw new Error(`gemini: ${lastError}`)
