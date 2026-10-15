@@ -55,7 +55,13 @@ export default async function DashboardAnalyticsPage({
   ]
 
   const periodLabel = t(
-    period === '7d' ? 'period7d' : period === '1m' ? 'period1m' : 'period6m'
+    period === '7d'
+      ? 'period7d'
+      : period === '1m'
+        ? 'period1m'
+        : period === '3m'
+          ? 'period3m'
+          : 'period6m'
   )
 
   return (

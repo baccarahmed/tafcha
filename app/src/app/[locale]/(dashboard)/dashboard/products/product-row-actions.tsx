@@ -28,6 +28,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -149,16 +150,18 @@ export default function ProductRowActions({
           if (!open) setDuplicateError(null)
         }}
       >
-        <Button
-          asChild
-          variant="outline"
-          size="icon"
-          disabled={pending}
-        >
-          <button type="button" aria-label={t('duplicateColor')} className="h-7 w-7 text-[var(--q2m-ink-stone)]">
+        <DialogTrigger asChild>
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            disabled={pending}
+            aria-label={t('duplicateColor')}
+            className="h-7 w-7 text-[var(--q2m-ink-stone)]"
+          >
             <CopyPlus className="h-3.5 w-3.5" />
-          </button>
-        </Button>
+          </Button>
+        </DialogTrigger>
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>{t('duplicateColorTitle')}</DialogTitle>

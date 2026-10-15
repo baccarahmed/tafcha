@@ -1,6 +1,12 @@
 import 'server-only'
 
 import { insforgeAdmin } from './insforge-admin'
+import {
+  applyPercentage,
+  getActivePromotions,
+  resolveDiscountPercentage,
+  type ActivePromotion,
+} from './promotions'
 import type { SneakerPalette, ProductGender, ProductVariant } from '@/types/product'
 import type { CatalogProduct, DbCategory, SiteSettings } from '@/types/catalog'
 
@@ -74,6 +80,33 @@ function toProduct(row: ProductRow): SneakerProduct {
 
 const asRows = (data: unknown): ProductRow[] => (data ?? []) as ProductRow[]
 
+/**
+ * Applique aux promotions actives le prix affiche par la vitrine.
+ *
+ * Le prix de base devient le prix remise et repasse en prix barré (`comparePrice`),
+ * ce qui donne au client la valeur depart sans modifier la table `products` : les
+ * promotions ne sont qu'une vue temporelle. `discountPercentage` permet aux
+ * composants d'afficher le badge « -X % ».
+ */
+function withPromotion(product: SneakerProduct, promotions: ActivePromotion[]): SneakerProduct {
+  const percentage = resolveDiscountPercentage(product, promotions)
+  if (percentage <= 0) return product
+
+  const original = product.price
+  const discounted = applyPercentage(original, percentage)
+  if (discounted >= original) return product
+
+  return {
+    ...product,
+    price: discounted,
+    comparePrice: Math.max(product.comparePrice ?? 0, original),
+    discountPercentage: percentage,
+  }
+}
+
+const withPromotions = (products: SneakerProduct[], promotions: ActivePromotion[]): SneakerProduct[] =>
+  products.map((product) => withPromotion(product, promotions))
+
 export const toVariant = (product: SneakerProduct): ProductVariant => ({
   id: product.id,
   slug: product.slug,
@@ -117,38 +150,50 @@ export function groupByModel(products: SneakerProduct[]): SneakerProduct[] {
 }
 
 export async function getProducts(): Promise<SneakerProduct[]> {
-  const { data, error } = await insforgeAdmin()
-    .database.from('products')
-    .select(PRODUCT_COLUMNS)
-    .eq('active', true)
-    .order('created_at', { ascending: false })
+  const [rows, promotions] = await Promise.all([
+    insforgeAdmin()
+      .database.from('products')
+      .select(PRODUCT_COLUMNS)
+      .eq('active', true)
+      .order('created_at', { ascending: false }),
+    getActivePromotions(),
+  ])
+  const { data, error } = rows
 
   if (error) throw new Error(`Failed to load products: ${error.message}`)
-  return groupByModel(asRows(data).map(toProduct))
+  return groupByModel(withPromotions(asRows(data).map(toProduct), promotions))
 }
 
 export async function getFeaturedProducts(limit = 4): Promise<SneakerProduct[]> {
-  const { data, error } = await insforgeAdmin()
-    .database.from('products')
-    .select(PRODUCT_COLUMNS)
-    .eq('active', true)
-    .eq('featured', true)
-    .order('created_at', { ascending: false })
+  const [rows, promotions] = await Promise.all([
+    insforgeAdmin()
+      .database.from('products')
+      .select(PRODUCT_COLUMNS)
+      .eq('active', true)
+      .eq('featured', true)
+      .order('created_at', { ascending: false }),
+    getActivePromotions(),
+  ])
+  const { data, error } = rows
 
   if (error) throw new Error(`Failed to load featured products: ${error.message}`)
-  return groupByModel(asRows(data).map(toProduct)).slice(0, limit)
+  return groupByModel(withPromotions(asRows(data).map(toProduct), promotions)).slice(0, limit)
 }
 
 export async function getDrops(limit = 4): Promise<SneakerProduct[]> {
-  const { data, error } = await insforgeAdmin()
-    .database.from('products')
-    .select(PRODUCT_COLUMNS)
-    .eq('is_new_drop', true)
-    .eq('active', true)
-    .order('drop_ends_at', { ascending: true })
+  const [rows, promotions] = await Promise.all([
+    insforgeAdmin()
+      .database.from('products')
+      .select(PRODUCT_COLUMNS)
+      .eq('is_new_drop', true)
+      .eq('active', true)
+      .order('drop_ends_at', { ascending: true }),
+    getActivePromotions(),
+  ])
+  const { data, error } = rows
 
   if (error) throw new Error(`Failed to load drops: ${error.message}`)
-  return groupByModel(asRows(data).map(toProduct)).slice(0, limit)
+  return groupByModel(withPromotions(asRows(data).map(toProduct), promotions)).slice(0, limit)
 }
 
 /**
@@ -156,7 +201,10 @@ export async function getDrops(limit = 4): Promise<SneakerProduct[]> {
  * fiche de reference (`parent_id` null) : que l'on ouvre la reference ou l'un de
  * ses coloris, on retombe sur le meme ensemble de variantes.
  */
-async function loadVariants(product: SneakerProduct): Promise<ProductVariant[]> {
+async function loadVariants(
+  product: SneakerProduct,
+  promotions: ActivePromotion[]
+): Promise<ProductVariant[]> {
   const rootId = product.parentId ?? product.id
 
   const [children, root] = await Promise.all([
@@ -182,23 +230,27 @@ async function loadVariants(product: SneakerProduct): Promise<ProductVariant[]> 
 
   return rows
     .filter((row) => (seen.has(row.id) ? false : seen.add(row.id)))
-    .map((row) => toVariant(toProduct(row)))
+    .map((row) => toVariant(withPromotion(toProduct(row), promotions)))
 }
 
 export async function getProductBySlug(slug: string): Promise<SneakerProduct | null> {
-  const { data, error } = await insforgeAdmin()
-    .database.from('products')
-    .select(PRODUCT_COLUMNS)
-    .eq('slug', slug)
-    .eq('active', true)
-    .maybeSingle()
+  const [rows, promotions] = await Promise.all([
+    insforgeAdmin()
+      .database.from('products')
+      .select(PRODUCT_COLUMNS)
+      .eq('slug', slug)
+      .eq('active', true)
+      .maybeSingle(),
+    getActivePromotions(),
+  ])
+  const { data, error } = rows
 
   if (error) throw new Error(`Failed to load product: ${error.message}`)
   if (!data) return null
   // The SDK types embedded many-to-one relations as arrays, but the API returns an object.
-  const product = toProduct(data as unknown as ProductRow)
+  const product = withPromotion(toProduct(data as unknown as ProductRow), promotions)
 
-  return { ...product, variants: await loadVariants(product) }
+  return { ...product, variants: await loadVariants(product, promotions) }
 }
 
 /**

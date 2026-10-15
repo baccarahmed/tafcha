@@ -29,6 +29,7 @@ export default function PeriodFilter({
   const options: Array<{ period: SalesPeriod; label: string }> = [
     { period: '7d', label: t('period7d') },
     { period: '1m', label: t('period1m') },
+    { period: '3m', label: t('period3m') },
     { period: '6m', label: t('period6m') },
   ]
 

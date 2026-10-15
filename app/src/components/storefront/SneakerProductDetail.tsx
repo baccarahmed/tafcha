@@ -87,6 +87,12 @@ export default function SneakerProductDetail({
   const toggleItem = useWishlistStore((s) => s.toggleItem);
   const isInWishlist = wishlistItems.some((item) => item.productId === product.id);
 
+  const discounted =
+    product.discountPercentage !== undefined &&
+    product.discountPercentage > 0 &&
+    product.comparePrice !== undefined &&
+    product.comparePrice > product.price;
+
   const views = useMemo(() => buildViews(product), [product]);
   const gallery = product.images.length > 0 ? product.images : views;
   const activeImage = product.images[imageIndex];
@@ -299,9 +305,31 @@ export default function SneakerProductDetail({
             {t('sku')} {product.sku ?? product.slug.toUpperCase()}
           </p>
 
-          <p className="text-[28px] font-black tabular-nums" style={{ color: Q2M.ink }}>
-            {formatCurrency(product.price, locale)}
-          </p>
+          <div className="flex flex-wrap items-baseline gap-3">
+            <p
+              className="text-[28px] font-black tabular-nums"
+              style={{ color: discounted ? Q2M.alert : Q2M.ink }}
+            >
+              {formatCurrency(product.price, locale)}
+            </p>
+
+            {discounted && (
+              <>
+                <span
+                  className="text-base font-medium tabular-nums line-through"
+                  style={{ color: Q2M.inkStone }}
+                >
+                  {formatCurrency(product.comparePrice as number, locale)}
+                </span>
+                <span
+                  className="flex h-6 items-center px-2 text-[10px] font-extrabold tracking-[0.14em] uppercase"
+                  style={{ background: Q2M.accent, color: Q2M.onAccent, borderRadius: 4 }}
+                >
+                  -{product.discountPercentage}%
+                </span>
+              </>
+            )}
+          </div>
 
           <div className="h-px w-full" style={{ background: Q2M.line }} />
 

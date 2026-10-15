@@ -62,14 +62,14 @@ function LogoLink({ collapsed }: { collapsed?: boolean }) {
       )}
     >
       <Image
-        src={Q2M_BRAND_IMAGES.logo}
+        src={Q2M_BRAND_IMAGES.logoOnBlack}
         alt={`${Q2M.brand} ${t('title')}`}
         width={36}
         height={36}
-        className="q2m-logo h-9 w-9 shrink-0 rounded-sm object-contain object-[50%_25%]"
+        className="h-9 w-9 shrink-0 rounded-sm object-contain"
       />
       {!collapsed && (
-        <span className="text-sm font-semibold tracking-[0.18em] text-[var(--q2m-ink)]">
+        <span className="text-sm font-semibold tracking-[0.18em] text-[#f6f4ef]">
           {Q2M.brand}
         </span>
       )}
@@ -112,15 +112,15 @@ function NavItems({
               className={cn(
                 'mb-1 flex items-center gap-3 rounded-sm border-s-2 px-3 py-2.5 text-sm font-medium transition-colors',
                 active
-                  ? 'border-[var(--q2m-accent)] bg-[var(--q2m-bone)] text-[var(--q2m-ink)]'
-                  : 'border-transparent text-[var(--q2m-ink-mute)] hover:bg-[var(--q2m-bone)] hover:text-[var(--q2m-ink)]',
+                  ? 'border-[var(--q2m-accent)] bg-white/10 text-[var(--q2m-on-dark)]'
+                  : 'border-transparent text-[var(--q2m-on-dark-soft)] hover:bg-white/5 hover:text-[var(--q2m-on-dark)]',
                 collapsed && 'justify-center border-s-0 px-0'
               )}
             >
               <Icon
                 className={cn(
                   'h-5 w-5 shrink-0',
-                  active ? 'text-[var(--q2m-accent-text)]' : ''
+                  active ? 'text-[var(--q2m-accent)]' : ''
                 )}
               />
               {!collapsed && <span className="whitespace-nowrap">{t(item.key)}</span>}
@@ -129,24 +129,24 @@ function NavItems({
         })}
       </nav>
 
-      <div className="border-t border-[var(--q2m-line-soft)] px-3 py-4">
+      <div className="border-t border-white/10 px-3 py-4">
         <div
           className={cn(
-            'mb-2 flex items-center gap-3 rounded-sm bg-[var(--q2m-bone)] px-3 py-3',
+            'mb-2 flex items-center gap-3 rounded-sm bg-white/5 px-3 py-3',
             collapsed && 'justify-center px-0'
           )}
         >
           <Avatar className="h-9 w-9 shrink-0 rounded-full">
-            <AvatarFallback className="bg-[var(--q2m-ink)] text-sm font-semibold text-[var(--q2m-bg-elevated)]">
+            <AvatarFallback className="bg-[var(--q2m-accent)] text-sm font-semibold text-black">
               {initial}
             </AvatarFallback>
           </Avatar>
           {!collapsed && (
             <span className="min-w-0">
-              <span className="block truncate text-sm font-medium text-[var(--q2m-ink)]">
+              <span className="block truncate text-sm font-medium text-[var(--q2m-on-dark)]">
                 {displayName}
               </span>
-              <span className="block truncate text-xs text-[var(--q2m-ink-stone)]">
+              <span className="block truncate text-xs text-[var(--q2m-on-dark-soft)]">
                 {user.email}
               </span>
             </span>
@@ -160,7 +160,7 @@ function NavItems({
             variant="ghost"
             size="sm"
             className={cn(
-              'w-full justify-start gap-2 px-3 text-sm font-medium text-[var(--q2m-ink-mute)] hover:bg-[var(--q2m-alert)]/10 hover:text-[var(--q2m-alert)]',
+              'w-full justify-start gap-2 px-3 text-sm font-medium text-[var(--q2m-on-dark-soft)] hover:bg-[var(--q2m-alert)]/15 hover:text-[var(--q2m-alert)]',
               collapsed && 'justify-center px-0'
             )}
           >
@@ -194,9 +194,9 @@ export function DashboardShell({
       <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
         <SheetContent
           side="left"
-          className="w-[300px] border-e border-[var(--q2m-line-soft)] bg-[var(--q2m-bg-elevated)] p-0 sm:max-w-[300px]"
+          className="w-[300px] border-e border-white/10 bg-black p-0 text-[var(--q2m-on-dark)] sm:max-w-[300px]"
         >
-          <SheetHeader className="flex-row items-center justify-start gap-2.5 border-b border-[var(--q2m-line-soft)] px-4 py-5">
+          <SheetHeader className="flex-row items-center justify-start gap-2.5 border-b border-white/10 px-4 py-5">
             <LogoLink />
             <SheetTitle className="sr-only">{t('title')}</SheetTitle>
             <SheetDescription className="sr-only">{user.email}</SheetDescription>
@@ -217,18 +217,18 @@ export function DashboardShell({
          `prefers-reduced-motion` via la règle globale. */}
       <aside
         className={cn(
-          'hidden border-e border-[var(--q2m-line-soft)] bg-[var(--q2m-bg-elevated)] transition-[width] duration-240 ease-q2m lg:flex lg:flex-col',
+          'hidden border-e border-white/10 bg-black transition-[width] duration-240 ease-q2m lg:flex lg:flex-col',
           sidebarOpen ? 'w-64' : 'w-[4.5rem]'
         )}
       >
-        <div className="flex items-center justify-between border-b border-[var(--q2m-line-soft)] px-4 py-5">
+        <div className="flex items-center justify-between border-b border-white/10 px-4 py-5">
           <LogoLink collapsed={!sidebarOpen} />
           <Button
             onClick={() => setSidebarOpen(!sidebarOpen)}
             aria-label={sidebarOpen ? t('collapseSidebar') : t('expandSidebar')}
             variant="ghost"
             size="icon"
-            className="hidden h-8 w-8 text-[var(--q2m-ink-stone)] hover:text-[var(--q2m-ink)] lg:inline-flex"
+            className="hidden h-8 w-8 text-[var(--q2m-on-dark-soft)] hover:bg-white/5 hover:text-[var(--q2m-on-dark)] lg:inline-flex"
           >
             <ChevronLeft
               className={cn(

@@ -5,6 +5,7 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
 import { ChevronDown, ChevronLeft, ChevronRight, SlidersHorizontal } from 'lucide-react';
 import { Q2MProductCard } from '@/components/storefront/Q2MProductCard';
+import { Slider } from '@/components/ui/slider';
 import { Q2M, Q2M_FONT } from '@/lib/q2m-tokens';
 import { formatCurrency } from '@/lib/utils';
 import type { CatalogProduct } from '@/types/catalog';
@@ -40,6 +41,7 @@ interface FilterState {
   colors: string[];
   categories: string[];
   stockOnly: boolean;
+  minPrice: number;
   maxPrice: number;
 }
 
@@ -52,6 +54,7 @@ const EMPTY_FILTERS: FilterState = {
   colors: [],
   categories: [],
   stockOnly: false,
+  minPrice: 0,
   maxPrice: Infinity,
 };
 
@@ -157,6 +160,7 @@ export default function ShopCatalog({ products }: { products: CatalogProduct[] }
         .filter(Boolean);
 
     const rawMax = Number(searchParams?.get('maxPrice'));
+    const rawMin = Number(searchParams?.get('minPrice'));
 
     return {
       brands: list('brand').filter((b) => brands.some((x) => x.toLowerCase() === b)),
@@ -165,12 +169,29 @@ export default function ShopCatalog({ products }: { products: CatalogProduct[] }
       colors: list('color').filter((c) => COLORS.includes(c as never)),
       categories: list('category').filter((c) => categories.includes(c)),
       stockOnly: searchParams?.get('stock') === '1',
+      minPrice:
+        Number.isFinite(rawMin) && rawMin > 0
+          ? Math.max(rawMin, priceBounds.floor)
+          : 0,
       maxPrice:
         Number.isFinite(rawMax) && rawMax > 0
           ? Math.min(rawMax, priceBounds.ceiling)
           : Infinity,
     };
   }, [searchParams, brands, sizes, categories, priceBounds]);
+
+  /**
+   * Poignees de prix : brouillon non nul uniquement pendant le glissement, pour
+   * que la valeur suive le doigt sans ecrire l'URL a chaque frame. Au
+   * relachement (`onValueCommit`) le brouillon retombe et l'URL fait foi, ce qui
+   * couvre aussi le bouton retour et « effacer ».
+   */
+  const committedPrice: [number, number] = [
+    filters.minPrice > 0 ? filters.minPrice : priceBounds.floor,
+    Number.isFinite(filters.maxPrice) ? filters.maxPrice : priceBounds.ceiling,
+  ];
+  const [priceDraft, setPriceDraft] = useState<[number, number] | null>(null);
+  const sliderValue = priceDraft ?? committedPrice;
 
   /** Writes the next filter state to the URL and returns to page 1. */
   const commit = (next: FilterState) => {
@@ -181,6 +202,7 @@ export default function ShopCatalog({ products }: { products: CatalogProduct[] }
     if (next.colors.length > 0) params.set('color', next.colors.join(','));
     if (next.categories.length > 0) params.set('category', next.categories.join(','));
     if (next.stockOnly) params.set('stock', '1');
+    if (next.minPrice > 0) params.set('minPrice', String(next.minPrice));
     if (Number.isFinite(next.maxPrice)) params.set('maxPrice', String(next.maxPrice));
 
     const query = params.toString();
@@ -203,7 +225,7 @@ export default function ShopCatalog({ products }: { products: CatalogProduct[] }
       if (filters.brands.length > 0 && !filters.brands.includes((p.brand ?? '').toLowerCase()))
         return false;
 
-      if (p.price > filters.maxPrice) return false;
+      if (p.price < filters.minPrice || p.price > filters.maxPrice) return false;
 
       if (filters.sizes.length > 0) {
         const productSizes = p.sizes.map((s) => String(s.size));
@@ -293,7 +315,7 @@ export default function ShopCatalog({ products }: { products: CatalogProduct[] }
       count += filters[key].length;
     }
     if (filters.stockOnly) count += 1;
-    if (Number.isFinite(filters.maxPrice)) count += 1;
+    if (filters.minPrice > 0 || Number.isFinite(filters.maxPrice)) count += 1;
     return count;
   }, [filters]);
 
@@ -473,31 +495,33 @@ export default function ShopCatalog({ products }: { products: CatalogProduct[] }
           )}
 
           <FilterGroup title={t('filterPrice')}>
-            <div className="flex w-full flex-col gap-2">
+            <div className="flex w-full flex-col gap-3 pt-1">
               <span className="text-[12px]" style={{ color: Q2M.inkMute }}>
                 {t('priceRange', {
-                  min: formatCurrency(priceBounds.floor, locale),
-                  max: formatCurrency(
-                    Number.isFinite(filters.maxPrice) ? filters.maxPrice : priceBounds.ceiling,
-                    locale,
-                  ),
+                  min: formatCurrency(sliderValue[0], locale),
+                  max: formatCurrency(sliderValue[1], locale),
                 })}
               </span>
-              <input
-                type="range"
+              <Slider
                 min={priceBounds.floor}
                 max={priceBounds.ceiling}
                 step={PRICE_STEP}
-                value={Number.isFinite(filters.maxPrice) ? filters.maxPrice : priceBounds.ceiling}
-                onChange={(e) => {
-                  const next = Number(e.target.value);
+                value={sliderValue}
+                onValueChange={(next) =>
+                  setPriceDraft([next[0] ?? priceBounds.floor, next[1] ?? priceBounds.ceiling])
+                }
+                onValueCommit={(next) => {
                   commit({
                     ...filters,
-                    maxPrice: next >= priceBounds.ceiling ? Infinity : next,
+                    minPrice: (next[0] ?? priceBounds.floor) <= priceBounds.floor ? 0 : next[0],
+                    maxPrice:
+                      (next[1] ?? priceBounds.ceiling) >= priceBounds.ceiling
+                        ? Infinity
+                        : next[1],
                   });
+                  setPriceDraft(null);
                 }}
                 aria-label={t('filterPrice')}
-                className="w-full accent-[#C9A45C]"
               />
             </div>
           </FilterGroup>

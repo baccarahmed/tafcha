@@ -1,11 +1,14 @@
 import { getTranslations } from 'next-intl/server'
-import { getAdminPromotions } from '@/lib/admin-data'
+import { getAdminPromotions, getPromotionTargetOptions } from '@/lib/admin-data'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import PromotionManager from './promotion-manager'
 
 export default async function DashboardPromotionsPage() {
   const t = await getTranslations('dashboard')
-  const promotions = await getAdminPromotions()
+  const [promotions, targetOptions] = await Promise.all([
+    getAdminPromotions(),
+    getPromotionTargetOptions(),
+  ])
 
   return (
     <Card className="border-[var(--q2m-line-soft)]">
@@ -17,6 +20,8 @@ export default async function DashboardPromotionsPage() {
 
       <CardContent>
         <PromotionManager
+          products={targetOptions.products}
+          categories={targetOptions.categories}
           promotions={promotions.map((promotion) => ({
             id: promotion.id,
             name: promotion.name,

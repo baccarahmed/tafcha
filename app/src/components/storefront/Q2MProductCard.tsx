@@ -22,9 +22,10 @@ const PALETTE_SWATCH: Record<SneakerPalette, string> = {
 };
 
 /** Cles `shop.badge_*` resolues dans le composant. */
-type TagKey = "badgeNew" | "badgeBestSeller" | "badgeRare" | null;
+type TagKey = "badgeSale" | "badgeNew" | "badgeBestSeller" | "badgeRare" | null;
 
 function getTag(p: CatalogProduct): TagKey {
+  if (p.discountPercentage && p.discountPercentage > 0) return "badgeSale";
   if (p.isNewDrop) return "badgeNew";
   if (p.featured) return "badgeBestSeller";
   return null;
@@ -61,6 +62,11 @@ export function Q2MProductCard({ product }: { product: CatalogProduct }) {
   const t = useTranslations("shop");
   const tFav = useTranslations("favorites");
   const tag = getTag(product);
+  const discounted =
+    product.discountPercentage !== undefined &&
+    product.discountPercentage > 0 &&
+    product.comparePrice !== undefined &&
+    product.comparePrice > product.price;
 
   const usageKey =
     USAGE_KEYS[product.categorySlug ?? ""] ?? USAGE_KEYS[product.category ?? ""];
@@ -95,7 +101,7 @@ export function Q2MProductCard({ product }: { product: CatalogProduct }) {
                 borderRadius: 4,
               }}
             >
-              {tag && t(tag)}
+              {tag === "badgeSale" ? `-${product.discountPercentage}%` : t(tag)}
             </span>
           )}
 
@@ -121,11 +127,21 @@ export function Q2MProductCard({ product }: { product: CatalogProduct }) {
             >
               {product.brand ?? "—"}
             </span>
-            <span
-              className="text-sm font-extrabold tabular-nums"
-              style={{ color: Q2M.ink }}
-            >
-              {formatCurrency(product.price, locale)}
+            <span className="flex items-baseline gap-1.5">
+              {discounted && (
+                <span
+                  className="text-[11px] font-medium tabular-nums line-through"
+                  style={{ color: Q2M.inkStone }}
+                >
+                  {formatCurrency(product.comparePrice as number, locale)}
+                </span>
+              )}
+              <span
+                className="text-sm font-extrabold tabular-nums"
+                style={{ color: discounted ? Q2M.alert : Q2M.ink }}
+              >
+                {formatCurrency(product.price, locale)}
+              </span>
             </span>
           </div>
           <h3

@@ -15,9 +15,9 @@ import { insforgeAdmin } from '@/lib/insforge-admin'
  * base — les exclure ferait perdre l'essentiel du chiffre d'affaires tunisien.
  */
 
-export type SalesPeriod = '7d' | '1m' | '6m'
+export type SalesPeriod = '7d' | '1m' | '3m' | '6m'
 
-export const SALES_PERIODS: SalesPeriod[] = ['7d', '1m', '6m']
+export const SALES_PERIODS: SalesPeriod[] = ['7d', '1m', '3m', '6m']
 
 /** Statuts de commande qui ne representent pas une vente. */
 const EXCLUDED_STATUSES = ['CANCELLED']
@@ -81,13 +81,15 @@ export function periodStart(period: SalesPeriod, now = new Date()): Date {
     }
     case '1m':
       return subtractMonths(now, 1)
+    case '3m':
+      return subtractMonths(now, 3)
     case '6m':
       return subtractMonths(now, 6)
   }
 }
 
 export function isSalesPeriod(value: string | undefined | null): value is SalesPeriod {
-  return value === '7d' || value === '1m' || value === '6m'
+  return value === '7d' || value === '1m' || value === '3m' || value === '6m'
 }
 
 /**
@@ -176,9 +178,9 @@ interface ProductRow {
 /**
  * Serie de revenus alignee sur la fenetre.
  *
- * 7 jours et 1 mois sont bucketises par jour, 6 mois par semaine : un histogramme
- * de 180 barres serait illisible, alors qu'un releve hebdomadaire reste lisible
- * et se compare d'un trimestre a l'autre.
+ * 7 jours et 1 mois sont bucketises par jour, 3 et 6 mois par semaine : un
+ * histogramme de 90 a 180 barres serait illisible, alors qu'un releve
+ * hebdomadaire reste lisible et se compare d'un trimestre a l'autre.
  *
  * Les buckets partent de `periodStart()` — exactement la borne utilisee par le
  * resume et le classement — sinon la courbe debuterait avant la fenetre et le
@@ -190,7 +192,7 @@ function buildSeries(
   now: Date,
 ): RevenuePoint[] {
   const start = periodStart(period, now)
-  const step = period === '6m' ? 7 : 1
+  const step = period === '6m' || period === '3m' ? 7 : 1
   const buckets = new Map<string, number>()
 
   for (

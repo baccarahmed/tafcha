@@ -52,15 +52,41 @@ export interface EditablePromotion {
   announcementText: string | null
 }
 
+export interface TargetOption {
+  id: string
+  name: string
+}
+
 /** Date ISO courte pour un `<input type="date">`. */
 function toDateInput(value: string | null): string {
   return value ? value.slice(0, 10) : ''
 }
 
+/**
+ * Relit la liste de cibles serialisee dans le champ cache.
+ *
+ * `["*"]` cible tout le catalogue. Une valeur illisible retombe sur « tout »
+ * plutot que de faire echouer silencieusement le formulaire.
+ */
+function parseTargets(value: FormDataEntryValue | null): string[] {
+  if (typeof value !== 'string') return ['*']
+  try {
+    const parsed: unknown = JSON.parse(value)
+    if (!Array.isArray(parsed)) return ['*']
+    return parsed.filter((v): v is string => typeof v === 'string')
+  } catch {
+    return ['*']
+  }
+}
+
 export default function PromotionManager({
   promotions,
+  products,
+  categories,
 }: {
   promotions: EditablePromotion[]
+  products: TargetOption[]
+  categories: TargetOption[]
 }) {
   const t = useTranslations('dashboard')
   const router = useRouter()
@@ -121,11 +147,9 @@ export default function PromotionManager({
         name: String(form.get('name') ?? ''),
         description: String(form.get('description') ?? ''),
         type: String(form.get('type') ?? 'PRODUCT') as 'PRODUCT' | 'CATEGORY',
-        // Les cibles sont conservees telles quelles : `["*"]` cible tout le
-        // catalogue. La selection de produits ou de categories n'a pas encore
-        // d'interface, donc renvoyer une cible unique ecraserait silencieusement
-        // une promotion aujourd'hui ciblee.
-        targets: promotion?.targets ?? ['*'],
+        // La liste de cibles vient du selecteur : `["*"]` cible tout le
+        // catalogue, sinon des identifiants de produits ou de categories.
+        targets: parseTargets(form.get('targets')),
         percentage: Number(form.get('percentage') ?? 0),
         startDate: String(form.get('startDate') ?? ''),
         endDate: String(form.get('endDate') ?? ''),
@@ -175,6 +199,8 @@ export default function PromotionManager({
       {creating && (
         <PromotionForm
           formId="promo-form-new"
+          products={products}
+          categories={categories}
           onSubmit={() => submit(null)}
           onCancel={() => setCreating(false)}
           pending={pending}
@@ -189,6 +215,8 @@ export default function PromotionManager({
               <PromotionForm
                 formId={`promo-form-${promotion.id}`}
                 promotion={promotion}
+                products={products}
+                categories={categories}
                 onSubmit={() => submit(promotion)}
                 onCancel={() => setEditingId(null)}
                 pending={pending}
@@ -211,6 +239,9 @@ export default function PromotionManager({
                     <p className="mt-1 text-xs text-[var(--q2m-ink-mute)]">
                       {t(`promoType_${promotion.type ?? 'PRODUCT'}`)}
                       {promotion.percentage != null && ` · ${promotion.percentage}%`}
+                      {promotion.targets.includes('*')
+                        ? ` · ${t('promotionTargetsAll')}`
+                        : ` · ${promotion.targets.length} ${t('fieldPromotionTargets')}`}
                       {promotion.startDate &&
                         ` · ${toDateInput(promotion.startDate)} → ${toDateInput(promotion.endDate)}`}
                     </p>
@@ -311,6 +342,8 @@ export default function PromotionManager({
 function PromotionForm({
   formId,
   promotion,
+  products,
+  categories,
   onSubmit,
   onCancel,
   pending,
@@ -318,6 +351,8 @@ function PromotionForm({
 }: {
   formId: string
   promotion?: EditablePromotion
+  products: TargetOption[]
+  categories: TargetOption[]
   onSubmit: () => void
   onCancel: () => void
   pending: boolean
@@ -334,6 +369,16 @@ function PromotionForm({
   // `submit()` retrouve `type` et `active`.
   const [type, setType] = useState(promotion?.type ?? 'PRODUCT')
   const [isActive, setIsActive] = useState(promotion?.isActive ?? true)
+  const [targets, setTargets] = useState<string[]>(promotion?.targets ?? ['*'])
+
+  const options = type === 'CATEGORY' ? categories : products
+  const allTargets = targets.includes('*')
+
+  function toggleTarget(id: string) {
+    setTargets((current) =>
+      current.includes(id) ? current.filter((value) => value !== id) : [...current, id]
+    )
+  }
 
   return (
     <form
@@ -360,7 +405,15 @@ function PromotionForm({
         <div>
           <Label>{t('fieldPromotionType')}</Label>
           <input type="hidden" name="type" value={type} />
-          <Select value={type} onValueChange={setType}>
+          <Select
+            value={type}
+            onValueChange={(value) => {
+              setType(value)
+              // Les identifiants de produits et de categories ne se melangent
+              // pas : changer de portee remet la selection a « tout ».
+              setTargets(['*'])
+            }}
+          >
             <SelectTrigger className={cn('w-full', fieldClass)}>
               <SelectValue />
             </SelectTrigger>
@@ -436,6 +489,47 @@ function PromotionForm({
             className={fieldClass}
           />
         </div>
+
+        <div className="sm:col-span-2">
+          <Label>{t('fieldPromotionTargets')}</Label>
+          <input type="hidden" name="targets" value={JSON.stringify(targets)} />
+          <div className="mt-2 space-y-3 rounded-sm border border-[var(--q2m-line-soft)] bg-[var(--q2m-bg-elevated)] p-4">
+            <label className="flex cursor-pointer items-center gap-3 text-sm font-medium text-[var(--q2m-ink)]">
+              <input
+                type="checkbox"
+                className="h-4 w-4 accent-[var(--q2m-accent)]"
+                checked={allTargets}
+                onChange={(event) => setTargets(event.target.checked ? ['*'] : [])}
+              />
+              {t('promotionTargetsAll')}
+            </label>
+
+            {!allTargets &&
+              (options.length > 0 ? (
+                <div className="max-h-56 space-y-1.5 overflow-y-auto border-t border-[var(--q2m-line-soft)] pt-3">
+                  {options.map((option) => (
+                    <label
+                      key={option.id}
+                      className="flex cursor-pointer items-center gap-3 text-sm text-[var(--q2m-ink-soft)]"
+                    >
+                      <input
+                        type="checkbox"
+                        className="h-4 w-4 accent-[var(--q2m-accent)]"
+                        checked={targets.includes(option.id)}
+                        onChange={() => toggleTarget(option.id)}
+                      />
+                      <span className="truncate">{option.name}</span>
+                    </label>
+                  ))}
+                </div>
+              ) : (
+                <p className="border-t border-[var(--q2m-line-soft)] pt-3 text-xs text-[var(--q2m-ink-stone)]">
+                  {t('promotionTargetsEmpty')}
+                </p>
+              ))}
+          </div>
+          {error === 'targets' && <p className={errorClass}>{t('manageError_targets')}</p>}
+        </div>
       </div>
 
       <label className="flex cursor-pointer items-center justify-between gap-4 rounded-sm border border-[var(--q2m-line-soft)] bg-[var(--q2m-bg-elevated)] p-4">
@@ -444,7 +538,7 @@ function PromotionForm({
       </label>
       <input type="hidden" name="active" value={isActive ? 'on' : 'off'} />
 
-      {error && !['name', 'percentage', 'dates'].includes(error) && (
+      {error && !['name', 'percentage', 'dates', 'targets'].includes(error) && (
         <p className="inline-flex items-center gap-2 text-sm text-[var(--q2m-alert)]">
           <AlertCircle className="h-4 w-4" />
           {t(`manageError_${error}`)}

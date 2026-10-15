@@ -75,21 +75,46 @@ export default async function DashboardOverviewPage() {
           </CardHeader>
           <CardContent>
             {overview.revenueSeries.some((point) => point.value > 0) ? (
-              <div className="flex h-40 items-end gap-1">
-                {overview.revenueSeries.map((point) => (
-                  <div key={point.label} className="group flex flex-1 flex-col items-center gap-2">
-                    <div
-                      className="w-full rounded-t-sm bg-[var(--q2m-accent)] transition-opacity duration-140 ease-q2m group-hover:opacity-80"
-                      style={{
-                        height: `${Math.max((point.value / peak) * 100, 2)}%`,
-                      }}
-                      title={`${point.label}: ${money(point.value)}`}
-                    />
-                    <span className="text-[0.625rem] tabular-nums text-[var(--q2m-ink-stone)]">
-                      {point.label}
-                    </span>
-                  </div>
-                ))}
+              <div>
+                {/* La zone des barres porte une hauteur fixe et les libelles
+                    vivent dans un bloc separe : melange les deux, la colonne
+                    n'a plus de hauteur propre et la barre en pourcentage vaut
+                    zero. */}
+                <div className="flex h-40 items-end gap-1">
+                  {overview.revenueSeries.map((point) => {
+                    const height = Math.max((point.value / peak) * 100, 2)
+
+                    return (
+                      <div
+                        key={point.label}
+                        className="group flex h-full flex-1 items-end"
+                        title={`${point.label}: ${money(point.value)}`}
+                      >
+                        <div
+                          className="w-full rounded-t-sm bg-[var(--q2m-accent)] transition-opacity duration-140 ease-q2m group-hover:opacity-80"
+                          style={{ height: `${height}%` }}
+                        />
+                      </div>
+                    )
+                  })}
+                </div>
+
+                <div className="mt-2 flex gap-1">
+                  {overview.revenueSeries.map((point, index) => {
+                    const labelled =
+                      overview.revenueSeries.length <= 8 || index % 4 === 0
+
+                    return (
+                      <div key={point.label} className="flex-1 text-center">
+                        {labelled && (
+                          <span className="text-[0.625rem] tabular-nums text-[var(--q2m-ink-stone)]">
+                            {point.label}
+                          </span>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
               </div>
             ) : (
               <p className="text-sm text-[var(--q2m-ink-stone)]">{t('noRevenueData')}</p>

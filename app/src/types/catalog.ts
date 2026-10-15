@@ -15,6 +15,8 @@ export type CatalogProduct = SneakerProduct & {
   categorySlug?: string
   categoryId?: string | null
   dropEndsAt?: string
+  /** Pourcentage de remise applique par une promotion active (0 = aucune). */
+  discountPercentage?: number
 }
 
 export interface SiteSettings {

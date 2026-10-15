@@ -64,6 +64,13 @@ function guestEmail(address: unknown): string | null {
   return null
 }
 
+/** Cle jour locale (AAAA-MM-JJ) : `toISOString()` decalerait d'un jour en UTC+1. */
+function localDayKey(date: Date): string {
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${date.getFullYear()}-${month}-${day}`
+}
+
 /** Resolution des adresses : profiles.email est le miroir de auth.users. */
 async function emailByUserId(userIds: Array<string | null>): Promise<Map<string, string>> {
   const ids = [...new Set(userIds.filter((id): id is string => Boolean(id)))]
@@ -351,6 +358,42 @@ function toTargets(value: string[] | string | null): string[] {
   return ['*']
 }
 
+export interface PromotionTargetOption {
+  id: string
+  name: string
+}
+
+export interface PromotionTargetOptions {
+  products: PromotionTargetOption[]
+  categories: PromotionTargetOption[]
+}
+
+/**
+ * Cibles possibles d'une promotion, pour le selecteur du back-office.
+ *
+ * `targets` stocke des identifiants : `products.id` quand le type vaut
+ * PRODUCT, `categories.id` quand il vaut CATEGORY. La vitrine applique la
+ * remise avec la meme convention, donc les deux listes doivent venir des tables
+ * reelles et non d'un slug recompose.
+ */
+export async function getPromotionTargetOptions(): Promise<PromotionTargetOptions> {
+  const db = insforgeAdmin().database
+
+  const [{ data: products, error: productsError }, { data: categories, error: categoriesError }] =
+    await Promise.all([
+      db.from('products').select('id,name').order('name', { ascending: true }),
+      db.from('categories').select('id,name').order('name', { ascending: true }),
+    ])
+
+  if (productsError) throw new Error(`products: ${productsError.message}`)
+  if (categoriesError) throw new Error(`categories: ${categoriesError.message}`)
+
+  return {
+    products: (products ?? []) as PromotionTargetOption[],
+    categories: (categories ?? []) as PromotionTargetOption[],
+  }
+}
+
 export interface AdminProductRow {
   id: string
   slug: string
@@ -566,11 +609,11 @@ export async function getAdminOverview(): Promise<AdminOverview> {
   for (let i = 13; i >= 0; i -= 1) {
     const day = new Date(today)
     day.setDate(day.getDate() - i)
-    buckets.set(day.toISOString().slice(0, 10), 0)
+    buckets.set(localDayKey(day), 0)
   }
   for (const order of orderRows) {
     if (!isCountedSale(order.status, order.payment_status)) continue
-    const key = order.created_at.slice(0, 10)
+    const key = localDayKey(new Date(order.created_at))
     if (buckets.has(key)) buckets.set(key, (buckets.get(key) ?? 0) + (order.total ?? 0))
   }
 

@@ -3,6 +3,11 @@
 import { headers } from 'next/headers'
 import { getSessionUser } from '@/lib/session'
 import { insforgeAdmin } from '@/lib/insforge-admin'
+import {
+  applyPercentage,
+  getActivePromotions,
+  resolveDiscountPercentage,
+} from '@/lib/promotions'
 
 export interface CheckoutAddressInput {
   fullName: string
@@ -158,16 +163,22 @@ export async function createOrderAction(
 
   const db = insforgeAdmin().database
 
-  const { data: products, error: productsError } = await db
-    .from('products')
-    .select('id, price, stock, active, sizes')
-    .in('id', Array.from(quantities.keys()))
+  const [productsResult, promotions] = await Promise.all([
+    db
+      .from('products')
+      .select('id, price, category_id, stock, active, sizes')
+      .in('id', Array.from(quantities.keys())),
+    getActivePromotions(),
+  ])
+
+  const { data: products, error: productsError } = productsResult
 
   if (productsError) return { ok: false, error: 'failed' }
 
   interface ProductStockRow {
     id: string
     price: number | string
+    category_id: string | null
     stock: number
     active: boolean
     sizes: Array<{ size: number | string; stock: number }> | null
@@ -177,6 +188,15 @@ export async function createOrderAction(
     ((products ?? []) as ProductStockRow[]).map((row) => [row.id, row])
   )
 
+  /**
+   * Prix facture par produit, promotions actives appliquees.
+   *
+   * Le navigateur n'envoie aucun prix : c'est ici, avec les memes promotions
+   * que la vitrine, que le montant est decide. Le panier n'affiche donc qu'une
+   * estimation, et la commande enregistre toujours ce prix.
+   */
+  const unitPrices = new Map<string, number>()
+
   let subtotal = 0
 
   for (const [productId, quantity] of quantities) {
@@ -184,7 +204,13 @@ export async function createOrderAction(
     if (!product || product.active === false) return { ok: false, error: 'unavailable' }
     if (Number(product.stock) < quantity) return { ok: false, error: 'outOfStock' }
 
-    subtotal += Number(product.price) * quantity
+    const unitPrice = applyPercentage(
+      Number(product.price),
+      resolveDiscountPercentage({ id: productId, categoryId: product.category_id }, promotions)
+    )
+
+    unitPrices.set(productId, unitPrice)
+    subtotal += unitPrice * quantity
   }
 
   // Validation du stock par taille : si le produit declare des tailles et
@@ -246,7 +272,7 @@ export async function createOrderAction(
     product_id: item.productId,
     user_id: user?.id ?? null,
     quantity: Number(item.quantity),
-    price: Number(catalog.get(item.productId)?.price ?? 0),
+    price: unitPrices.get(item.productId) ?? 0,
     size: item.size ? String(item.size).slice(0, 16) : null,
   }))
 
