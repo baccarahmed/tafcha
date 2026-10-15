@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 interface MotionPageContainerProps {
@@ -12,31 +12,30 @@ interface MotionPageContainerProps {
   delayChildren?: number;
 }
 
+/**
+ * Entree de page unique et breve.
+ *
+ * Pas d'`AnimatePresence mode="wait"` : l'ancienne version attendait la fin de
+ * l'animation de sortie (0,5 s) avant de monter la nouvelle page, ce qui
+ * ajoutait un delai artificiel a chaque navigation. On garde un simple fondu
+ * parallele de 0,25 s, desactive si l'utilisateur prefere les mouvements reduits.
+ */
 const MotionPageContainer: React.FC<MotionPageContainerProps> = ({
   children,
   className,
   delay = 0,
-  staggerChildren = 0.1,
-  delayChildren = 0,
 }) => {
+  const reduceMotion = useReducedMotion();
+
   return (
-    <AnimatePresence mode="wait">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -20 }}
-        transition={{
-          duration: 0.5,
-          ease: [0.16, 1, 0.3, 1],
-          delay,
-          staggerChildren,
-          delayChildren,
-        }}
-        className={cn(className)}
-      >
-        {children}
-      </motion.div>
-    </AnimatePresence>
+    <motion.div
+      initial={reduceMotion ? false : { opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: reduceMotion ? 0 : 0.25, ease: [0.16, 1, 0.3, 1], delay }}
+      className={cn(className)}
+    >
+      {children}
+    </motion.div>
   );
 };
 
