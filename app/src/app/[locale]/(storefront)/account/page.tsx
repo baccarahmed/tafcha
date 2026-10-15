@@ -199,7 +199,6 @@ export default async function AccountPage({ params }: PageProps) {
                                   alt={item.name}
                                   fill
                                   sizes="56px"
-                                  unoptimized
                                   className="object-cover"
                                 />
                               )}

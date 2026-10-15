@@ -56,7 +56,6 @@ export default async function TopProducts({
                         alt={row.name}
                         fill
                         sizes="64px"
-                        unoptimized
                         className="object-cover"
                       />
                     ) : (

@@ -111,7 +111,6 @@ export function Q2MProductCard({ product }: { product: CatalogProduct }) {
               alt={product.name}
               fill
               sizes="(max-width: 1024px) 50vw, 25vw"
-              unoptimized
               className="object-cover transition-transform duration-300 ease-q2m group-hover:scale-105"
             />
           ) : (

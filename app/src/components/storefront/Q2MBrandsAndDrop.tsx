@@ -106,7 +106,6 @@ export function Q2MBrandsAndDrop() {
             src={Q2M_BRAND_IMAGES.dropNightRun}
             alt="Q2M Night Run — drop privé"
             fill
-            unoptimized
             className="-z-0 object-cover"
           />
           <div

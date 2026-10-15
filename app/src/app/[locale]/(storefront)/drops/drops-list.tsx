@@ -181,7 +181,6 @@ export default function DropsList({
                     alt={featured.product.name}
                     fill
                     sizes="(max-width: 1024px) 100vw, 50vw"
-                    unoptimized
                     className="object-cover"
                   />
                 </div>
@@ -191,7 +190,6 @@ export default function DropsList({
                     src={Q2M_BRAND_IMAGES.dropClassic}
                     alt="Q2M"
                     fill
-                    unoptimized
                     className="object-cover"
                   />
                 </div>

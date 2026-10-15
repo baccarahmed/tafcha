@@ -80,7 +80,6 @@ export function Q2MHero() {
         alt="Q2M — hero sneakers premium"
         fill
         priority
-        unoptimized
         className="object-cover"
       />
 

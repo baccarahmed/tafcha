@@ -180,7 +180,6 @@ export default function SneakerProductDetail({
                     alt=""
                     fill
                     sizes="94px"
-                    unoptimized
                     className="object-cover"
                   />
                 ) : (
@@ -196,10 +195,8 @@ export default function SneakerProductDetail({
           >
             {activeImage ? (
               /*
-                Pas de `priority` ici : combiné à `unoptimized`, Next.js
-                conserve le premier `src` chargé et la galerie ne change plus
-                d'image au clic sur une vignette. Le visuel est déjà dans le
-                bucket public, le préchargement n'apporte rien.
+                Pas de `priority` ici : la galerie change d'image au clic,
+                inutile de precharger. Le visuel est deja dans le bucket public.
               */
               <Image
                 key={activeImage}
@@ -207,7 +204,6 @@ export default function SneakerProductDetail({
                 alt={product.name}
                 fill
                 sizes="(max-width: 1024px) 100vw, 620px"
-                unoptimized
                 className="object-cover"
               />
             ) : (
@@ -254,7 +250,6 @@ export default function SneakerProductDetail({
                     alt=""
                     fill
                     sizes="64px"
-                    unoptimized
                     className="object-cover"
                   />
                 ) : (
@@ -361,7 +356,6 @@ export default function SneakerProductDetail({
                           alt={variant.colorway}
                           fill
                           sizes="36px"
-                          unoptimized
                           className="object-cover"
                         />
                       )}

@@ -63,7 +63,6 @@ export function Q2MCategories({ genders = [] }: { genders?: string[] }) {
                   alt={tShop(`gender_${cat.gender}`)}
                   fill
                   sizes="(max-width: 768px) 100vw, 33vw"
-                  unoptimized={!cat.image.startsWith("/")}
                   className="object-cover transition-transform duration-300 ease-q2m group-hover:scale-105"
                 />
                 <div
