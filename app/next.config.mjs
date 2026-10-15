@@ -95,6 +95,17 @@ const nextConfig = {
   },
   // next/link affiche `Next.js` en en-tete : inutilement revele le framework.
   poweredByHeader: false,
+  // Next 15 ne met pas en cache les segments de page dynamiques cote client
+  // (defaut `dynamic: 0`) : chaque navigation relance donc une requete RSC.
+  // On reutilise le segment pendant 30 s pour rendre les allers-retours
+  // instantanes. Nos Server Actions appellent revalidateTag (via
+  // revalidateCatalog), ce qui purge aussi ce cache apres une ecriture.
+  experimental: {
+    staleTimes: {
+      dynamic: 30,
+      static: 300,
+    },
+  },
   images: {
     // Formats modernes servis automatiquement aux navigateurs compatibles.
     formats: ['image/avif', 'image/webp'],
