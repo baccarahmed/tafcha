@@ -3,6 +3,7 @@
 import { headers } from 'next/headers'
 import { getSessionUser } from '@/lib/session'
 import { insforgeAdmin } from '@/lib/insforge-admin'
+import { ipFromHeaders } from '@/lib/rate-limit'
 import {
   applyPercentage,
   getActivePromotions,
@@ -85,10 +86,13 @@ function isRateLimited(key: string): boolean {
   return false
 }
 
+/**
+ * Cle de limitation : meme adresse « fiable » que les routes publiques
+ * (`ipFromHeaders`) plutot que le PREMIER segment de `x-forwarded-for`, qui
+ * est concatene par le client et donc rotatable pour contourner le plafond.
+ */
 async function requestKey(): Promise<string> {
-  const h = await headers()
-  const forwarded = h.get('x-forwarded-for')?.split(',')[0]?.trim()
-  return forwarded || h.get('x-real-ip') || 'local'
+  return ipFromHeaders(await headers())
 }
 
 function isAddressValid(address: CheckoutAddressInput): boolean {
@@ -118,10 +122,11 @@ function isAddressValid(address: CheckoutAddressInput): boolean {
  * quand il y en a un ; l'e-mail du client est garde dans shipping_address
  * pour le back-office.
  *
- * Le stock (total et par taille) est valide puis decremente, via le client
- * admin : la table `products` n'est pas accessible en ecriture au client de
- * session. La decrementation est best-effort (bornee a zero) apres la
- * creation des lignes de commande.
+ * Atomicite : la commande, ses lignes et le decrement des stocks sont ecrits
+ * dans une seule fonction SQL (`create_order_with_stock`, migration
+ * 20261015203041) appelee via `.rpc()`. Le stock (total et par taille) est
+ * verrouille par `SELECT ... FOR UPDATE`, donc deux commandes concurrentes du
+ * meme produit ne peuvent pas se survendre, et une rupture annule la commande.
  */
 export async function createOrderAction(
   input: CreateOrderInput
@@ -138,7 +143,6 @@ export async function createOrderAction(
   if (isRateLimited(await requestKey())) return { ok: false, error: 'rateLimited' }
 
   const quantities = new Map<string, number>()
-  const sizeQuantities = new Map<string, number>()
 
   for (const item of items) {
     if (!item || typeof item.productId !== 'string' || !UUID_RE.test(item.productId)) {
@@ -151,22 +155,19 @@ export async function createOrderAction(
     }
 
     quantities.set(item.productId, (quantities.get(item.productId) ?? 0) + quantity)
-
-    if (item.size) {
-      const sizeKey = String(item.size).trim()
-      sizeQuantities.set(
-        `${item.productId}|${sizeKey}`,
-        (sizeQuantities.get(`${item.productId}|${sizeKey}`) ?? 0) + quantity
-      )
-    }
   }
 
   const db = insforgeAdmin().database
 
+  /**
+   * Seules les colonnes du prix sont lues ici : le stock n'est plus valide dans
+   * cette requete. Il l'est dans la transaction SQL (`FOR UPDATE`), ou un
+   * controle JavaScript laisserait la meme fenetre de survente.
+   */
   const [productsResult, promotions] = await Promise.all([
     db
       .from('products')
-      .select('id, price, category_id, stock, active, sizes')
+      .select('id, price, category_id, active')
       .in('id', Array.from(quantities.keys())),
     getActivePromotions(),
   ])
@@ -175,17 +176,15 @@ export async function createOrderAction(
 
   if (productsError) return { ok: false, error: 'failed' }
 
-  interface ProductStockRow {
+  interface ProductPriceRow {
     id: string
     price: number | string
     category_id: string | null
-    stock: number
     active: boolean
-    sizes: Array<{ size: number | string; stock: number }> | null
   }
 
   const catalog = new Map(
-    ((products ?? []) as ProductStockRow[]).map((row) => [row.id, row])
+    ((products ?? []) as ProductPriceRow[]).map((row) => [row.id, row])
   )
 
   /**
@@ -202,7 +201,6 @@ export async function createOrderAction(
   for (const [productId, quantity] of quantities) {
     const product = catalog.get(productId)
     if (!product || product.active === false) return { ok: false, error: 'unavailable' }
-    if (Number(product.stock) < quantity) return { ok: false, error: 'outOfStock' }
 
     const unitPrice = applyPercentage(
       Number(product.price),
@@ -211,20 +209,6 @@ export async function createOrderAction(
 
     unitPrices.set(productId, unitPrice)
     subtotal += unitPrice * quantity
-  }
-
-  // Validation du stock par taille : si le produit declare des tailles et
-  // que la commande porte sur une taille inconnue ou en rupture, on refuse.
-  for (const [key, quantity] of sizeQuantities) {
-    const sep = key.lastIndexOf('|')
-    const productId = key.slice(0, sep)
-    const sizeKey = key.slice(sep + 1)
-    const product = catalog.get(productId)
-    if (!product) continue
-    const sizes = Array.isArray(product.sizes) ? product.sizes : []
-    if (sizes.length === 0) continue
-    const row = sizes.find((s) => String(s.size) === sizeKey)
-    if (!row || Number(row.stock) < quantity) return { ok: false, error: 'outOfStock' }
   }
 
   const { data: settings } = await db
@@ -240,103 +224,54 @@ export async function createOrderAction(
   subtotal = round2(subtotal)
   const total = round2(subtotal + shipping)
 
-  const { data: order, error: orderError } = await db
-    .from('orders')
-    .insert({
-      user_id: user?.id ?? null,
-      status: 'PENDING',
-      payment_status: 'PENDING',
-      payment_method: PAYMENT_METHOD,
-      subtotal,
-      shipping,
-      tax: 0,
-      total,
-      shipping_address: {
-        fullName: address.fullName.trim(),
-        email: String(address.email).trim(),
-        phone: String(address.phone).trim(),
-        line1: String(address.line1).trim(),
-        city: String(address.city).trim(),
-        postalCode: String(address.postalCode).trim(),
-        country: String(address.country).trim(),
-      },
-      notes: String(address.notes ?? '').trim().slice(0, 500) || null,
-    })
-    .select('id')
-    .single<{ id: string }>()
+  /**
+   * Ecriture atomique : `create_order_with_stock` insere la commande, ses
+   * lignes et decremente les stocks dans une seule transaction (verrou
+   * `SELECT ... FOR UPDATE`). Soit tout est engage, soit rien : plus de
+   * commande sans stock engage ni de read-modify-write qui survend.
+   *
+   * Les prix et totaux restent calcules ici (promotions incluses) : la
+   * fonction persiste les montants, elle ne les recalcule pas.
+   */
+  const { data: orderId, error: orderError } = await db.rpc('create_order_with_stock', {
+    p_user_id: user?.id ?? null,
+    p_payment_method: PAYMENT_METHOD,
+    p_subtotal: subtotal,
+    p_shipping: shipping,
+    p_tax: 0,
+    p_total: total,
+    p_shipping_address: {
+      fullName: address.fullName.trim(),
+      email: String(address.email).trim(),
+      phone: String(address.phone).trim(),
+      line1: String(address.line1).trim(),
+      city: String(address.city).trim(),
+      postalCode: String(address.postalCode).trim(),
+      country: String(address.country).trim(),
+    },
+    p_notes: String(address.notes ?? '').trim().slice(0, 500) || null,
+    p_items: items.map((item) => ({
+      product_id: item.productId,
+      quantity: Number(item.quantity),
+      price: unitPrices.get(item.productId) ?? 0,
+      size: item.size ? String(item.size).slice(0, 16) : null,
+    })),
+  })
 
-  if (orderError || !order) return { ok: false, error: 'failed' }
+  if (orderError) {
+    // La fonction signale la cause par un message (`RAISE EXCEPTION`), que
+    // PostgREST renvoie tel quel : on le retraduit en code d'erreur typé.
+    const message = orderError.message ?? ''
 
-  const orderItems = items.map((item) => ({
-    order_id: order.id,
-    product_id: item.productId,
-    user_id: user?.id ?? null,
-    quantity: Number(item.quantity),
-    price: unitPrices.get(item.productId) ?? 0,
-    size: item.size ? String(item.size).slice(0, 16) : null,
-  }))
+    if (/outOfStock/.test(message)) return { ok: false, error: 'outOfStock' }
+    if (/unavailable/.test(message)) return { ok: false, error: 'unavailable' }
+    if (/empty/.test(message)) return { ok: false, error: 'empty' }
+    if (/invalid/.test(message)) return { ok: false, error: 'invalid' }
 
-  const { error: itemsError } = await db.from('order_items').insert(orderItems)
-
-  if (itemsError) {
-    // La commande sans ses lignes n'est pas exploitable : on la passe en
-    // CANCELLED plutot que de laisser une coquille creuse au back-office.
-    // Le nettoyage passe par le client admin (le client de session n'a plus
-    // UPDATE sur `orders`, cf. 20261007090000_restrict-order-writes.sql) ; on
-    // ne restreint par user_id que pour une commande rattachee a un compte.
-    let cleanup = insforgeAdmin()
-      .database.from('orders')
-      .update({ status: 'CANCELLED' })
-      .eq('id', order.id)
-
-    if (user) cleanup = cleanup.eq('user_id', user.id)
-
-    await cleanup
+    console.error('create order failed :', message)
 
     return { ok: false, error: 'failed' }
   }
 
-  // Decrementation best-effort des stocks apres validation. Le stock est
-  // borne a zero (jamais negatif) ; les tailles sont mises a jour en meme
-  // temps que le stock total. L'echec d'une mise a jour est logge mais ne
-  // casse pas la commande deja creee.
-  const decrements = new Map<string, { qty: number; sizes: Map<string, number> }>()
-
-  for (const item of items) {
-    const entry = decrements.get(item.productId) ?? { qty: 0, sizes: new Map<string, number>() }
-    entry.qty += Number(item.quantity)
-    if (item.size) {
-      const sizeKey = String(item.size).trim()
-      entry.sizes.set(sizeKey, (entry.sizes.get(sizeKey) ?? 0) + Number(item.quantity))
-    }
-    decrements.set(item.productId, entry)
-  }
-
-  for (const [productId, decrement] of decrements) {
-    const product = catalog.get(productId)
-    if (!product) continue
-
-    const payload: Record<string, unknown> = {
-      stock: Math.max(0, Number(product.stock) - decrement.qty),
-    }
-
-    if (Array.isArray(product.sizes) && product.sizes.length > 0 && decrement.sizes.size > 0) {
-      payload.sizes = product.sizes.map((row) => {
-        const sizeKey = String(row.size).trim()
-        const qty = decrement.sizes.get(sizeKey)
-        return qty ? { ...row, stock: Math.max(0, Number(row.stock) - qty) } : row
-      })
-    }
-
-    const { error: decrementError } = await db
-      .from('products')
-      .update(payload)
-      .eq('id', productId)
-
-    if (decrementError) {
-      console.error('stock decrement failed for', productId, decrementError.message)
-    }
-  }
-
-  return { ok: true, orderId: order.id }
+  return { ok: true, orderId: orderId as string }
 }

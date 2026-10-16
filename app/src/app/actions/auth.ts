@@ -3,7 +3,7 @@
 import { cookies, headers } from 'next/headers'
 import { redirect } from '@/i18n/navigation'
 import { createAuthActions } from '@insforge/sdk/ssr'
-import { rateLimit } from '@/lib/rate-limit'
+import { rateLimit, ipFromHeaders } from '@/lib/rate-limit'
 import { routing, type Locale } from '@/i18n/routing'
 import { safeReturnPath } from '@/lib/safe-redirect'
 
@@ -24,17 +24,7 @@ export interface AuthActionState {
  * de confiance) ; a defaut une cle commune 'unknown' qui limite collectivement.
  */
 async function requestIp(): Promise<string> {
-  const h = await headers()
-  const real = h.get('x-real-ip')?.trim()
-  if (real) return real
-
-  const forwarded = h.get('x-forwarded-for')
-  const segments = forwarded
-    ?.split(',')
-    .map((segment) => segment.trim())
-    .filter(Boolean)
-  const last = segments?.[segments.length - 1]
-  return last ?? 'unknown'
+  return ipFromHeaders(await headers())
 }
 
 /**

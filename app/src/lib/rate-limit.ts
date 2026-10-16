@@ -24,6 +24,11 @@ export interface RateLimitResult {
   retryAfter: number
 }
 
+/** Tout porteur d'en-tetes HTTP : `Request`, `Headers` ou `headers()` de Next. */
+interface HeaderBag {
+  get(name: string): string | null
+}
+
 /**
  * Adresse client pour la cle de limitation (durcissement pentest F-RL-1).
  *
@@ -39,12 +44,15 @@ export interface RateLimitResult {
  * ces en-tetes (front sans proxy HTTP qui normalise), un attaquant peut
  * toujours rotater l'en-tete — la couche definitive reste un compteur
  * persistant partage (InsForge DB / Upstash).
+ *
+ * Source unique partagee par les route handlers (`clientIp`) et les Server
+ * Actions (qui n'ont pas de `Request`, seulement `headers()`).
  */
-export function clientIp(request: Request): string {
-  const real = request.headers.get('x-real-ip')?.trim()
+export function ipFromHeaders(headers: HeaderBag): string {
+  const real = headers.get('x-real-ip')?.trim()
   if (real) return real
 
-  const forwarded = request.headers.get('x-forwarded-for')
+  const forwarded = headers.get('x-forwarded-for')
   const segments = forwarded
     ?.split(',')
     .map((segment) => segment.trim())
@@ -53,6 +61,10 @@ export function clientIp(request: Request): string {
   if (last) return last
 
   return 'unknown'
+}
+
+export function clientIp(request: Request): string {
+  return ipFromHeaders(request.headers)
 }
 
 export function rateLimit(
