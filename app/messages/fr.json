@@ -876,6 +876,7 @@
     "aiError_unsupported": "Format non pris en charge. Utilisez JPEG, PNG ou WebP.",
     "aiError_tooManyImages": "Six visuels maximum par produit. Retirez-en un avant d’en ajouter.",
     "aiError_failed": "L’analyse a échoué. Remplissez la fiche à la main.",
+    "aiError_quota": "Le quota d’analyse photo est atteint. Réessayez plus tard ou remplissez la fiche à la main.",
     "coverImage": "Couverture",
     "removeImage": "Retirer ce visuel",
     "imagesReady": "{count, plural, =0 {} =1 {Photo prête : elle sera hébergée avec le produit.} other {{count} photos prêtes : elles seront hébergées avec le produit.}}",

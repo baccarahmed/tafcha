@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { AiConfigError, analyzeProductImage, normalizeSku, toDraft } from '@/lib/gemini'
+import { AiConfigError, AiQuotaError, analyzeProductImage, normalizeSku, toDraft } from '@/lib/gemini'
 
 describe('normalizeSku', () => {
   it('majuscules, espaces en tirets', () => {
@@ -164,5 +164,33 @@ describe('analyzeProductImage', () => {
     await expect(
       analyzeProductImage({ base64: 'a', mimeType: 'image/jpeg' }, 'fr'),
     ).rejects.toThrow(/gemini: fetch failed/)
+  })
+
+  it('remonte un AiQuotaError sur un HTTP 429 quand tous les modeles sont refuses', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue(jsonResponse({ error: { message: 'Quota exceeded' } }, false, 429)),
+    )
+
+    await expect(
+      analyzeProductImage({ base64: 'a', mimeType: 'image/jpeg' }, 'fr'),
+    ).rejects.toBeInstanceOf(AiQuotaError)
+  })
+
+  it('reconnait RESOURCE_EXHAUSTED meme hors 429', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue(
+        jsonResponse(
+          { error: { status: 'RESOURCE_EXHAUSTED', message: 'out of quota' } },
+          false,
+          503,
+        ),
+      ),
+    )
+
+    await expect(
+      analyzeProductImage({ base64: 'a', mimeType: 'image/jpeg' }, 'fr'),
+    ).rejects.toBeInstanceOf(AiQuotaError)
   })
 })

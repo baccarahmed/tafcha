@@ -35,6 +35,19 @@ export class AiConfigError extends Error {
   }
 }
 
+/**
+ * Quota du fournisseur atteint (debit ou facturation). Distinct d'une panne
+ * ordinaire : l'administrateur doit lire « quota atteint », pas « analyse
+ * echouee ». On ne pose aucun plafond cote application — c'est Gemini qui
+ * tranche — on se contente de remonter son refus.
+ */
+export class AiQuotaError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = 'AiQuotaError'
+  }
+}
+
 const RESPONSE_SCHEMA = {
   type: 'OBJECT',
   properties: {
@@ -88,7 +101,19 @@ interface GeminiPart {
 
 interface GeminiResponse {
   candidates?: { content?: { parts?: GeminiPart[] } }[]
-  error?: { message: string }
+  error?: { message: string; status?: string }
+}
+
+/**
+ * Gemini signale un quota depasse par un HTTP 429 ou un statut
+ * `RESOURCE_EXHAUSTED` (limite de debit ou de facturation). On le reconnait
+ * pour remonter un `AiQuotaError` plutot que le generique « gemini: ... ».
+ */
+function isQuotaResponse(status: number, body: GeminiResponse): boolean {
+  if (status === 429) return true
+
+  const message = `${body.error?.status ?? ''} ${body.error?.message ?? ''}`
+  return /RESOURCE_EXHAUSTED|quota|rate limit|too many requests/i.test(message)
 }
 
 /**
@@ -169,6 +194,7 @@ async function request(
   locale: string,
 ): Promise<GeminiResponse> {
   let lastError = 'aucun modele disponible'
+  let sawQuota = false
 
   for (const model of models) {
     try {
@@ -202,6 +228,8 @@ async function request(
         return body
       }
 
+      if (isQuotaResponse(response.status, body)) sawQuota = true
+
       lastError = body.error?.message ?? String(response.status)
     } catch (error) {
       // Timeout, DNS ou socket casse : on retient le motif et on passe au
@@ -209,6 +237,10 @@ async function request(
       lastError = error instanceof Error ? error.message : String(error)
     }
   }
+
+  // Le quota est un etat du compte, pas de la requete : on le remonte tel quel
+  // pour que l'appelant affiche un message dedie.
+  if (sawQuota) throw new AiQuotaError(`gemini: ${lastError}`)
 
   throw new Error(`gemini: ${lastError}`)
 }

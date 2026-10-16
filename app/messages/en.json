@@ -876,6 +876,7 @@
     "aiError_unsupported": "Unsupported format. Use JPEG, PNG or WebP.",
     "aiError_tooManyImages": "Six images maximum per product. Remove one before adding another.",
     "aiError_failed": "Analysis failed. Fill the form manually.",
+    "aiError_quota": "The photo-analysis quota has been reached. Try again later or fill the form manually.",
     "coverImage": "Cover",
     "removeImage": "Remove this image",
     "imagesReady": "{count, plural, =0 {} =1 {Photo ready: it will be hosted with the product.} other {{count} photos ready: they will be hosted with the product.}}",

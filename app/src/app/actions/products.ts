@@ -8,7 +8,7 @@ import {
   ProductValidationError,
   type ProductInput,
 } from '@/lib/admin-products'
-import { analyzeProductImage, AiConfigError, type ProductDraft } from '@/lib/gemini'
+import { analyzeProductImage, AiConfigError, AiQuotaError, type ProductDraft } from '@/lib/gemini'
 import {
   uploadProductImage,
   deleteProductImage,
@@ -96,6 +96,7 @@ export async function createProductAction(
 export type AnalyzeError =
   | 'forbidden'
   | 'notConfigured'
+  | 'quota'
   | 'tooLarge'
   | 'unsupported'
   | 'failed'
@@ -135,6 +136,10 @@ export async function analyzeProductImageAction(
     return { ok: true, draft: await analyzeProductImage(image, locale) }
   } catch (error) {
     if (error instanceof AiConfigError) return { ok: false, error: 'notConfigured' }
+
+    // Quota du fournisseur atteint : message dedie plutot que « analyse
+    // echouee », pour que l'admin comprenne que le service a refuse l'appel.
+    if (error instanceof AiQuotaError) return { ok: false, error: 'quota' }
 
     // Une panne du fournisseur ne doit pas casser la page : le
     // formulaire reste utilisable a la main.

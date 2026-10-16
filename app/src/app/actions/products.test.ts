@@ -25,6 +25,7 @@ vi.mock('@/lib/admin-storage', () => ({
 vi.mock('@/lib/gemini', () => ({
   analyzeProductImage: vi.fn(),
   AiConfigError: class AiConfigError extends Error {},
+  AiQuotaError: class AiQuotaError extends Error {},
 }))
 vi.mock('next/cache', () => ({ revalidatePath: vi.fn(), revalidateTag: vi.fn() }))
 
@@ -40,7 +41,7 @@ import {
   storageKeyFromUrl,
   ImageUploadError,
 } from '@/lib/admin-storage'
-import { analyzeProductImage, AiConfigError } from '@/lib/gemini'
+import { analyzeProductImage, AiConfigError, AiQuotaError } from '@/lib/gemini'
 import {
   analyzeProductImageAction,
   createProductAction,
@@ -244,6 +245,15 @@ describe('analyzeProductImageAction', () => {
     expect(await analyzeProductImageAction({ base64: 'a', mimeType: 'image/jpeg' }, 'fr')).toEqual({
       ok: false,
       error: 'failed',
+    })
+  })
+
+  it('signale un quota IA atteint', async () => {
+    vi.mocked(analyzeProductImage).mockRejectedValue(new AiQuotaError('quota'))
+
+    expect(await analyzeProductImageAction({ base64: 'a', mimeType: 'image/jpeg' }, 'fr')).toEqual({
+      ok: false,
+      error: 'quota',
     })
   })
 
