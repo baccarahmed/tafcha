@@ -114,6 +114,7 @@ export default function SneakerProductDetail({
       palette: product.palette,
       slug: product.slug,
       size: selectedSize.toString(),
+      image: activeImage ?? product.images[0],
     });
     trackAddToCart({ id: product.id, name: product.name, value: product.price });
     openCart();

@@ -77,7 +77,7 @@ export function Q2MHero() {
       {/* Poster statique — premier paint immédiat + repli si la vidéo échoue */}
       <Image
         src={Q2M_BRAND_IMAGES.heroMain}
-        alt="Q2M — hero sneakers premium"
+        alt="Q2M — sneakers premium en vitrine"
         fill
         priority
         className="object-cover"

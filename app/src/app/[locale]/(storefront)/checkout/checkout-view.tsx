@@ -1,6 +1,7 @@
 "use client";
 
 import { Link } from "@/i18n/navigation";
+import Image from "next/image";
 import { useEffect, useRef, useTransition, useState, type FormEvent } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { motion } from "framer-motion";
@@ -398,10 +399,20 @@ export default function CheckoutView({
                 <li key={item.id} className="flex gap-3">
                   <Link
                     href={`/product/${item.slug}`}
-                    className="h-16 w-16 shrink-0 overflow-hidden"
+                    className="relative h-16 w-16 shrink-0 overflow-hidden"
                     style={{ background: Q2M.bg }}
                   >
-                    <SneakerVisual variant={item.palette} />
+                    {item.image ? (
+                      <Image
+                        src={item.image}
+                        alt={item.name}
+                        width={64}
+                        height={64}
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <SneakerVisual variant={item.palette} />
+                    )}
                   </Link>
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-semibold">

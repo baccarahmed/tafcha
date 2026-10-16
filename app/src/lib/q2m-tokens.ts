@@ -79,12 +79,12 @@ export const BENEFIT_KEYS = ['authenticity', 'shipping', 'returns', 'studio'] as
 
 /**
  * Assets visuels premium du brand Q2M — couronne or + argent + drapeau FR.
- * Logo réel fourni par le client : `/images/q2m/logo q2m.png`
- * (460×471, fond transparent, traits sombres + or).
  *
- * Un seul fichier sert des deux côtés : la classe `q2m-logo` (globals.css)
- * applique automatiquement un filtre en mode sombre pour que le tracé sombre
- * reste lisible sur les surfaces noires, sans dupliquer le binaire.
+ * L'emblème est dérivé d'un logo client carre sur fond noir puis normalisé en
+ * un unique badge circulaire (`logoCircle`) : fond noir réduit, fin liseré or,
+ * coins transparents. Le composant `Q2MLogo` est le seul point d'entrée, si
+ * bien que navbar, footer, admin, login, favicon et image OG partagent le même
+ * rendu. Voir `scripts/make-logo.mjs`.
  *
  * Les autres visuels (hero, catégories, drops) restent générés via le pipeline text_to_image.
  */
@@ -92,15 +92,16 @@ const IMG = (prompt: string, size: string) =>
   `https://coresg-normal.trae.ai/api/ide/v1/text_to_image?prompt=${encodeURIComponent(prompt)}&image_size=${size}`;
 
 export const Q2M_BRAND_IMAGES = {
-  /** PNG transparent — surfaces thématisées (clair/sombre), classe `.q2m-logo`. */
+  /** Emblème circulaire unique — badge noir + liseré or, coins transparents.
+   *  Sélectionné par `Q2MLogo`, utilisé partout (navbar, footer, admin, login,
+   *  favicon, image OG). Généré par `scripts/make-logo.mjs`. */
+  logoCircle: '/images/q2m/logo-q2m-circle.png',
+  /** PNG transparent historique (non utilisé par l'UI, conservé en source). */
   logo: '/images/q2m/logo q2m.png',
-  /** JPG sur fond noir — chrome noir `#000000` (navbar, footer, drawer) : le
-   *  carré noir se fond dans la barre, aucune retouche de filtre nécessaire. */
+  /** JPG sur fond noir — source de l'emblème circulaire. */
   logoOnBlack: '/images/q2m/logo q2m.jpg',
-  heroMain: IMG(
-    'Luxury streetwear hero banner, cinematic low angle shot, premium white high top sneakers with gold Q logo details, dramatic crimson red neon rim light from left, warm gold accent light from right, dark moody wet urban asphalt background with subtle reflections, floating dust particles, generous empty copy space on left side, luxury fashion campaign photography, hyperrealistic, wide composition, shallow depth of field',
-    'landscape_16_9',
-  ),
+  /** Visuel client fourni (1254×1254) — poster du hero, la vidéo se superpose. */
+  heroMain: '/images/q2m/Nike_TN_sneakers_on_display_2K_20261008145935.jpg',
   categoryHomme: IMG(
     'Mens luxury sneakers fashion editorial, handsome athletic north african man model, confident pose wearing premium black leather sneakers with gold logo details, dark modern minimal outfit, moody background with soft crimson rim lighting, high end fashion photography, portrait 4:3',
     'portrait_4_3',

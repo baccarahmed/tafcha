@@ -12,8 +12,8 @@ import { absoluteUrl, SITE_NAME, SITE_NAME_LONG, SITE_URL } from './site'
 import { STORE_CURRENCY } from './utils'
 import type { CatalogProduct } from '@/types/catalog'
 
-/** Image OG par défaut (logo PNG de la boutique). */
-export const DEFAULT_OG_IMAGE = '/images/q2m/logo%20q2m.png'
+/** Image OG par défaut (emblème circulaire de la boutique). */
+export const DEFAULT_OG_IMAGE = '/images/q2m/logo-q2m-circle.png'
 
 /** Locale Open Graph à partir d'un code de langue. */
 const OG_LOCALE: Record<string, string> = {

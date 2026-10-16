@@ -1,30 +1,15 @@
 import sharp from 'sharp';
 import { writeFile } from 'node:fs/promises';
 
-const SRC = 'public/images/q2m/logo q2m.png';
+// Emblème circulaire de marque : badge noir + liseré or, coins transparents.
+// Un seul asset pour toute la plateforme (onglet, icônes, OG, UI).
+const SRC = 'public/images/q2m/logo-q2m-circle.png';
 const SIZE = 64;
+const APPLE_SIZE = 180;
+const BG = '#090909';
 
-// Fond sombre de marque + logo negatif (traits clairs) pour rester lisible
-// sur les onglets clairs comme sombres.
-const bg = await sharp({
-  create: {
-    width: SIZE,
-    height: SIZE,
-    channels: 4,
-    background: { r: 15, g: 15, b: 15, alpha: 1 },
-  },
-})
-  .png()
-  .toBuffer();
-
-const logo = await sharp(SRC)
-  .negate({ alpha: false })
-  .resize(SIZE - 16, SIZE - 16, { fit: 'contain' })
-  .png()
-  .toBuffer();
-
-const png = await sharp(bg)
-  .composite([{ input: logo, gravity: 'centre' }])
+const png = await sharp(SRC)
+  .resize(SIZE, SIZE, { fit: 'contain', background: { r: 0, g: 0, b: 0, alpha: 0 } })
   .png()
   .toBuffer();
 
@@ -46,4 +31,15 @@ entry.writeUInt32LE(22, 12); // offset
 
 await writeFile('src/app/favicon.ico', Buffer.concat([header, entry, png]));
 await writeFile('src/app/icon.png', png);
-console.log('favicon.ico + icon.png ecrits (' + png.length + ' octets)');
+
+// Apple touch icon : fond opaque (iOS masque lui-meme les angles).
+const apple = await sharp(SRC)
+  .resize(APPLE_SIZE, APPLE_SIZE, { fit: 'contain', background: BG })
+  .flatten({ background: BG })
+  .png()
+  .toBuffer();
+await writeFile('src/app/apple-icon.png', apple);
+
+console.log(
+  'favicon.ico + icon.png + apple-icon.png ecrits (' + png.length + ' / ' + apple.length + ' octets)',
+);

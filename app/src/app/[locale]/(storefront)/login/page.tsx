@@ -1,11 +1,11 @@
-import Image from 'next/image'
 import type { Metadata } from 'next'
 import { Link, redirect } from '@/i18n/navigation'
+import { Q2MLogo } from '@/components/brand/Q2MLogo'
 import { routing, type Locale } from '@/i18n/routing'
 import { hasLocale } from 'next-intl'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { buildMetadata } from '@/lib/seo'
-import { Q2M, Q2M_FONT, Q2M_BRAND_IMAGES } from '@/lib/q2m-tokens'
+import { Q2M, Q2M_FONT } from '@/lib/q2m-tokens'
 import { getSessionUser } from '@/lib/session'
 import { safeReturnPath } from '@/lib/safe-redirect'
 import LoginForm from './login-form'
@@ -51,10 +51,6 @@ export default async function LoginPage({ params, searchParams }: PageProps) {
     })
   }
 
-  // Meme fichier de logo que la vitrine : la classe `q2m-logo` bascule
-  // automatiquement le rendu selon le thème actif.
-  const logoSrc = Q2M_BRAND_IMAGES.logo
-
   return (
     <main
       className="flex min-h-screen items-center justify-center px-6 py-24"
@@ -68,14 +64,7 @@ export default async function LoginPage({ params, searchParams }: PageProps) {
         </Link>
 
         <div className="mb-6 flex justify-center">
-          <Image
-            src={logoSrc}
-            alt={`${Q2M.brand} — ${Q2M.brandFull}`}
-            width={220}
-            height={220}
-            priority
-            className="q2m-logo h-[220px] w-[220px] rounded-full object-contain"
-          />
+          <Q2MLogo size={120} priority />
         </div>
 
         <p className="q2m-eyebrow mb-3 text-center">

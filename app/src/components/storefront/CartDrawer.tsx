@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { Link } from '@/i18n/navigation';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Drawer } from 'vaul';
@@ -137,9 +138,19 @@ export function CartDrawer({
                           <Link
                             href={`/product/${item.slug}`}
                             onClick={closeCart}
-                            className="h-24 w-24 flex-shrink-0 overflow-hidden rounded-md bg-[var(--q2m-bone)]"
+                            className="relative h-24 w-24 flex-shrink-0 overflow-hidden rounded-md bg-[var(--q2m-bone)]"
                           >
-                            <SneakerVisual variant={item.palette} />
+                            {item.image ? (
+                              <Image
+                                src={item.image}
+                                alt={item.name}
+                                width={96}
+                                height={96}
+                                className="h-full w-full object-cover"
+                              />
+                            ) : (
+                              <SneakerVisual variant={item.palette} />
+                            )}
                           </Link>
 
                           <div className="flex min-w-0 flex-1 flex-col">

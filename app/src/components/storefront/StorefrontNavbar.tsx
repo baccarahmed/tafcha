@@ -1,7 +1,7 @@
 "use client";
 
-import Image from "next/image";
 import { Link } from "@/i18n/navigation";
+import { Q2MLogo } from "@/components/brand/Q2MLogo";
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import {
@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import { useCartStore } from "@/store/cart-store";
 import { useWishlistStore } from "@/store/wishlist-store";
-import { Q2M, Q2M_FONT, NAV_LINKS, GENDER_NAV_LINKS, Q2M_BRAND_IMAGES } from "@/lib/q2m-tokens";
+import { Q2M, Q2M_FONT, NAV_LINKS, GENDER_NAV_LINKS } from "@/lib/q2m-tokens";
 import { ThemeToggle } from "@/components/storefront/ThemeToggle";
 import { LanguageSwitcher } from "@/components/storefront/LanguageSwitcher";
 
@@ -29,7 +29,6 @@ const CHROME_HOVER =
 
 export function StorefrontNavbar({ genders = [] }: { genders?: string[] }) {
   const [open, setOpen] = useState(false);
-  const logoSrc = Q2M_BRAND_IMAGES.logoOnBlack;
   const totalItems = useCartStore((s) => s.totalItems);
   const openCart = useCartStore((s) => s.openCart);
   const wishlistCount = useWishlistStore((s) => s.items.length);
@@ -103,21 +102,13 @@ export function StorefrontNavbar({ genders = [] }: { genders?: string[] }) {
           className="mx-auto flex h-[72px] max-w-[1440px] items-center justify-between gap-6 px-5 sm:px-10 lg:px-14"
           style={{ fontFamily: Q2M_FONT }}
         >
-          {/* Logo officiel Q2M — JPG sur fond noir, fondu dans la barre */}
+          {/* Emblème circulaire Q2M — badge noir + liseré or */}
           <Link
             href="/"
             className="flex shrink-0 items-center"
             aria-label={Q2M.brand}
           >
-            <Image
-              src={logoSrc}
-              alt={`${Q2M.brand} — ${Q2M.brandFull}`}
-              width={52}
-              height={52}
-              priority
-              sizes="52px"
-              className="h-[52px] w-[52px] object-contain"
-            />
+            <Q2MLogo size={52} priority />
           </Link>
 
           {/* Center: main nav links */}

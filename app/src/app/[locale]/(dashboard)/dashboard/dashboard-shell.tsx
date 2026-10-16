@@ -1,8 +1,8 @@
 'use client'
 
-import Image from 'next/image'
 import { useState } from 'react'
 import { Link, usePathname } from '@/i18n/navigation'
+import { Q2MLogo } from '@/components/brand/Q2MLogo'
 import { motion } from 'framer-motion'
 import {
   BarChart3,
@@ -35,7 +35,7 @@ import { cn } from '@/lib/utils'
 import { ThemeToggle } from '@/components/storefront/ThemeToggle'
 import { LanguageSwitcher } from '@/components/storefront/LanguageSwitcher'
 import type { SessionUser } from '@/lib/session'
-import { Q2M, Q2M_BRAND_IMAGES } from '@/lib/q2m-tokens'
+import { Q2M } from '@/lib/q2m-tokens'
 
 const NAV = [
   { key: 'overview', href: '/dashboard', icon: LayoutDashboard },
@@ -50,8 +50,6 @@ const NAV = [
 ] as const
 
 function LogoLink({ collapsed }: { collapsed?: boolean }) {
-  const t = useTranslations('dashboard')
-
   return (
     <Link
       href="/dashboard"
@@ -61,13 +59,7 @@ function LogoLink({ collapsed }: { collapsed?: boolean }) {
         collapsed ? 'mx-auto flex h-9 w-9 items-center justify-center' : ''
       )}
     >
-      <Image
-        src={Q2M_BRAND_IMAGES.logoOnBlack}
-        alt={`${Q2M.brand} ${t('title')}`}
-        width={36}
-        height={36}
-        className="h-9 w-9 shrink-0 rounded-sm object-contain"
-      />
+      <Q2MLogo size={36} />
       {!collapsed && (
         <span className="text-sm font-semibold tracking-[0.18em] text-[#f6f4ef]">
           {Q2M.brand}

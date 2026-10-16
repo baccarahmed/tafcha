@@ -11,6 +11,8 @@ export interface CartItem {
   palette: SneakerPalette;
   slug: string;
   size?: string;
+  /** URL de la photo produit affichée au moment de l'ajout (repli `SneakerVisual`). */
+  image?: string;
 }
 
 interface CartState {

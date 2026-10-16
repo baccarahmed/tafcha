@@ -282,18 +282,8 @@
     border: 1px solid var(--q2m-line-soft);
   }
 
-  /* Logo Q2M : un seul PNG (`public/images/q2m/logo q2m.png`) sert des deux
-     thèmes. Le visuel est tracé en traits sombres sur fond transparent : sur
-     les surfaces noires du mode sombre on le reduit en silhouette claire et on
-     laisse un halo or rappeler la palette de marque. Ajuster la variable
-     ci-dessous suffit pour changer le rendu sans retoucher les composants. */
-  .q2m-logo {
-    filter: none;
-  }
-
-  .dark .q2m-logo {
-    filter: brightness(0) invert(1) drop-shadow(0 0 10px rgba(201, 164, 92, 0.35));
-  }
+  /* L'emblème circulaire Q2M (`Q2MLogo`) se compose tel quel sur tous les
+     fonds (badge noir + liseré or) : plus besoin de filtre par thème. */
 
   .q2m-btn-primary {
     display: inline-flex;
