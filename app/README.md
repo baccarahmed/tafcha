@@ -21,6 +21,23 @@ npm run dev                  # http://localhost:3000/fr
 
 Variables : `NEXT_PUBLIC_INSFORGE_URL`, `NEXT_PUBLIC_INSFORGE_ANON_KEY`, `INSFORGE_API_KEY` (jamais de préfixe `NEXT_PUBLIC_`), `NEXT_PUBLIC_SITE_URL`, `GEMINI_API_KEY` / `GEMINI_MODEL` (optionnel).
 
+## Notifications
+
+Deux niveau indépendants :
+
+- **In-app (toujours actif)** — table `notifications` (migrations `20261017121000_notifications.sql`) + temps réel : cloche dans la navbar vitrine et la topbar admin, canal `user:<id>:notifications`, suivi de commande sur `order:<id>`.
+- **Canaux externes (désactivés par défaut)** — `src/lib/notify-channels.ts`. Tant que `NOTIFY_CHANNELS_ENABLED !== 'true'`, aucun appel externe n'est émis (best-effort, une panne de canal ne fait jamais échouer une commande).
+
+Variables des canaux externes (à définir dans `.env.local` **et** dans Vercel → Settings → Environment Variables) :
+
+| Variable | Rôle |
+| --- | --- |
+| `NOTIFY_CHANNELS_ENABLED` | `true` pour activer l'envoi externe |
+| `TELEGRAM_BOT_TOKEN` | token du bot (BotFather) |
+| `TELEGRAM_CHAT_ID` | chat destinataire (le bot ne peut pas écrire le premier : envoyer `/start`) |
+| `ADMIN_NOTIFICATION_EMAIL` | optionnel, destinataire des alertes e-mail |
+| `INSFORGE_FROM_EMAIL` | optionnel, expéditeur (défaut `Q2M <no-reply@que2marque.com>`) |
+
 ## Commandes
 
 | Commande | Rôle |
