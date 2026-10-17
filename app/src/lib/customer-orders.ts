@@ -14,6 +14,12 @@ export interface CustomerOrderItem {
   price: number
 }
 
+export interface CustomerOrderEvent {
+  status: string
+  note: string | null
+  createdAt: string
+}
+
 export interface CustomerOrder {
   id: string
   shortId: string
@@ -27,6 +33,7 @@ export interface CustomerOrder {
   deliveryWindowStart: string | null
   deliveryWindowEnd: string | null
   items: CustomerOrderItem[]
+  events: CustomerOrderEvent[]
 }
 
 interface OrderRow {
@@ -79,7 +86,11 @@ export async function getMyOrders(userId: string): Promise<CustomerOrder[]> {
   const orders = (data ?? []) as OrderRow[]
   if (orders.length === 0) return []
 
-  const itemsByOrder = await loadItems(orders.map((order) => order.id))
+  const orderIds = orders.map((order) => order.id)
+  const [itemsByOrder, eventsByOrder] = await Promise.all([
+    loadItems(orderIds),
+    loadEvents(orderIds),
+  ])
 
   return orders.map((order) => ({
     id: order.id,
@@ -94,7 +105,49 @@ export async function getMyOrders(userId: string): Promise<CustomerOrder[]> {
     deliveryWindowStart: order.delivery_window_start,
     deliveryWindowEnd: order.delivery_window_end,
     items: itemsByOrder.get(order.id) ?? [],
+    events: eventsByOrder.get(order.id) ?? [],
   }))
+}
+
+/**
+ * Historique de statut des commandes (table `order_events`, migration
+ * 20261017120000). Tolere l'absence de la table : sans migration appliquee, le
+ * suivi retombe simplement sur la timeline derivee du statut courant.
+ */
+async function loadEvents(orderIds: string[]): Promise<Map<string, CustomerOrderEvent[]>> {
+  const grouped = new Map<string, CustomerOrderEvent[]>()
+  if (orderIds.length === 0) return grouped
+
+  const db = insforgeAdmin().database
+
+  const { data, error } = await db
+    .from('order_events')
+    .select('order_id,status,note,created_at')
+    .in('order_id', orderIds)
+    .order('created_at', { ascending: true })
+
+  if (error) {
+    console.error('order_events:', error.message)
+    return grouped
+  }
+
+  for (const row of (data ?? []) as Array<{
+    order_id: string
+    status: string
+    note: string | null
+    created_at: string
+  }>) {
+    const event: CustomerOrderEvent = {
+      status: row.status,
+      note: row.note,
+      createdAt: row.created_at,
+    }
+    const bucket = grouped.get(row.order_id)
+    if (bucket) bucket.push(event)
+    else grouped.set(row.order_id, [event])
+  }
+
+  return grouped
 }
 
 /**

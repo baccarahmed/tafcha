@@ -19,6 +19,7 @@ import {
   type PaymentStatus,
 } from '@/lib/admin-orders'
 import { demoteUser, setUserRole, UserValidationError } from '@/lib/admin-users'
+import { notifyOrderStatusChange } from '@/lib/notify-channels'
 import {
   createPromotion,
   deletePromotion,
@@ -142,6 +143,11 @@ export async function updateOrderAction(
       deliveryWindowStart: patch.deliveryWindowStart,
       deliveryWindowEnd: patch.deliveryWindowEnd,
     })
+
+    // Canaux externes : best-effort, desactives par defaut.
+    if (patch.status) {
+      void notifyOrderStatusChange({ orderId: id, status: patch.status }).catch(() => {})
+    }
 
     refresh()
 

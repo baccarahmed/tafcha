@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion'
 import { Heart } from 'lucide-react'
+import Image from 'next/image'
 import { useLocale, useTranslations } from 'next-intl'
 import { Link } from '@/i18n/navigation'
 import SneakerVisual from '@/components/storefront/SneakerVisual'
@@ -26,7 +27,20 @@ function FavoriteCard({ item, index }: { item: WishlistItem; index: number }) {
           className="relative aspect-[319/300] w-full overflow-hidden border border-transparent p-3.5 transition-[border-color] duration-300 group-hover:border-[var(--q2m-accent)]"
           style={{ background: Q2M.bone, borderRadius: 8 }}
         >
-          <SneakerVisual variant={item.palette} />
+          <div className="relative h-full w-full">
+            {item.image ? (
+              <Image
+                src={item.image}
+                alt={item.name}
+                fill
+                sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                className="object-cover"
+                style={{ borderRadius: 4 }}
+              />
+            ) : (
+              <SneakerVisual variant={item.palette} />
+            )}
+          </div>
         </div>
 
         <div className="mt-3 flex flex-col gap-1">

@@ -9,6 +9,9 @@ export interface WishlistItem {
   price: number;
   palette: SneakerPalette;
   slug: string;
+  /** Image produit issue de la base ; absente sur les favoris enregistres avant
+   *  l'ajout de ce champ, d'ou le repli sur `SneakerVisual` a l'affichage. */
+  image?: string;
 }
 
 interface WishlistState {

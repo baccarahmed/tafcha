@@ -3,6 +3,7 @@
 import { headers } from 'next/headers'
 import { getSessionUser } from '@/lib/session'
 import { insforgeAdmin } from '@/lib/insforge-admin'
+import { notifyNewOrder } from '@/lib/notify-channels'
 import { ipFromHeaders } from '@/lib/rate-limit'
 import {
   applyPercentage,
@@ -272,6 +273,15 @@ export async function createOrderAction(
 
     return { ok: false, error: 'failed' }
   }
+
+  // Canaux externes (Telegram/e-mail admin) : best-effort et desactives par
+  // defaut, une panne de canal ne doit jamais faire echouer la commande.
+  void notifyNewOrder({
+    orderId: orderId as string,
+    customerName: String(address.fullName).trim(),
+    total,
+    itemCount: items.reduce((sum, item) => sum + Number(item.quantity), 0),
+  }).catch(() => {})
 
   return { ok: true, orderId: orderId as string }
 }

@@ -17,6 +17,8 @@ import { useWishlistStore } from "@/store/wishlist-store";
 import { Q2M, Q2M_FONT, NAV_LINKS, GENDER_NAV_LINKS } from "@/lib/q2m-tokens";
 import { ThemeToggle } from "@/components/storefront/ThemeToggle";
 import { LanguageSwitcher } from "@/components/storefront/LanguageSwitcher";
+import { NotificationBell } from "@/components/notifications/NotificationBell";
+import type { NotificationDTO } from "@/lib/notifications-types";
 
 /**
  * Chrome noir #000000 dans les deux modes : la barre ne dépend jamais du thème,
@@ -27,7 +29,15 @@ const CHROME_TEXT = "text-[var(--q2m-on-dark-soft)]";
 const CHROME_HOVER =
   "transition-colors duration-180 ease-q2m hover:text-[var(--q2m-accent)] focus-visible:text-[var(--q2m-accent)]";
 
-export function StorefrontNavbar({ genders = [] }: { genders?: string[] }) {
+export function StorefrontNavbar({
+  genders = [],
+  userId = null,
+  notifications = [],
+}: {
+  genders?: string[];
+  userId?: string | null;
+  notifications?: NotificationDTO[];
+}) {
   const [open, setOpen] = useState(false);
   const totalItems = useCartStore((s) => s.totalItems);
   const openCart = useCartStore((s) => s.openCart);
@@ -172,6 +182,8 @@ export function StorefrontNavbar({ genders = [] }: { genders?: string[] }) {
                 </span>
               )}
             </button>
+
+            <NotificationBell userId={userId} initialNotifications={notifications} />
 
             <button
               type="button"

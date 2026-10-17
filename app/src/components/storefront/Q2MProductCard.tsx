@@ -187,6 +187,7 @@ export function Q2MProductCard({ product }: { product: CatalogProduct }) {
             price: product.price,
             palette: product.palette,
             slug: product.slug,
+            image: product.images[0],
           })
         }
         className="absolute right-3.5 top-3.5 z-10 flex h-8 w-8 items-center justify-center transition-[transform,border-color,color] duration-140 ease-q2m hover:scale-110 hover:border hover:border-[var(--q2m-accent)] active:scale-90"

@@ -35,6 +35,8 @@ import { cn } from '@/lib/utils'
 import { ThemeToggle } from '@/components/storefront/ThemeToggle'
 import { LanguageSwitcher } from '@/components/storefront/LanguageSwitcher'
 import type { SessionUser } from '@/lib/session'
+import type { NotificationDTO } from '@/lib/notifications-types'
+import { NotificationBell } from '@/components/notifications/NotificationBell'
 import { Q2M } from '@/lib/q2m-tokens'
 
 const NAV = [
@@ -167,9 +169,11 @@ function NavItems({
 
 export function DashboardShell({
   user,
+  notifications = [],
   children,
 }: {
   user: SessionUser
+  notifications?: NotificationDTO[]
   children: React.ReactNode
 }) {
   const pathname = usePathname()
@@ -270,6 +274,7 @@ export function DashboardShell({
             </div>
 
             <div className="flex items-center gap-2 sm:gap-3">
+              <NotificationBell userId={user.id} initialNotifications={notifications} />
               <LanguageSwitcher />
               <ThemeToggle />
               <Button asChild variant="ghost" size="sm" className="text-[var(--q2m-on-dark-soft)] hover:text-[var(--q2m-accent)]">

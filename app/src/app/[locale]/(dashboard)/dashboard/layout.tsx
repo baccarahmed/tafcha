@@ -2,6 +2,7 @@ import { redirect } from '@/i18n/navigation'
 import { hasLocale } from 'next-intl'
 import { routing, type Locale } from '@/i18n/routing'
 import { getSessionUser } from '@/lib/session'
+import { listNotifications } from '@/lib/notifications'
 import { DashboardShell } from './dashboard-shell'
 
 export const dynamic = 'force-dynamic'
@@ -27,5 +28,11 @@ export default async function DashboardLayout({
     redirect({ href: '/', locale: activeLocale })
   }
 
-  return <DashboardShell user={user}>{children}</DashboardShell>
+  const notifications = await listNotifications(user.id).catch(() => [])
+
+  return (
+    <DashboardShell user={user} notifications={notifications}>
+      {children}
+    </DashboardShell>
+  )
 }

@@ -281,6 +281,7 @@ export default function SneakerProductDetail({
                   price: product.price,
                   palette: product.palette,
                   slug: product.slug,
+                  image: activeImage ?? product.images[0],
                 })
               }
               className="flex h-9 w-9 items-center justify-center rounded-full transition-[transform,background-color,color] duration-140 ease-q2m hover:scale-110 hover:bg-[var(--q2m-bone)] active:scale-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--q2m-accent)]"
