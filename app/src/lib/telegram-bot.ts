@@ -1140,19 +1140,24 @@ async function cmdPromoDelete(chatId: number, raw: string, args: string[]): Prom
 /* Reglages vitrine                                                    */
 /* ------------------------------------------------------------------ */
 
-/** Relit les reglages, applique la modification et propose l'ecriture. */
-async function proposeSettings(
+/**
+ * Propose une modification de reglages.
+ *
+ * Le payload ne transporte que les champs touches : le runner relit la ligne a
+ * l'execution, donc confirmer deux propositions coup sur coup ne fait pas
+ * perdre la premiere, et une modification faite entre-temps dans le dashboard
+ * est conservee.
+ */
+async function proposeSetting(
   chatId: number,
   raw: string,
+  changes: Record<string, string | number | boolean>,
   label: string,
   summary: string,
-  apply: (input: SiteSettingsInput) => SiteSettingsInput,
 ): Promise<void> {
-  const current = await getSiteSettingsInput()
-
   await proposeAction(chatId, raw, {
     action: 'settings.save',
-    payload: { input: apply({ ...current }), label },
+    payload: { changes, label },
     summary,
   })
 }
@@ -1168,23 +1173,23 @@ async function cmdAnnounce(chatId: number, raw: string, args: string[]): Promise
   const current = await getSiteSettingsInput()
 
   if (text.length === 0) {
-    await proposeSettings(
+    await proposeSetting(
       chatId,
       raw,
+      { announcementEnabled: false },
       'annonce désactivée',
       `Bandeau d’annonce : <s>${escapeHtml(current.announcementText || 'vide')}</s> → <b>désactivé</b>`,
-      (input) => ({ ...input, announcementEnabled: false, announcementText: '' }),
     )
     return
   }
 
-  await proposeSettings(
+  await proposeSetting(
     chatId,
     raw,
+    { announcementText: text, announcementEnabled: true },
     `annonce « ${text.slice(0, 40)} »`,
     `Bandeau d’annonce${current.announcementEnabled ? ` : <s>${escapeHtml(current.announcementText)}</s> →` : ' :'}\n` +
       `<b>${escapeHtml(text)}</b>`,
-    (input) => ({ ...input, announcementEnabled: true, announcementText: text }),
   )
 }
 
@@ -1198,14 +1203,14 @@ async function cmdMaintenance(chatId: number, raw: string, args: string[]): Prom
 
   const current = await getSiteSettingsInput()
 
-  await proposeSettings(
+  await proposeSetting(
     chatId,
     raw,
+    { maintenanceMode: value },
     value ? 'maintenance activée' : 'maintenance désactivée',
     `Mode maintenance : ${current.maintenanceMode ? 'activé' : 'désactivé'} → ` +
       `<b>${value ? 'activé' : 'désactivé'}</b>` +
       (value ? '\n\n⚠️ La vitrine devient inaccessible aux visiteurs.' : ''),
-    (input) => ({ ...input, maintenanceMode: value }),
   )
 }
 
@@ -1221,26 +1226,23 @@ async function cmdShipping(chatId: number, raw: string, args: string[], kind: 'c
 
   const current = await getSiteSettingsInput()
 
-  await proposeSettings(
+  await proposeSetting(
     chatId,
     raw,
+    kind === 'cost' ? { shippingCost: amount } : { freeShippingThreshold: amount },
     kind === 'cost' ? 'frais de livraison' : 'seuil de livraison offerte',
     kind === 'cost'
       ? `Frais de livraison : ${money(current.shippingCost)} → <b>${money(amount)}</b>`
       : `Livraison offerte dès : ${money(current.freeShippingThreshold)} → <b>${money(amount)}</b>`,
-    (input) =>
-      kind === 'cost'
-        ? { ...input, shippingCost: amount }
-        : { ...input, freeShippingThreshold: amount },
   )
 }
 
-const SETTING_FIELDS: Record<string, { label: string; apply: (input: SiteSettingsInput, value: string) => SiteSettingsInput }> = {
-  hero_title: { label: 'titre du hero', apply: (input, value) => ({ ...input, heroTitle: value }) },
-  hero_subtitle: { label: 'sous-titre du hero', apply: (input, value) => ({ ...input, heroSubtitle: value }) },
-  contact_email: { label: 'e-mail de contact', apply: (input, value) => ({ ...input, contactEmail: value }) },
-  contact_phone: { label: 'téléphone de contact', apply: (input, value) => ({ ...input, contactPhone: value }) },
-  contact_address: { label: 'adresse de contact', apply: (input, value) => ({ ...input, contactAddress: value }) },
+const SETTING_FIELDS: Record<string, { field: string; label: string }> = {
+  hero_title: { field: 'heroTitle', label: 'titre du hero' },
+  hero_subtitle: { field: 'heroSubtitle', label: 'sous-titre du hero' },
+  contact_email: { field: 'contactEmail', label: 'e-mail de contact' },
+  contact_phone: { field: 'contactPhone', label: 'téléphone de contact' },
+  contact_address: { field: 'contactAddress', label: 'adresse de contact' },
 }
 
 async function cmdSet(chatId: number, raw: string, args: string[]): Promise<void> {
@@ -1266,13 +1268,14 @@ async function cmdSet(chatId: number, raw: string, args: string[]): Promise<void
   }
 
   const current = await getSiteSettingsInput()
+  const before = currentValueOf(current, key)
 
-  await proposeSettings(
+  await proposeSetting(
     chatId,
     raw,
+    { [field.field]: value },
     field.label,
-    `<b>${escapeHtml(field.label)}</b>\n\n<i>${escapeHtml(currentValueOf(current, key))}</i> → <b>${escapeHtml(value || 'vide')}</b>`,
-    (input) => field.apply(input, value),
+    `<b>${escapeHtml(field.label)}</b>\n\n<i>${escapeHtml(before || 'vide')}</i> → <b>${escapeHtml(value || 'vide')}</b>`,
   )
 }
 

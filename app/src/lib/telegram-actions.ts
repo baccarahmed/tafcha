@@ -15,7 +15,7 @@ import {
   updatePromotion,
   type PromotionInput,
 } from './admin-promotions'
-import { saveSiteSettings, type SiteSettingsInput } from './admin-settings'
+import { getSiteSettingsInput, saveSiteSettings } from './admin-settings'
 import { demoteUser, setUserRole } from './admin-users'
 import {
   isOrderStatus,
@@ -107,6 +107,26 @@ function requireObject(payload: Payload, key: string): Payload {
   }
 
   return value as Payload
+}
+
+function requireTextValue(value: unknown): string {
+  if (typeof value !== 'string') throw new Error('Valeur texte attendue.')
+
+  return value
+}
+
+function requireBoolValue(value: unknown): boolean {
+  if (typeof value !== 'boolean') throw new Error('Valeur oui/non attendue.')
+
+  return value
+}
+
+function requireMoneyValue(value: unknown): number {
+  if (typeof value !== 'number' || !Number.isFinite(value) || value < 0) {
+    throw new Error('Montant invalide.')
+  }
+
+  return value
 }
 
 /* ------------------------------------------------------------------ */
@@ -246,8 +266,53 @@ const RUNNERS: Record<string, Runner> = {
   },
 
   'settings.save': async (payload) => {
-    const input = requireObject(payload, 'input') as unknown as SiteSettingsInput
+    const changes = requireObject(payload, 'changes')
     const label = requireString(payload, 'label')
+
+    // Seuls les champs nommes sont touches, et ils sont relus au moment de
+    // l'execution : une modification faite entre-temps dans le dashboard, ou
+    // par une autre proposition confirmee juste avant, est donc conservee.
+    const input = await getSiteSettingsInput()
+
+    for (const [field, value] of Object.entries(changes)) {
+      switch (field) {
+        case 'heroTitle':
+          input.heroTitle = requireTextValue(value)
+          break
+        case 'heroSubtitle':
+          input.heroSubtitle = requireTextValue(value)
+          break
+        case 'contactEmail':
+          input.contactEmail = requireTextValue(value)
+          break
+        case 'contactPhone':
+          input.contactPhone = requireTextValue(value)
+          break
+        case 'contactAddress':
+          input.contactAddress = requireTextValue(value)
+          break
+        case 'announcementText':
+          input.announcementText = requireTextValue(value)
+          break
+        case 'announcementEnabled':
+          input.announcementEnabled = requireBoolValue(value)
+          break
+        case 'maintenanceMode':
+          input.maintenanceMode = requireBoolValue(value)
+          break
+        case 'newsletterEnabled':
+          input.newsletterEnabled = requireBoolValue(value)
+          break
+        case 'shippingCost':
+          input.shippingCost = requireMoneyValue(value)
+          break
+        case 'freeShippingThreshold':
+          input.freeShippingThreshold = requireMoneyValue(value)
+          break
+        default:
+          throw new Error(`Reglage inconnu : ${field}.`)
+      }
+    }
 
     await saveSiteSettings(input)
     revalidateCatalog()
