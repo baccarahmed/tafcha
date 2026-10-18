@@ -35,6 +35,37 @@ Variables des canaux externes (à définir dans `.env.local` **et** dans Vercel 
 | `NOTIFY_CHANNELS_ENABLED` | `true` pour activer l'envoi externe |
 | `TELEGRAM_BOT_TOKEN` | token du bot (BotFather) |
 | `TELEGRAM_CHAT_ID` | chat destinataire (le bot ne peut pas écrire le premier : envoyer `/start`) |
+
+### Bot Telegram (deux sens)
+
+En plus des alertes sortantes, le bot répond aux administrateurs via un webhook
+(`POST /api/telegram`, `src/app/api/telegram/route.ts`). Le traitement des
+commandes vit dans `src/lib/telegram-bot.ts`.
+
+- **Accès** — allowlist de chats (`TELEGRAM_ALLOWED_CHAT_IDS`, sinon
+  `TELEGRAM_CHAT_ID`). Tout update venu d'un autre chat est refusé.
+- **Sécurité** — le webhook est signé : Telegram renvoie
+  `TELEGRAM_WEBHOOK_SECRET` dans le header `X-Telegram-Bot-Api-Secret-Token`,
+  comparé avant tout traitement. Sans secret configuré, l'endpoint répond 503.
+- **Phase 1 (lecture)** — `/orders [n]`, `/order #REF`, `/stats [today|week|month]`,
+  `/stock [seuil]`.
+- **Phase 2 (écriture confirmée)** — `/setstatus #REF STATUS` (et `/ship #REF`)
+  affichent des boutons inline ; la base n'est écrite qu'après « Confirmer ».
+  L'écriture passe par `updateOrder` + `revalidateCatalog` + notification, comme
+  le back-office.
+
+| Variable | Rôle |
+| --- | --- |
+| `TELEGRAM_WEBHOOK_SECRET` | secret signant le webhook (obligatoire pour que le bot réponde) |
+| `TELEGRAM_ALLOWED_CHAT_IDS` | optionnel : plusieurs chats autorisés, séparés par des virgules |
+
+Après un changement de domaine ou de secret, réenregistrer le webhook :
+
+```bash
+node scripts/telegram-webhook.mjs https://que2marque.vercel.app
+```
+
+
 | `ADMIN_NOTIFICATION_EMAIL` | optionnel, destinataire des alertes e-mail |
 | `INSFORGE_FROM_EMAIL` | optionnel, expéditeur (défaut `Q2M <no-reply@que2marque.com>`) |
 
@@ -48,6 +79,7 @@ Variables des canaux externes (à définir dans `.env.local` **et** dans Vercel 
 | `npx tsc --noEmit` | vérification de types |
 | `npm run create-admin` | crée un compte admin (script `scripts/create-admin.mjs`) |
 | `node scripts/audit-i18n.mjs` | vérifie la parité des clés i18n entre les 3 langues |
+| `node scripts/telegram-webhook.mjs [url]` | (ré)enregistre le webhook et le menu du bot Telegram |
 
 ## Structure
 
