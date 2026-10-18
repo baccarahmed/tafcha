@@ -89,20 +89,22 @@ export interface NotifyNewOrderInput {
   itemCount: number
 }
 
-/** Alerte « nouvelle commande » (admin). Best-effort, silencieux si desactive. */
+/** Alerte « nouvelle commande » (e-mail admin). Best-effort, silencieux si desactive.
+ *
+ *  Le Telegram n'est plus envoye ici : `createTelegramOrderConfirmation`
+ *  publie la proposition complete avec boutons Confirmer/Annuler, seul
+ *  message utile pour l'admin (evite le doublon).
+ */
 export async function notifyNewOrder(input: NotifyNewOrderInput): Promise<void> {
   if (!isEnabled()) return
 
   const reference = shortOrderId(input.orderId)
   const summary = `Commande #${reference} — ${input.customerName} — ${input.itemCount} article(s) — ${formatPrice(input.total)}`
 
-  await Promise.allSettled([
-    sendTelegram(`🛒 ${summary}`),
-    sendOrderEmail(
-      `Nouvelle commande #${reference}`,
-      `<p>${summary}</p>`
-    ),
-  ])
+  await sendOrderEmail(
+    `Nouvelle commande #${reference}`,
+    `<p>${summary}</p>`
+  )
 }
 
 export interface NotifyOrderStatusInput {
@@ -125,69 +127,39 @@ export async function notifyOrderStatusChange(input: NotifyOrderStatusInput): Pr
 
 export interface TelegramOrderConfirmationInput {
   orderId: string
-  customerName: string
-  customerPhone: string
-  customerEmail: string
-  customerAddress: string
-  total: number
 }
 
 /**
- * Crée une confirmation Telegram pour une nouvelle commande et notifie l'admin.
- * La confirmation est persistée dans `telegram_order_confirmations`.
+ * Publie la confirmation Telegram d'une nouvelle commande : resume complet
+ * (lignes, client, coordonnees, total) avec boutons ✅ Confirmer / ❌ Annuler.
+ *
+ * La confirmation est persistee (`telegram_order_confirmations`) pour que le
+ * clic « Confirmer » puisse renvoyer les coordonnees client. Best-effort :
+ * une panne ne doit jamais faire echouer la commande.
  */
 export async function createTelegramOrderConfirmation(
   input: TelegramOrderConfirmationInput
 ): Promise<void> {
   if (!isEnabled()) return
 
-  const { createOrderConfirmation } = await import('./telegram-orders')
-
-  // Trouver le chat_id admin
   const chatId = process.env.TELEGRAM_CHAT_ID
   if (!chatId) return
 
-  // Construire un OrderLookup minimal pour la confirmation
-  const { findOrder } = await import('./telegram-lookup')
-  const order = await findOrder(input.orderId)
-  if (!order) return
-
-  await createOrderConfirmation({
-    orderId: input.orderId,
-    chatId: Number(chatId),
-    order,
-  })
-
-  // Envoyer la notification Telegram avec boutons de confirmation
-  const reference = shortOrderId(input.orderId)
-  const token = process.env.TELEGRAM_BOT_TOKEN
-
-  if (!token) return
-
-  const summary = [
-    `🛒 <b>Nouvelle commande #${reference}</b>`,
-    '',
-    `Client : ${input.customerName}`,
-    `Téléphone : ${input.customerPhone}`,
-    `Total : ${formatPrice(input.total)}`,
-  ].join('\n')
-
   try {
-    await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        chat_id: chatId,
-        text: summary,
-        parse_mode: 'HTML',
-        reply_markup: {
-          inline_keyboard: [[
-            { text: '✅ Confirmer', callback_data: `run:order:${input.orderId}` },
-            { text: '❌ Annuler', callback_data: `run:cancel:${input.orderId}` },
-          ]],
-        },
-      }),
+    const { createOrderConfirmation } = await import('./telegram-orders')
+    const { findOrder } = await import('./telegram-lookup')
+    const { proposeOrderConfirmation } = await import('./telegram-actions')
+
+    const order = await findOrder(input.orderId)
+    if (!order) return
+
+    await createOrderConfirmation({
+      orderId: input.orderId,
+      chatId: Number(chatId),
+      order,
     })
+
+    await proposeOrderConfirmation(Number(chatId), input.orderId)
   } catch (error) {
     console.error('createTelegramOrderConfirmation:', error)
   }

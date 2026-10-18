@@ -23,7 +23,14 @@ import {
   type TelegramCallbackQuery,
   type TelegramUpdate,
 } from './telegram-api'
-import { cancelAction, listRecentActions, proposeAction, runAction } from './telegram-actions'
+import {
+  cancelAction,
+  cancelOrderProposal,
+  listRecentActions,
+  proposeAction,
+  proposeOrderConfirmation,
+  runAction,
+} from './telegram-actions'
 import {
   addressField,
   customerName,
@@ -1438,6 +1445,39 @@ async function handleCommand(chatId: number, text: string): Promise<void> {
 }
 
 /**
+ * Type MIME deduit du chemin de fichier Telegram.
+ *
+ * L'en-tete `content-type` renvoye par `api.telegram.org/file/...` n'est pas
+ * fiable (`application/octet-stream` par ex.) et fait echouer le controle de
+ * type du bucket : on se fie donc a l'extension, les photos Telegram étant
+ * toujours en JPEG par defaut.
+ */
+function mimeFromTelegramPath(filePath: string): string {
+  const ext = filePath.split('.').pop()?.toLowerCase()
+  if (ext === 'png') return 'image/png'
+  if (ext === 'webp') return 'image/webp'
+  return 'image/jpeg'
+}
+
+/** Traduit les erreurs metier en message lisible pour l'admin. */
+function photoErrorMessage(error: unknown): string {
+  if (error instanceof Error && error.name === 'ImageUploadError') {
+    const reason = (error as { reason?: string }).reason
+    if (reason === 'tooLarge') return 'Image trop lourde (4 Mo max).'
+    if (reason === 'unsupported') return "Format d'image non pris en charge (JPEG, PNG ou WebP)."
+    return "Échec de l'envoi de l'image vers le stockage."
+  }
+  if (error instanceof Error && error.name === 'AiConfigError') {
+    return 'Clé API IA manquante : vérifiez GEMINI_API_KEY.'
+  }
+  if (error instanceof Error && error.name === 'AiQuotaError') {
+    return 'Quota IA atteint : réessayez plus tard.'
+  }
+
+  return error instanceof Error ? error.message : 'Erreur inconnue'
+}
+
+/**
  * Gestion des photos envoyées par l'admin.
  * Flux : photo → upload → analyse IA → formulaire Telegram → confirmation.
  */
@@ -1465,7 +1505,9 @@ async function handlePhoto(chatId: number, photo: Array<{ file_id: string; file_
 
   try {
     // 1. Récupérer le fichier
-    const fileRes = await fetch(`https://api.telegram.org/bot${token}/getFile?file_id=${largest.file_id}`)
+    const fileRes = await fetch(`https://api.telegram.org/bot${token}/getFile?file_id=${largest.file_id}`, {
+      signal: AbortSignal.timeout(10_000),
+    })
     const fileData = await fileRes.json() as { ok: boolean; result?: { file_path: string } }
     if (!fileData.ok || !fileData.result?.file_path) {
       await sendMessage(chatId, 'Impossible de récupérer la photo.')
@@ -1473,7 +1515,9 @@ async function handlePhoto(chatId: number, photo: Array<{ file_id: string; file_
     }
 
     // 2. Télécharger l'image
-    const imgRes = await fetch(`https://api.telegram.org/file/bot${token}/${fileData.result.file_path}`)
+    const imgRes = await fetch(`https://api.telegram.org/file/bot${token}/${fileData.result.file_path}`, {
+      signal: AbortSignal.timeout(20_000),
+    })
     if (!imgRes.ok) {
       await sendMessage(chatId, 'Échec du téléchargement.')
       return
@@ -1481,7 +1525,7 @@ async function handlePhoto(chatId: number, photo: Array<{ file_id: string; file_
 
     const buffer = await imgRes.arrayBuffer()
     const base64 = Buffer.from(buffer).toString('base64')
-    const mimeType = imgRes.headers.get('content-type') ?? 'image/jpeg'
+    const mimeType = mimeFromTelegramPath(fileData.result.file_path)
 
     // 3. Upload + analyse IA
     const { createProductDraft } = await import('./telegram-products')
@@ -1492,7 +1536,8 @@ async function handlePhoto(chatId: number, photo: Array<{ file_id: string; file_
       locale: 'fr',
     })
 
-    // 4. Envoyer le formulaire de confirmation
+    // 4. Formulaire de confirmation (proposeAction envoye le message avec
+    //    ses boutons Confirmer/Annuler valides).
     const d = draft.draft
     const summary = [
       `<b>Nouveau produit IA</b>`,
@@ -1512,17 +1557,9 @@ async function handlePhoto(chatId: number, photo: Array<{ file_id: string; file_
       summary,
       hint: 'Le produit sera créé inactif, sans prix ni pointures. Complétez depuis le dashboard.',
     })
-
-    await sendMessage(chatId, summary, {
-      inline_keyboard: [[
-        { text: '✅ Confirmer', callback_data: `run:${draft.id}` },
-        { text: '❌ Annuler', callback_data: `drop:${draft.id}` },
-      ]],
-    })
   } catch (error) {
     console.error('handlePhoto:', error)
-    const message = error instanceof Error ? error.message : 'Erreur inconnue'
-    await sendMessage(chatId, `⚠️ ${escapeHtml(message)}`)
+    await sendMessage(chatId, `⚠️ ${escapeHtml(photoErrorMessage(error))}`)
   }
 }
 
@@ -1530,20 +1567,47 @@ async function handlePhoto(chatId: number, photo: Array<{ file_id: string; file_
  * Liste les brouillons en attente.
  */
 async function cmdPending(chatId: number): Promise<void> {
-  const { listPendingDrafts } = await import('./telegram-products')
-  const drafts = await listPendingDrafts(chatId)
+  const [{ listPendingDrafts }, { listPendingConfirmations }] = await Promise.all([
+    import('./telegram-products'),
+    import('./telegram-orders'),
+  ])
+  const [drafts, confirmations] = await Promise.all([
+    listPendingDrafts(chatId),
+    listPendingConfirmations(chatId),
+  ])
 
-  if (drafts.length === 0) {
-    await sendMessage(chatId, 'Aucun brouillon en attente.')
+  if (drafts.length === 0 && confirmations.length === 0) {
+    await sendMessage(chatId, 'Aucun élément en attente.')
     return
   }
 
-  const lines = drafts.map((d) => {
-    const draft = d.draft as { name?: string }
-    return `• ${escapeHtml(draft.name ?? '—')} · ${formatDate(d.created_at)}`
-  })
+  if (drafts.length > 0) {
+    const lines = drafts.map((d) => {
+      const draft = d.draft as { name?: string }
+      return `• ${escapeHtml(draft.name ?? '—')} · ${formatDate(d.created_at)}`
+    })
 
-  await sendMessage(chatId, `<b>Brouillons en attente</b>\n\n${lines.join('\n')}`)
+    await sendMessage(chatId, `<b>Brouillons produits IA</b>\n\n${lines.join('\n')}`)
+  }
+
+  if (confirmations.length > 0) {
+    const lines = confirmations.map(
+      (c) => `• <b>#${escapeHtml(shortOrderId(c.order_id))}</b> — ${escapeHtml(c.customer_name ?? '—')} · ${formatDate(c.created_at)}`,
+    )
+
+    await sendMessage(
+      chatId,
+      `<b>Confirmations de commande en attente</b>\n\n${lines.join('\n')}\n\nCliquez sur une commande pour renvoyer le formulaire de confirmation.`,
+      {
+        inline_keyboard: confirmations.map((c) => [
+          {
+            text: `🛒 #${shortOrderId(c.order_id)}`,
+            callback_data: `op:${c.order_id}`,
+          },
+        ]),
+      },
+    )
+  }
 }
 
 async function handleCallback(query: TelegramCallbackQuery): Promise<void> {
@@ -1556,12 +1620,32 @@ async function handleCallback(query: TelegramCallbackQuery): Promise<void> {
     return
   }
 
-  if (!id || !['run', 'run2', 'drop'].includes(action)) {
+  if (!id) {
     await answerCallbackQuery(query.id, 'Bouton obsolète.')
     return
   }
 
   try {
+    // Annulation d'une commande depuis sa proposition de confirmation.
+    if (action === 'ox') {
+      await answerCallbackQuery(query.id, 'Annulation…')
+      const outcome = await cancelOrderProposal(id, chatId)
+      await editMessageText(chatId, messageId, outcome.text, outcome.keyboard)
+      return
+    }
+
+    // Relance d'une confirmation de commande en attente (/pending).
+    if (action === 'op') {
+      await answerCallbackQuery(query.id, 'Envoi…')
+      await proposeOrderConfirmation(chatId, id)
+      return
+    }
+
+    if (!['run', 'run2', 'drop'].includes(action)) {
+      await answerCallbackQuery(query.id, 'Bouton obsolète.')
+      return
+    }
+
     if (action === 'drop') {
       const outcome = await cancelAction(id, chatId)
 

@@ -283,20 +283,11 @@ export async function createOrderAction(
     itemCount: items.reduce((sum, item) => sum + Number(item.quantity), 0),
   }).catch(() => {})
 
-  // Confirmation Telegram : crée une entrée en attente et notifie l'admin.
-  // Best-effort : une panne ne doit jamais faire échouer la commande.
+  // Confirmation Telegram : persiste la confirmation et publie le formulaire
+  // avec boutons Confirmer/Annuler. Best-effort : une panne ne doit jamais
+  // faire échouer la commande.
   void createTelegramOrderConfirmation({
     orderId: orderId as string,
-    customerName: String(address.fullName).trim(),
-    customerPhone: String(address.phone).trim(),
-    customerEmail: String(address.email).trim(),
-    customerAddress: [
-      String(address.line1).trim(),
-      String(address.city).trim(),
-      String(address.postalCode).trim(),
-      String(address.country).trim(),
-    ].filter(Boolean).join(', '),
-    total,
   }).catch(() => {})
 
   return { ok: true, orderId: orderId as string }

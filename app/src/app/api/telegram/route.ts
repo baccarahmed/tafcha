@@ -18,6 +18,10 @@ import type { TelegramUpdate } from '@/lib/telegram-api'
  */
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
+// L'analyse IA d'une photo (upload + Gemini) peut dépasser la limite par
+// défaut : sans ce plafond, Vercel coupe avant que Telegram ne reçoive la
+// réponse.
+export const maxDuration = 60
 
 export async function POST(request: NextRequest): Promise<Response> {
   const secret = process.env.TELEGRAM_WEBHOOK_SECRET

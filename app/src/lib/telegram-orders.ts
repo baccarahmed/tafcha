@@ -139,3 +139,23 @@ export async function hasPendingConfirmation(orderId: string): Promise<boolean> 
 
   return data !== null
 }
+
+/**
+ * Liste les confirmations de commande en attente d'un chat.
+ * Utilisée par `/pending` pour relancer l'envoi du formulaire.
+ */
+export async function listPendingConfirmations(
+  chatId: number
+): Promise<OrderConfirmationRow[]> {
+  const { data, error } = await insforgeAdmin()
+    .database.from('telegram_order_confirmations')
+    .select('*')
+    .eq('chat_id', chatId)
+    .eq('status', 'PENDING')
+    .order('created_at', { ascending: false })
+    .limit(10)
+
+  if (error) throw new Error(`Liste confirmations: ${error.message}`)
+
+  return (data ?? []) as unknown as OrderConfirmationRow[]
+}

@@ -18,12 +18,16 @@ import {
 import { getSiteSettingsInput, saveSiteSettings } from './admin-settings'
 import { demoteUser, setUserRole } from './admin-users'
 import {
+  getAdminOrderDetail,
   isOrderStatus,
   isPaymentStatus,
   OrderValidationError,
   updateOrder,
   type OrderUpdate,
 } from './admin-orders'
+import { findOrder } from './telegram-lookup'
+import { shortOrderId } from './notifications-types'
+import { addressField, addressLine, customerName, money } from './telegram-format'
 import { insforgeAdmin } from './insforge-admin'
 import { notifyOrderStatusChange } from './notify-channels'
 import { revalidateCatalog } from './revalidate-catalog'
@@ -60,6 +64,12 @@ export interface ProposedAction {
   danger?: Danger
   /** Ligne d'aide specifique affichee sous le resume. */
   hint?: string
+  /**
+   * Donnees du bouton « Annuler », rendues a partir de l'id de la
+   * proposition. Par defaut `drop:<id>` (simple abandon de la proposition) ;
+   * la confirmation de commande fournit `ox:<id>` pour annuler la commande.
+   */
+  cancelData?: (actionId: string) => string
 }
 
 interface StoredAction {
@@ -351,15 +361,105 @@ const RUNNERS: Record<string, Runner> = {
   },
 
   /** Annulation d'une commande. */
-  'order.cancel.confirmed': async (payload) => {
-    const orderId = requireString(payload, 'orderId')
-    const ref = requireString(payload, 'ref')
+  'order.cancel.confirmed': async (payload) => executeOrderCancel(payload),
+}
 
+/**
+ * Annulation reelle d'une commande : statut `CANCELLED` + confirmation
+ * Telegram marquee annulée. Partagee par le runner `order.cancel.confirmed`
+ * et le bouton « Annuler » (`ox:`) d'une confirmation de commande.
+ */
+async function executeOrderCancel(payload: Payload): Promise<string> {
+  const orderId = requireString(payload, 'orderId')
+  const ref = requireString(payload, 'ref')
+
+  await updateOrder(orderId, { status: 'CANCELLED' })
+  void notifyOrderStatusChange({ orderId, status: 'CANCELLED' }).catch(() => {})
+  revalidateCatalog()
+
+  try {
     const { cancelOrder } = await import('./telegram-orders')
     await cancelOrder(orderId)
+  } catch (error) {
+    console.error('executeOrderCancel confirmation:', error)
+  }
 
-    return `Commande <b>#${escapeHtml(ref)}</b> annulée.`
-  },
+  return `❌ Commande <b>#${escapeHtml(ref)}</b> annulée.`
+}
+
+/**
+ * Annule la commande portee par une proposition de confirmation.
+ *
+ * Chemin du bouton « Annuler » (`ox:<actionId>`) : meme chargement (chat,
+ * statut, TTL) que `run:`, puis `executeOrderCancel`.
+ */
+export async function cancelOrderProposal(
+  id: string,
+  chatId: number,
+): Promise<ProposalOutcome> {
+  const loaded = await loadPending(id, chatId)
+  if (!loaded.ok) return { text: loaded.message }
+
+  try {
+    const text = await executeOrderCancel(loaded.row.payload)
+    await resolveAction(loaded.row.id, 'APPLIED')
+
+    return { text }
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Erreur inconnue.'
+    await resolveAction(loaded.row.id, 'FAILED', message)
+
+    return { text: `⚠️ ${escapeHtml(message)}` }
+  }
+}
+
+/**
+ * Propose la confirmation d'une nouvelle commande : resume complet (lignes,
+ * client, coordonnees, total) avec les boutons Confirmer / Annuler.
+ *
+ * Utilisee a la creation d'une commande (via `notify-channels`) et par
+ * `/pending` pour relancer une confirmation perdue.
+ */
+export async function proposeOrderConfirmation(
+  chatId: number,
+  orderId: string,
+): Promise<void> {
+  const order = await findOrder(orderId)
+  if (!order) throw new Error('Commande introuvable.')
+
+  const ref = shortOrderId(order.id)
+  const detail = await getAdminOrderDetail(order.id)
+  const address = detail?.shippingAddress ?? null
+
+  const lines = (detail?.items ?? []).map((item) => {
+    const color = item.colorway ? ` — ${escapeHtml(item.colorway)}` : ''
+    return `• ${escapeHtml(item.name ?? '—')}${color} ×${item.quantity} — ${money(item.lineTotal)}`
+  })
+
+  const phone = addressField(address, 'phone')
+  const cityLine = addressLine(address)
+
+  const summary = [
+    `🛒 <b>Nouvelle commande #${escapeHtml(ref)}</b>`,
+    '',
+    ...lines,
+    '',
+    `Client : <b>${escapeHtml(customerName(address))}</b>`,
+    phone ? `📞 ${escapeHtml(phone)}` : null,
+    cityLine ? `📍 ${escapeHtml(cityLine)}` : null,
+    '',
+    `Total : <b>${money(order.total)}</b>`,
+  ]
+    .filter(Boolean)
+    .join('\n')
+
+  await proposeAction(chatId, '/neworder', {
+    action: 'order.confirm',
+    payload: { orderId: order.id, ref },
+    summary,
+    hint: '✅ Confirmer : les coordonnées client sont envoyées ici. ❌ Annuler : la commande est annulée.',
+    cancelData: (actionId) => `ox:${actionId}`,
+  })
 }
 
 /** Traduit les erreurs de validation metier en message lisible par l'admin. */
@@ -454,7 +554,10 @@ export async function proposeAction(
     inline_keyboard: [
       [
         { text: danger === 'destructive' ? 'Continuer' : 'Confirmer', callback_data: `run:${id}` },
-        { text: 'Annuler', callback_data: `drop:${id}` },
+        {
+          text: 'Annuler',
+          callback_data: proposal.cancelData ? proposal.cancelData(id) : `drop:${id}`,
+        },
       ],
     ],
   }
