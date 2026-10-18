@@ -111,6 +111,7 @@ export default async function DashboardOrdersPage() {
                           status={order.status}
                           paymentStatus={order.paymentStatus}
                           customerEmail={order.customerEmail}
+                          shippingAddress={order.shippingAddress}
                           items={order.items}
                           total={order.total}
                         />

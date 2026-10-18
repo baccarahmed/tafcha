@@ -6,6 +6,7 @@ import { useLocale, useTranslations } from 'next-intl'
 import { AlertCircle, Check, ChevronDown } from 'lucide-react'
 import { updateOrderAction } from '@/app/actions/admin'
 import { cn, formatCurrency } from '@/lib/utils'
+import type { ShippingAddress } from '@/lib/admin-data'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import {
@@ -38,6 +39,7 @@ export default function OrderControls({
   status,
   paymentStatus,
   customerEmail,
+  shippingAddress,
   items,
   total,
 }: {
@@ -45,6 +47,7 @@ export default function OrderControls({
   status: string | null
   paymentStatus: string | null
   customerEmail: string | null
+  shippingAddress: ShippingAddress | null
   items: { id: string; name: string; colorway: string | null; quantity: number; price: number }[]
   total: number
 }) {
@@ -160,6 +163,40 @@ export default function OrderControls({
             <DialogTitle>{t('orderDetail')}</DialogTitle>
             <DialogDescription>{customerEmail ?? t('customer')}</DialogDescription>
           </DialogHeader>
+
+          {shippingAddress && (
+            <div className="space-y-1.5 border-y border-[var(--q2m-line-soft)] py-4 text-sm">
+              <p className="text-xs font-semibold uppercase tracking-wider text-[var(--q2m-ink-stone)]">
+                {t('shippingAddress')}
+              </p>
+              {shippingAddress.fullName && (
+                <p className="font-medium text-[var(--q2m-ink)]">{shippingAddress.fullName}</p>
+              )}
+              {shippingAddress.phone && (
+                <p className="text-[var(--q2m-ink-soft)]">
+                  📞 <a href={`tel:${shippingAddress.phone}`} className="hover:underline">{shippingAddress.phone}</a>
+                </p>
+              )}
+              {shippingAddress.email && (
+                <p className="text-[var(--q2m-ink-soft)]">
+                  ✉️ <a href={`mailto:${shippingAddress.email}`} className="hover:underline">{shippingAddress.email}</a>
+                </p>
+              )}
+              {shippingAddress.line1 && (
+                <p className="text-[var(--q2m-ink-soft)]">{shippingAddress.line1}</p>
+              )}
+              <p className="text-[var(--q2m-soft)]">
+                {[shippingAddress.postalCode, shippingAddress.city, shippingAddress.country]
+                  .filter(Boolean)
+                  .join(' · ')}
+              </p>
+              {shippingAddress.notes && (
+                <p className="mt-2 rounded border border-[var(--q2m-line-soft)] bg-[var(--q2m-line-soft)]/30 p-2 text-xs text-[var(--q2m-ink-stone)]">
+                  📝 {shippingAddress.notes}
+                </p>
+              )}
+            </div>
+          )}
 
           <ul className="space-y-2 border-y border-[var(--q2m-line-soft)] py-4">
             {items.map((item) => (

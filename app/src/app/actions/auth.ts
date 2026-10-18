@@ -12,7 +12,7 @@ import { safeReturnPath } from '@/lib/safe-redirect'
  * client maps each code onto its own dictionary entry, so a server action
  * never has to carry translated copy.
  */
-export type AuthErrorCode = 'missing' | 'invalid'
+export type AuthErrorCode = 'missing' | 'invalid' | 'exists'
 
 export interface AuthActionState {
   error: AuthErrorCode | null
@@ -77,6 +77,47 @@ export async function signIn(
   const next = safeReturnPath(String(formData.get('next') ?? ''))
 
   redirect({ href: next ?? '/dashboard', locale: readLocale(formData) })
+}
+
+/**
+ * Cree un compte client (role CUSTOMER). Le profil est cree automatiquement
+ * par le trigger InsForge avec le role CUSTOMER. Redirige vers /account.
+ */
+export async function signUp(
+  _prev: AuthActionState,
+  formData: FormData
+): Promise<AuthActionState> {
+  const email = String(formData.get('email') ?? '').trim()
+  const password = String(formData.get('password') ?? '')
+  const firstName = String(formData.get('firstName') ?? '').trim()
+  const lastName = String(formData.get('lastName') ?? '').trim()
+
+  if (!email || !password) {
+    return { error: 'missing' }
+  }
+
+  // Throttle anti brute-force : 5 essais/min/email et 20 essais/min/IP
+  const ip = await requestIp()
+  const emailKeyLimit = rateLimit(`signup:${email.toLowerCase().trim()}`, 5, 60_000)
+  const ipKeyLimit = rateLimit(`signup:ip:${ip}`, 20, 60_000)
+
+  if (!emailKeyLimit.ok || !ipKeyLimit.ok) {
+    return { error: 'invalid' }
+  }
+
+  const auth = createAuthActions({ cookies: await cookies() })
+  const { error } = await auth.signUp({
+    email,
+    password,
+    name: [firstName, lastName].filter(Boolean).join(' ') || undefined,
+  })
+
+  if (error) {
+    // InsForge renvoie une erreur si l'email existe deja
+    return { error: error.message?.includes('already') ? 'exists' : 'invalid' }
+  }
+
+  redirect({ href: '/account', locale: readLocale(formData) })
 }
 
 export async function signOut(formData: FormData): Promise<void> {

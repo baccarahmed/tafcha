@@ -98,6 +98,11 @@ function parseBooleanFlag(value: string | undefined): boolean | null {
  * dashboard.
  */
 function restText(args: string[], from: number): string | null {
+  // Sans argument du tout, on ne peut pas distinguer « efface » de « rien de
+  // fourni » : on renvoie null pour que l'appelant affiche l'usage. Pour vider
+  // un champ, il faut le tiret explicite (`/note REF -`).
+  if (args.length <= from) return null
+
   const value = args.slice(from).join(' ').trim()
 
   return value === '-' ? '' : value
@@ -215,51 +220,55 @@ async function resolvePromotion(
 
 function helpText(): string {
   return [
-    '<b>Q2M · Bot boutique</b>',
-    '',
-    '<b>Lecture</b>',
-    '/orders <i>[n]</i> — dernières commandes',
-    '/order <i>REF</i> — détail d’une commande',
-    '/stats <i>[today|week|month]</i> — ventes',
-    '/stock <i>[seuil]</i> — bientôt en rupture',
-    '/products <i>[terme]</i> — catalogue',
-    '/product <i>REF</i> — fiche produit',
-    '/customers <i>[terme]</i> — clients',
-    '/promos — promotions',
-    '/settings — réglages vitrine',
-    '/actions <i>[n]</i> — journal du bot',
-    '',
-    '<b>Commandes</b>',
-    '/ship REF · /deliver REF · /cancel REF',
-    '/setstatus REF STATUT',
-    '/setpayment REF STATUT',
-    '/note REF <i>texte</i> (− pour effacer)',
-    '/delivery REF <i>AAAA-MM-JJ AAAA-MM-JJ</i> (− pour effacer)',
-    '',
-    '<b>Produits</b>',
-    '/setstock REF <i>42:5 43:3</i>',
-    '/addstock REF <i>42:5</i>',
-    '/setprice REF <i>185</i> <i>[compare]</i>',
-    '/activate REF · /deactivate REF',
-    '/feature REF <i>on|off</i> · /newdrop REF <i>on|off</i>',
-    '/duplicate REF <i>[coloris]</i>',
-    '/delproduct REF ⚠️',
-    '',
-    '<b>Clients</b>',
-    '/promote <i>email</i> · /demote <i>email</i> ⚠️',
-    '',
-    '<b>Promotions</b>',
-    '/promo_on ID · /promo_off ID',
-    '/promo_new <i>20 AAAA-MM-JJ AAAA-MM-JJ Nom</i> — globale',
-    '/promo_target ID REF <i>[REF…]</i>',
-    '/promo_del ID ⚠️',
-    '',
-    '<b>Vitrine</b>',
-    '/announce <i>texte</i> (− pour vider)',
-    '/maintenance <i>on|off</i>',
-    '/shipping <i>7</i> · /freeship <i>200</i>',
-    '/set <i>clé valeur</i> — hero_title, hero_subtitle, contact_email, contact_phone, contact_address',
-    '',
+    `<b>Q2M · Bot boutique</b>`,
+    ``,
+    `<b>Lecture</b>`,
+    `/orders <i>[n]</i> — dernières commandes`,
+    `/order <i>REF</i> — détail d'une commande`,
+    `/stats <i>[today|week|month]</i> — ventes`,
+    `/stock <i>[seuil]</i> — bientôt en rupture`,
+    `/products <i>[terme]</i> — catalogue`,
+    `/product <i>REF</i> — fiche produit`,
+    `/customers <i>[terme]</i> — clients`,
+    `/promos — promotions`,
+    `/settings — réglages vitrine`,
+    `/actions <i>[n]</i> — journal du bot`,
+    `/pending — brouillons IA en attente`,
+    ``,
+    `<b>Commandes</b>`,
+    `/ship REF · /deliver REF · /cancel REF`,
+    `/setstatus REF STATUT`,
+    `/setpayment REF STATUT`,
+    `/note REF <i>texte</i> (− pour effacer)`,
+    `/delivery REF <i>AAAA-MM-JJ AAAA-MM-JJ</i> (− pour effacer)`,
+    ``,
+    `<b>Produits</b>`,
+    `/setstock REF <i>42:5 43:3</i>`,
+    `/addstock REF <i>42:5</i>`,
+    `/setprice REF <i>185</i> <i>[compare]</i>`,
+    `/activate REF · /deactivate REF`,
+    `/feature REF <i>on|off</i> · /newdrop REF <i>on|off</i>`,
+    `/duplicate REF <i>[coloris]</i>`,
+    `/delproduct REF ⚠️`,
+    ``,
+    `<b>Clients</b>`,
+    `/promote <i>email</i> · /demote <i>email</i> ⚠️`,
+    ``,
+    `<b>Promotions</b>`,
+    `/promo_on ID · /promo_off ID`,
+    `/promo_new <i>20 AAAA-MM-JJ AAAA-MM-JJ Nom</i> — globale`,
+    `/promo_target ID REF <i>[REF…]</i>`,
+    `/promo_del ID ⚠️`,
+    ``,
+    `<b>Vitrine</b>`,
+    `/announce <i>texte</i> (− pour vider)`,
+    `/maintenance <i>on|off</i>`,
+    `/shipping <i>7</i> · /freeship <i>200</i>`,
+    `/set <i>clé valeur</i> — hero_title, hero_subtitle, contact_email, contact_phone, contact_address`,
+    ``,
+    `<b>IA</b>`,
+    `Envoyez une photo produit → analyse IA → confirmation`,
+    ``,
     `⚠️ = double confirmation`,
     `Statuts : <code>${ORDER_STATUSES.join('</code> <code>')}</code>`,
     `Paiement : <code>${PAYMENT_STATUSES.join('</code> <code>')}</code>`,
@@ -1370,6 +1379,10 @@ async function dispatch(chatId: number, command: string, args: string[], raw: st
     case '/delproduct':
       return cmdDelproduct(chatId, raw, args)
 
+    // IA
+    case '/pending':
+      return cmdPending(chatId)
+
     // Clients
     case '/promote':
       return cmdUserRole(chatId, raw, args, 'ADMIN')
@@ -1424,6 +1437,115 @@ async function handleCommand(chatId: number, text: string): Promise<void> {
   }
 }
 
+/**
+ * Gestion des photos envoyées par l'admin.
+ * Flux : photo → upload → analyse IA → formulaire Telegram → confirmation.
+ */
+async function handlePhoto(chatId: number, photo: Array<{ file_id: string; file_size?: number }>): Promise<void> {
+  // Prendre la plus grande photo (dernière du tableau)
+  const largest = photo[photo.length - 1]
+  if (!largest) {
+    await sendMessage(chatId, 'Aucune photo reçue.')
+    return
+  }
+
+  if (largest.file_size && largest.file_size > 4 * 1024 * 1024) {
+    await sendMessage(chatId, 'Image trop lourde (max 4 Mo).')
+    return
+  }
+
+  // Télécharger la photo depuis Telegram
+  const token = process.env.TELEGRAM_BOT_TOKEN
+  if (!token) {
+    await sendMessage(chatId, 'Bot non configuré.')
+    return
+  }
+
+  await sendChatAction(chatId)
+
+  try {
+    // 1. Récupérer le fichier
+    const fileRes = await fetch(`https://api.telegram.org/bot${token}/getFile?file_id=${largest.file_id}`)
+    const fileData = await fileRes.json() as { ok: boolean; result?: { file_path: string } }
+    if (!fileData.ok || !fileData.result?.file_path) {
+      await sendMessage(chatId, 'Impossible de récupérer la photo.')
+      return
+    }
+
+    // 2. Télécharger l'image
+    const imgRes = await fetch(`https://api.telegram.org/file/bot${token}/${fileData.result.file_path}`)
+    if (!imgRes.ok) {
+      await sendMessage(chatId, 'Échec du téléchargement.')
+      return
+    }
+
+    const buffer = await imgRes.arrayBuffer()
+    const base64 = Buffer.from(buffer).toString('base64')
+    const mimeType = imgRes.headers.get('content-type') ?? 'image/jpeg'
+
+    // 3. Upload + analyse IA
+    const { createProductDraft } = await import('./telegram-products')
+    const draft = await createProductDraft({
+      chatId,
+      imageBase64: base64,
+      mimeType,
+      locale: 'fr',
+    })
+
+    // 4. Envoyer le formulaire de confirmation
+    const d = draft.draft
+    const summary = [
+      `<b>Nouveau produit IA</b>`,
+      '',
+      `Nom : <b>${escapeHtml(d.name)}</b>`,
+      `Marque : ${escapeHtml(d.brand)}`,
+      `SKU : <code>${escapeHtml(d.sku)}</code>`,
+      `Coloris : ${escapeHtml(d.colorway)}`,
+      `Description : ${escapeHtml(d.description)}`,
+      `Genre : ${escapeHtml(d.gender)}`,
+      `Palette : ${escapeHtml(d.palette)}`,
+    ].join('\n')
+
+    await proposeAction(chatId, '/newproduct', {
+      action: 'product.create',
+      payload: { draftId: draft.id, imageUrl: draft.image_url, name: d.name },
+      summary,
+      hint: 'Le produit sera créé inactif, sans prix ni pointures. Complétez depuis le dashboard.',
+    })
+
+    await sendMessage(chatId, summary, {
+      inline_keyboard: [[
+        { text: '✅ Confirmer', callback_data: `run:${draft.id}` },
+        { text: '❌ Annuler', callback_data: `drop:${draft.id}` },
+      ]],
+    })
+  } catch (error) {
+    console.error('handlePhoto:', error)
+    const message = error instanceof Error ? error.message : 'Erreur inconnue'
+    await sendMessage(chatId, `⚠️ ${escapeHtml(message)}`)
+  }
+}
+
+/**
+ * Liste les brouillons en attente.
+ */
+async function cmdPending(chatId: number): Promise<void> {
+  const { listPendingDrafts } = await import('./telegram-products')
+  const drafts = await listPendingDrafts(chatId)
+
+  if (drafts.length === 0) {
+    await sendMessage(chatId, 'Aucun brouillon en attente.')
+    return
+  }
+
+  const lines = drafts.map((d) => {
+    const draft = d.draft as { name?: string }
+    return `• ${escapeHtml(draft.name ?? '—')} · ${formatDate(d.created_at)}`
+  })
+
+  await sendMessage(chatId, `<b>Brouillons en attente</b>\n\n${lines.join('\n')}`)
+}
+
 async function handleCallback(query: TelegramCallbackQuery): Promise<void> {
   const chatId = query.message?.chat.id
   const messageId = query.message?.message_id
@@ -1461,18 +1583,35 @@ async function handleCallback(query: TelegramCallbackQuery): Promise<void> {
 
 /** Point d'entree du webhook : route un update Telegram vers le bon handler. */
 export async function handleTelegramUpdate(update: TelegramUpdate): Promise<void> {
-  if (update.message?.text) {
-    const chatId = update.message.chat.id
+  const message = update.message
+
+  // Photo envoyée par l'admin → analyse IA
+  if (message?.photo && message.photo.length > 0) {
+    const chatId = message.chat.id
 
     if (!isAllowedChat(chatId)) {
       await sendMessage(chatId, 'Accès refusé.')
       return
     }
 
-    await handleCommand(chatId, update.message.text)
+    await handlePhoto(chatId, message.photo)
     return
   }
 
+  // Texte
+  if (message?.text) {
+    const chatId = message.chat.id
+
+    if (!isAllowedChat(chatId)) {
+      await sendMessage(chatId, 'Accès refusé.')
+      return
+    }
+
+    await handleCommand(chatId, message.text)
+    return
+  }
+
+  // Callback (boutons Confirmer/Annuler)
   const query = update.callback_query
 
   if (query) {

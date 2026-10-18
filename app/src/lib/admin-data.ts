@@ -64,6 +64,35 @@ function guestEmail(address: unknown): string | null {
   return null
 }
 
+/**
+ * Parse le JSONB `shipping_address` en structure typée.
+ *
+ * Les champs sont tous optionnels dans le JSON : on ne garde que les chaînes
+ * non vides pour éviter d'afficher des lignes « null » dans le dashboard.
+ */
+function parseShippingAddress(raw: unknown): ShippingAddress | null {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null
+
+  const obj = raw as Record<string, unknown>
+  const str = (key: string): string | null => {
+    const value = obj[key]
+    return typeof value === 'string' && value.trim() ? value.trim() : null
+  }
+
+  const address: ShippingAddress = {
+    fullName: str('fullName'),
+    email: str('email'),
+    phone: str('phone'),
+    line1: str('line1'),
+    city: str('city'),
+    postalCode: str('postalCode'),
+    country: str('country'),
+    notes: str('notes'),
+  }
+
+  return Object.values(address).some(Boolean) ? address : null
+}
+
 /** Cle jour locale (AAAA-MM-JJ) : `toISOString()` decalerait d'un jour en UTC+1. */
 function localDayKey(date: Date): string {
   const month = String(date.getMonth() + 1).padStart(2, '0')
@@ -138,6 +167,18 @@ export async function getAdminUsers(): Promise<AdminUserRow[]> {
   })
 }
 
+/** Adresse de livraison saisie par le client au checkout. */
+export interface ShippingAddress {
+  fullName: string | null
+  email: string | null
+  phone: string | null
+  line1: string | null
+  city: string | null
+  postalCode: string | null
+  country: string | null
+  notes: string | null
+}
+
 export interface AdminOrderRow {
   id: string
   shortId: string
@@ -151,6 +192,7 @@ export interface AdminOrderRow {
   total: number
   createdAt: string
   items: AdminOrderItem[]
+  shippingAddress: ShippingAddress | null
 }
 
 export interface AdminOrderItem {
@@ -189,6 +231,7 @@ async function toOrderRows(rows: OrderRow[]): Promise<AdminOrderRow[]> {
     total: row.total ?? 0,
     createdAt: row.created_at,
     items: itemsByOrder.get(row.id) ?? [],
+    shippingAddress: parseShippingAddress(row.shipping_address),
   }))
 }
 

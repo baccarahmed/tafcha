@@ -8,9 +8,10 @@ import { signIn, type AuthActionState, type AuthErrorCode } from '@/app/actions/
 
 const initialState: AuthActionState = { error: null }
 
-const ERROR_KEYS: Record<AuthErrorCode, 'missing' | 'error'> = {
+const ERROR_KEYS: Record<AuthErrorCode, 'missing' | 'error' | 'exists'> = {
   missing: 'missing',
   invalid: 'error',
+  exists: 'exists',
 }
 
 function SubmitButton() {

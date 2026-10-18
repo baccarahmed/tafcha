@@ -3,7 +3,7 @@
 import { headers } from 'next/headers'
 import { getSessionUser } from '@/lib/session'
 import { insforgeAdmin } from '@/lib/insforge-admin'
-import { notifyNewOrder } from '@/lib/notify-channels'
+import { notifyNewOrder, createTelegramOrderConfirmation } from '@/lib/notify-channels'
 import { ipFromHeaders } from '@/lib/rate-limit'
 import {
   applyPercentage,
@@ -281,6 +281,22 @@ export async function createOrderAction(
     customerName: String(address.fullName).trim(),
     total,
     itemCount: items.reduce((sum, item) => sum + Number(item.quantity), 0),
+  }).catch(() => {})
+
+  // Confirmation Telegram : crée une entrée en attente et notifie l'admin.
+  // Best-effort : une panne ne doit jamais faire échouer la commande.
+  void createTelegramOrderConfirmation({
+    orderId: orderId as string,
+    customerName: String(address.fullName).trim(),
+    customerPhone: String(address.phone).trim(),
+    customerEmail: String(address.email).trim(),
+    customerAddress: [
+      String(address.line1).trim(),
+      String(address.city).trim(),
+      String(address.postalCode).trim(),
+      String(address.country).trim(),
+    ].filter(Boolean).join(', '),
+    total,
   }).catch(() => {})
 
   return { ok: true, orderId: orderId as string }

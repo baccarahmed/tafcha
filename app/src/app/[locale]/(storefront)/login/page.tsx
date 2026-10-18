@@ -76,6 +76,16 @@ export default async function LoginPage({ params, searchParams }: PageProps) {
 
         <LoginForm next={nextPath} />
 
+        <p className="mt-6 text-center text-sm text-ink-mute">
+          {t('noAccount')}{' '}
+          <Link
+            href="/register"
+            className="font-bold text-accent underline-offset-4 hover:underline"
+          >
+            {t('createAccount')}
+          </Link>
+        </p>
+
         <p className="mt-8 text-[11px] leading-relaxed text-ink-mute">
           {t('notice')}
         </p>

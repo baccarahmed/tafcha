@@ -29,11 +29,21 @@ export interface TelegramChat {
   id: number
 }
 
+export interface TelegramPhotoSize {
+  file_id: string
+  file_unique_id?: string
+  width?: number
+  height?: number
+  file_size?: number
+}
+
 export interface TelegramMessage {
   message_id: number
   chat: TelegramChat
   from?: { id: number }
   text?: string
+  /** Photo jointe (du plus petit au plus grand format). */
+  photo?: TelegramPhotoSize[]
 }
 
 export interface TelegramCallbackQuery {

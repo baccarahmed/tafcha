@@ -319,6 +319,47 @@ const RUNNERS: Record<string, Runner> = {
 
     return `Reglage mis a jour : ${escapeHtml(label)}.`
   },
+
+  /** Création d'un produit depuis un brouillon IA confirmé. */
+  'product.create': async (payload) => {
+    const draftId = requireString(payload, 'draftId')
+    const imageUrl = requireString(payload, 'imageUrl')
+    const name = requireString(payload, 'name')
+
+    const { confirmProductDraft } = await import('./telegram-products')
+    const result = await confirmProductDraft(draftId)
+
+    return `Produit <b>${escapeHtml(name)}</b> créé.\n` +
+      `Réf <code>${result.productId.slice(0, 8).toUpperCase()}</code> · slug <code>${escapeHtml(result.slug)}</code>\n\n` +
+      `Complétez le prix, les pointures et la catégorie depuis le dashboard.`
+  },
+
+  /** Confirmation d'une commande (envoie les coordonnées client). */
+  'order.confirm': async (payload) => {
+    const orderId = requireString(payload, 'orderId')
+    const ref = requireString(payload, 'ref')
+
+    const { confirmOrder } = await import('./telegram-orders')
+    const customer = await confirmOrder(orderId)
+
+    return `Commande <b>#${escapeHtml(ref)}</b> confirmée.\n\n` +
+      `<b>Coordonnées client :</b>\n` +
+      `Nom : ${escapeHtml(customer.customerName)}\n` +
+      `Téléphone : ${escapeHtml(customer.customerPhone)}\n` +
+      `Email : ${escapeHtml(customer.customerEmail)}\n` +
+      `Adresse : ${escapeHtml(customer.customerAddress)}`
+  },
+
+  /** Annulation d'une commande. */
+  'order.cancel.confirmed': async (payload) => {
+    const orderId = requireString(payload, 'orderId')
+    const ref = requireString(payload, 'ref')
+
+    const { cancelOrder } = await import('./telegram-orders')
+    await cancelOrder(orderId)
+
+    return `Commande <b>#${escapeHtml(ref)}</b> annulée.`
+  },
 }
 
 /** Traduit les erreurs de validation metier en message lisible par l'admin. */

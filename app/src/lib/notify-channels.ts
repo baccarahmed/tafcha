@@ -122,3 +122,73 @@ export async function notifyOrderStatusChange(input: NotifyOrderStatusInput): Pr
     sendOrderEmail(`Commande #${reference} mise à jour`, `<p>${summary}</p>`),
   ])
 }
+
+export interface TelegramOrderConfirmationInput {
+  orderId: string
+  customerName: string
+  customerPhone: string
+  customerEmail: string
+  customerAddress: string
+  total: number
+}
+
+/**
+ * Crée une confirmation Telegram pour une nouvelle commande et notifie l'admin.
+ * La confirmation est persistée dans `telegram_order_confirmations`.
+ */
+export async function createTelegramOrderConfirmation(
+  input: TelegramOrderConfirmationInput
+): Promise<void> {
+  if (!isEnabled()) return
+
+  const { createOrderConfirmation } = await import('./telegram-orders')
+
+  // Trouver le chat_id admin
+  const chatId = process.env.TELEGRAM_CHAT_ID
+  if (!chatId) return
+
+  // Construire un OrderLookup minimal pour la confirmation
+  const { findOrder } = await import('./telegram-lookup')
+  const order = await findOrder(input.orderId)
+  if (!order) return
+
+  await createOrderConfirmation({
+    orderId: input.orderId,
+    chatId: Number(chatId),
+    order,
+  })
+
+  // Envoyer la notification Telegram avec boutons de confirmation
+  const reference = shortOrderId(input.orderId)
+  const token = process.env.TELEGRAM_BOT_TOKEN
+
+  if (!token) return
+
+  const summary = [
+    `🛒 <b>Nouvelle commande #${reference}</b>`,
+    '',
+    `Client : ${input.customerName}`,
+    `Téléphone : ${input.customerPhone}`,
+    `Total : ${formatPrice(input.total)}`,
+  ].join('\n')
+
+  try {
+    await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: chatId,
+        text: summary,
+        parse_mode: 'HTML',
+        reply_markup: {
+          inline_keyboard: [[
+            { text: '✅ Confirmer', callback_data: `run:order:${input.orderId}` },
+            { text: '❌ Annuler', callback_data: `run:cancel:${input.orderId}` },
+          ]],
+        },
+      }),
+    })
+  } catch (error) {
+    console.error('createTelegramOrderConfirmation:', error)
+  }
+}
