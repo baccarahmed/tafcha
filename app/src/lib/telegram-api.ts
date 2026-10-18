@@ -109,7 +109,11 @@ function splitMessage(text: string): string[] {
 
 async function callApi<T>(method: string, payload: Record<string, unknown>): Promise<T | null> {
   const token = botToken()
-  if (!token) return null
+
+  if (!token) {
+    console.error(`telegram ${method}: TELEGRAM_BOT_TOKEN manquant`)
+    return null
+  }
 
   const controller = new AbortController()
   const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS)
