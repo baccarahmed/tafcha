@@ -115,6 +115,33 @@ export const getSiteSettings = cache(
   })
 )
 
+/**
+ * Meme lecture, sans memoisation.
+ *
+ * `cache()` depend d'un rendu React en cours : un Route Handler (le webhook
+ * Telegram) n'en a pas toujours un. On relit donc la ligne directement, avec
+ * les memes valeurs de repli, pour que le bot puisse construire un
+ * enregistrement complet a partir de l'etat courant.
+ */
+export async function getSiteSettingsInput(): Promise<SiteSettingsInput> {
+  const settings = await loadSiteSettings()
+
+  return {
+    heroTitle: settings.heroTitle,
+    heroSubtitle: settings.heroSubtitle,
+    contactEmail: settings.contactEmail,
+    contactPhone: settings.contactPhone,
+    contactAddress: settings.contactAddress,
+    newsletterEnabled: settings.newsletterEnabled,
+    maintenanceMode: settings.maintenanceMode,
+    announcementEnabled: settings.announcementEnabled,
+    announcementText: settings.announcementText,
+    freeShippingThreshold: settings.freeShippingThreshold,
+    shippingCost: settings.shippingCost,
+  }
+}
+
+/** Champs editables depuis le back-office, en camelCase. */
 export interface SiteSettingsInput {
   heroTitle: string
   heroSubtitle: string

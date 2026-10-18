@@ -35,24 +35,56 @@ Variables des canaux externes (à définir dans `.env.local` **et** dans Vercel 
 | `NOTIFY_CHANNELS_ENABLED` | `true` pour activer l'envoi externe |
 | `TELEGRAM_BOT_TOKEN` | token du bot (BotFather) |
 | `TELEGRAM_CHAT_ID` | chat destinataire (le bot ne peut pas écrire le premier : envoyer `/start`) |
+| `ADMIN_NOTIFICATION_EMAIL` | optionnel, destinataire des alertes e-mail |
+| `INSFORGE_FROM_EMAIL` | optionnel, expéditeur (défaut `Q2M <no-reply@que2marque.com>`) |
 
 ### Bot Telegram (deux sens)
 
 En plus des alertes sortantes, le bot répond aux administrateurs via un webhook
-(`POST /api/telegram`, `src/app/api/telegram/route.ts`). Le traitement des
-commandes vit dans `src/lib/telegram-bot.ts`.
+(`POST /api/telegram`, `src/app/api/telegram/route.ts`). Le routage vit dans
+`src/lib/telegram-bot.ts`, la résolution des références dans
+`src/lib/telegram-lookup.ts`, l'affichage dans `src/lib/telegram-format.ts` et
+le registre d'actions dans `src/lib/telegram-actions.ts`.
 
-- **Accès** — allowlist de chats (`TELEGRAM_ALLOWED_CHAT_IDS`, sinon
-  `TELEGRAM_CHAT_ID`). Tout update venu d'un autre chat est refusé.
-- **Sécurité** — le webhook est signé : Telegram renvoie
-  `TELEGRAM_WEBHOOK_SECRET` dans le header `X-Telegram-Bot-Api-Secret-Token`,
-  comparé avant tout traitement. Sans secret configuré, l'endpoint répond 503.
-- **Phase 1 (lecture)** — `/orders [n]`, `/order #REF`, `/stats [today|week|month]`,
-  `/stock [seuil]`.
-- **Phase 2 (écriture confirmée)** — `/setstatus #REF STATUS` (et `/ship #REF`)
-  affichent des boutons inline ; la base n'est écrite qu'après « Confirmer ».
-  L'écriture passe par `updateOrder` + `revalidateCatalog` + notification, comme
-  le back-office.
+**Accès** — allowlist de chats (`TELEGRAM_ALLOWED_CHAT_IDS`, sinon
+`TELEGRAM_CHAT_ID`). Tout update venu d'un autre chat est refusé.
+
+**Sécurité** — le webhook est signé : Telegram renvoie
+`TELEGRAM_WEBHOOK_SECRET` dans le header `X-Telegram-Bot-Api-Secret-Token`
+(`503` sans secret configuré, `403` si le header ne correspond pas), comparé
+avant tout traitement.
+
+**Confirmation** — toute écriture passe par `proposeAction` : la proposition est
+persistée dans `telegram_actions` et un message de confirmation est envoyé avec
+deux boutons (`run:<id>` / `drop:<id>`). Le `callback_data` ne porte que l'id,
+car Telegram le limite à 64 octets ; la même table sert de journal d'audit,
+consultable avec `/actions`. Les actions destructrices demandent une **seconde**
+confirmation (`run2:<id>`), et une proposition non confirmée expire au bout de
+30 minutes.
+
+Le bot ne construit jamais de SQL : chaque commande devient une action nommée et
+un payload validé, exécutés par les **mêmes fonctions** que le dashboard
+(`updateOrder`, `updateProduct`, `duplicateProduct`, `deleteProduct`,
+`setUserRole`/`demoteUser`, `createPromotion`/`updatePromotion`/
+`setPromotionActive`/`deletePromotion`, `saveSiteSettings`), suivies de
+`revalidateCatalog()`.
+
+| Commande | Effet |
+| --- | --- |
+| `/help` | aide complète |
+| `/orders [n]`, `/order #REF` | dernières commandes, détail d'une commande |
+| `/stats [today\|week\|month]`, `/stock [seuil]` | ventes, stock faible |
+| `/products [terme]`, `/product REF` | recherche et fiche produit |
+| `/customers [terme]`, `/promos`, `/settings` | clients, promotions, réglages |
+| `/actions [n]` | journal des actions du bot |
+| `/ship`, `/deliver`, `/cancel`, `/setstatus`, `/setpayment`, `/note`, `/delivery` | suivi d'une commande |
+| `/setstock`, `/addstock`, `/setprice`, `/activate`, `/deactivate`, `/feature`, `/newdrop`, `/duplicate` | produit et stock |
+| `/promote`, `/demote` | rôle d'un compte |
+| `/promo_on`, `/promo_off`, `/promo_new`, `/promo_target` | promotions |
+| `/announce`, `/maintenance`, `/shipping`, `/freeship`, `/set` | vitrine |
+
+Actions destructrices (double confirmation) : `/delproduct`, `/demote`,
+`/promo_del`.
 
 | Variable | Rôle |
 | --- | --- |
@@ -64,10 +96,6 @@ Après un changement de domaine ou de secret, réenregistrer le webhook :
 ```bash
 node scripts/telegram-webhook.mjs https://que2marque.vercel.app
 ```
-
-
-| `ADMIN_NOTIFICATION_EMAIL` | optionnel, destinataire des alertes e-mail |
-| `INSFORGE_FROM_EMAIL` | optionnel, expéditeur (défaut `Q2M <no-reply@que2marque.com>`) |
 
 ## Commandes
 

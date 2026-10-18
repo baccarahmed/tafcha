@@ -72,12 +72,50 @@ await call('setWebhook', {
 console.log(`Webhook : ${webhookUrl}`);
 
 const commands = [
-  { command: 'orders', description: 'Les dernieres commandes' },
-  { command: 'order', description: 'Detail d\u2019une commande (#REF)' },
-  { command: 'stats', description: 'Chiffre d\u2019affaires (today/week/month)' },
-  { command: 'stock', description: 'Produits bientot en rupture' },
-  { command: 'setstatus', description: 'Changer le statut d\u2019une commande' },
-  { command: 'ship', description: 'Marquer une commande expediee' },
+  // Lecture
+  { command: 'orders', description: 'Les dernières commandes' },
+  { command: 'order', description: 'Détail d’une commande (REF)' },
+  { command: 'stats', description: 'Ventes (today/week/month)' },
+  { command: 'stock', description: 'Produits bientôt en rupture' },
+  { command: 'products', description: 'Chercher dans le catalogue' },
+  { command: 'product', description: 'Fiche d’un produit (REF)' },
+  { command: 'customers', description: 'Chercher un client' },
+  { command: 'promos', description: 'Lister les promotions' },
+  { command: 'settings', description: 'Voir les réglages vitrine' },
+  { command: 'actions', description: 'Journal du bot' },
+  // Commandes
+  { command: 'ship', description: 'Marquer une commande expédiée' },
+  { command: 'deliver', description: 'Marquer une commande livrée' },
+  { command: 'cancel', description: 'Annuler une commande' },
+  { command: 'setstatus', description: 'Changer le statut d’une commande' },
+  { command: 'setpayment', description: 'Changer le paiement d’une commande' },
+  { command: 'note', description: 'Note interne sur une commande' },
+  { command: 'delivery', description: 'Fenêtre de livraison d’une commande' },
+  // Produits
+  { command: 'setstock', description: 'Stock par pointure (42:5 43:3)' },
+  { command: 'addstock', description: 'Ajouter du stock par pointure' },
+  { command: 'setprice', description: 'Changer le prix (et prix barré)' },
+  { command: 'activate', description: 'Rendre un produit visible' },
+  { command: 'deactivate', description: 'Masquer un produit' },
+  { command: 'feature', description: 'Mettre en avant (on|off)' },
+  { command: 'newdrop', description: 'Nouveau drop (on|off)' },
+  { command: 'duplicate', description: 'Créer un coloris' },
+  { command: 'delproduct', description: 'Supprimer un produit' },
+  // Clients
+  { command: 'promote', description: 'Donner les droits admin' },
+  { command: 'demote', description: 'Retirer les droits admin' },
+  // Promotions
+  { command: 'promo_on', description: 'Activer une promotion' },
+  { command: 'promo_off', description: 'Désactiver une promotion' },
+  { command: 'promo_new', description: 'Créer une promotion globale' },
+  { command: 'promo_target', description: 'Cibler des produits' },
+  { command: 'promo_del', description: 'Supprimer une promotion' },
+  // Vitrine
+  { command: 'announce', description: 'Bandeau d’annonce (− pour vider)' },
+  { command: 'maintenance', description: 'Mode maintenance (on|off)' },
+  { command: 'shipping', description: 'Frais de livraison' },
+  { command: 'freeship', description: 'Seuil de livraison offerte' },
+  { command: 'set', description: 'Modifier un réglage vitrine' },
   { command: 'help', description: 'Aide' },
 ];
 
