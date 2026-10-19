@@ -3,7 +3,7 @@ import 'server-only'
 import { insforgeAdmin } from './insforge-admin'
 import { analyzeProductImage, type ProductDraft } from './gemini'
 import { uploadProductImage } from './admin-storage'
-import { createProduct, suggestFreeSku, type ProductInput } from './admin-products'
+import { createDraftProduct } from './admin-products'
 import { slugify } from './utils'
 
 /**
@@ -94,33 +94,22 @@ export async function confirmProductDraft(draftId: string): Promise<{
 
   const draftData = draft.draft as unknown as ProductDraft
 
-  // 2. Construire le ProductInput
-  const sku = await suggestFreeSku(draftData.sku)
-  const slug = slugify(`${draftData.brand}-${draftData.name}-${sku.toLowerCase()}`)
-
-  const input: ProductInput = {
+  // 2. Creer le produit brouillon (incomplet : prix 0, pointures vides,
+  //    inactif). `createDraftProduct` saute la validation stricte du prix et
+  //    des pointures propres a un brouillon, mais verifie l'essentiel.
+  const created = await createDraftProduct({
     name: draftData.name,
-    slug,
-    sku,
+    slug: slugify(`${draftData.brand}-${draftData.name}`),
+    sku: draftData.sku,
     brand: draftData.brand,
     description: draftData.description,
     colorway: draftData.colorway,
     images: [draft.image_url],
-    price: 0, // L'admin fixe le prix après
-    comparePrice: null,
-    categoryId: null, // L'admin assigne la catégorie après
     gender: draftData.gender,
     palette: draftData.palette,
-    sizes: [], // L'admin ajoute les pointures après
-    featured: false,
-    active: false, // Inactif jusqu'à complétion
-    isNewDrop: false,
-  }
+  })
 
-  // 3. Créer le produit
-  const created = await createProduct(input)
-
-  // 4. Marquer le brouillon comme confirmé
+  // 3. Marquer le brouillon comme confirmé
   const { error: updateError } = await db
     .from('telegram_product_drafts')
     .update({

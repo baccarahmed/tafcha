@@ -1,6 +1,9 @@
 [auth]
 allowed_redirect_urls = []
-require_email_verification = true
+# La verification par code exigerait un SMTP actif : sans envoi d'e-mail, le
+# compte est cree mais la connexion est refusee ("identifiants invalides").
+# Tant que [auth.smtp] est desactive, on accepte la connexion immediatement.
+require_email_verification = false
 verify_email_method = "code"
 reset_password_method = "code"
 disable_signup = false
