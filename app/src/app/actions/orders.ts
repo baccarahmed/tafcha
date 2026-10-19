@@ -3,7 +3,7 @@
 import { headers } from 'next/headers'
 import { getSessionUser } from '@/lib/session'
 import { insforgeAdmin } from '@/lib/insforge-admin'
-import { notifyNewOrder, createTelegramOrderConfirmation } from '@/lib/notify-channels'
+import { notifyNewOrder, notifyNewOrderPush, createTelegramOrderConfirmation } from '@/lib/notify-channels'
 import { ipFromHeaders } from '@/lib/rate-limit'
 import {
   applyPercentage,
@@ -288,6 +288,16 @@ export async function createOrderAction(
   // faire échouer la commande.
   void createTelegramOrderConfirmation({
     orderId: orderId as string,
+  }).catch(() => {})
+
+  // Push navigateur (PWA installée) : alerte l'admin sur son appareil.
+  // Ne dépend pas de NOTIFY_CHANNELS_ENABLED — il ne part que si un admin
+  // s'est abonné depuis le dashboard.
+  void notifyNewOrderPush({
+    orderId: orderId as string,
+    customerName: String(address.fullName).trim(),
+    total,
+    itemCount: items.reduce((sum, item) => sum + Number(item.quantity), 0),
   }).catch(() => {})
 
   return { ok: true, orderId: orderId as string }

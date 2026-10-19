@@ -40,4 +40,12 @@ export default defineConfig([
       globals: globals.node,
     },
   },
+  {
+    // Service worker : `self`, `clients`, `registration`… sont des globals
+    // navigateur propres au contexte service worker.
+    files: ['public/sw.js'],
+    languageOptions: {
+      globals: globals.serviceworker,
+    },
+  },
 ])

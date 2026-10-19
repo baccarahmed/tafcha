@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
 import { Separator } from '@/components/ui/separator'
+import PushOptIn from '@/components/push/PushOptIn'
 
 export default async function DashboardOverviewPage() {
   const t = await getTranslations('dashboard')
@@ -50,6 +51,16 @@ export default async function DashboardOverviewPage() {
 
   return (
     <div className="space-y-6">
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-[var(--q2m-line-soft)] bg-[var(--q2m-surface)] px-4 py-3">
+        <div>
+          <p className="text-sm font-medium text-[var(--q2m-ink)]">
+            {t('pushTitle')}
+          </p>
+          <p className="text-xs text-[var(--q2m-ink-stone)]">{t('pushHint')}</p>
+        </div>
+        <PushOptIn />
+      </div>
+
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {cards.map((card) => (
           <Card key={card.label}>

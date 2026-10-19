@@ -701,6 +701,8 @@
     "customers": "Clients",
     "lowStock": "Stock faible",
     "last14Days": "Revenu sur 14 jours",
+    "pushTitle": "Notifications téléphone",
+    "pushHint": "Recevez une alerte sur votre appareil à chaque nouvelle commande.",
     "noRevenueData": "Aucune commande sur la période.",
     "recentOrders": "Dernières commandes",
     "recentUsers": "Nouveaux comptes",

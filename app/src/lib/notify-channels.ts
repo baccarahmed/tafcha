@@ -107,6 +107,28 @@ export async function notifyNewOrder(input: NotifyNewOrderInput): Promise<void> 
   )
 }
 
+/**
+ * Alerte push navigateur (PWA installée en raccourci sur le téléphone de
+ * l'admin). Contrairement aux canaux externes, ce n'est pas un service tiers :
+ * rien ne part tant qu'un admin n'a pas explicitement activé les
+ * notifications depuis le dashboard. Aussi silencieux si les clés VAPID ne
+ * sont pas configurées. Best-effort.
+ */
+export async function notifyNewOrderPush(input: NotifyNewOrderInput): Promise<void> {
+  const reference = shortOrderId(input.orderId)
+
+  try {
+    const { sendWebPushToAdmins } = await import('./web-push')
+    await sendWebPushToAdmins({
+      title: 'Nouvelle commande',
+      body: `#${reference} — ${input.customerName} — ${formatPrice(input.total)}`,
+      url: '/dashboard/orders',
+    })
+  } catch (error) {
+    console.error('notifyNewOrderPush:', error)
+  }
+}
+
 export interface NotifyOrderStatusInput {
   orderId: string
   status: string

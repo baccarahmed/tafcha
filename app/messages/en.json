@@ -701,6 +701,8 @@
     "customers": "Customers",
     "lowStock": "Low stock",
     "last14Days": "Revenue over 14 days",
+    "pushTitle": "Phone notifications",
+    "pushHint": "Get an alert on your device for every new order.",
     "noRevenueData": "No orders in this period.",
     "recentOrders": "Latest orders",
     "recentUsers": "New accounts",

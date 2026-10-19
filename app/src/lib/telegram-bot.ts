@@ -44,6 +44,7 @@ import {
   statusBadge,
   tunisStartOfDay,
 } from './telegram-format'
+import type { Q2MAnswers } from './telegram-products'
 import {
   findCustomerByEmail,
   findOrder,
@@ -1536,31 +1537,154 @@ async function handlePhoto(chatId: number, photo: Array<{ file_id: string; file_
       locale: 'fr',
     })
 
-    // 4. Formulaire de confirmation (proposeAction envoye le message avec
-    //    ses boutons Confirmer/Annuler valides).
-    const d = draft.draft
-    const summary = [
-      `<b>Nouveau produit IA</b>`,
-      '',
-      `Nom : <b>${escapeHtml(d.name)}</b>`,
-      `Marque : ${escapeHtml(d.brand)}`,
-      `SKU : <code>${escapeHtml(d.sku)}</code>`,
-      `Coloris : ${escapeHtml(d.colorway)}`,
-      `Description : ${escapeHtml(d.description)}`,
-      `Genre : ${escapeHtml(d.gender)}`,
-      `Palette : ${escapeHtml(d.palette)}`,
-    ].join('\n')
-
-    await proposeAction(chatId, '/newproduct', {
-      action: 'product.create',
-      payload: { draftId: draft.id, imageUrl: draft.image_url, name: d.name },
-      summary,
-      hint: 'Le produit sera créé inactif, sans prix ni pointures. Complétez depuis le dashboard.',
-    })
+    // 4. Formulaire interactif : le bot pose les questions pour les champs
+    //    manquants (prix, pointures, catégorie) avant de proposer la création.
+    await askDraftNextStep(chatId, draft)
   } catch (error) {
     console.error('handlePhoto:', error)
     await sendMessage(chatId, `⚠️ ${escapeHtml(photoErrorMessage(error))}`)
   }
+}
+
+/**
+ * Envoie la question correspondant à l'étape en cours du formulaire produit.
+ * N'envoie rien quand le brouillon est complet (c'est `proposeDraftConfirmation`
+ * qui prend le relais).
+ */
+async function askDraftNextStep(
+  chatId: number,
+  row: { id: string; draft: { name: string }; answers?: Q2MAnswers },
+): Promise<void> {
+  const { draftStep, listCategories } = await import('./telegram-products')
+  const step = draftStep({ answers: row.answers ?? {} })
+  const name = escapeHtml(row.draft.name)
+
+  if (step === 'price') {
+    await sendMessage(
+      chatId,
+      `📸 Produit analysé : <b>${name}</b>\n\n💰 À quel prix veux-tu le vendre ? Réponds avec un nombre (ex : <code>202.50</code>).`,
+    )
+    return
+  }
+
+  if (step === 'sizes') {
+    await sendMessage(
+      chatId,
+      `👟 Quelles pointures et stocks pour <b>${name}</b> ?\n\nFormats acceptés :\n• <code>40:2, 41:3</code> — taille : stock\n• <code>40-45</code> — stock 1 chacune\n• <code>40,41,42</code> — stock 1 chacune`,
+    )
+    return
+  }
+
+  if (step === 'category') {
+    const cats = await listCategories()
+    const list = cats
+      .map((c) => `• ${escapeHtml(c.name)} — <code>${escapeHtml(c.slug)}</code>`)
+      .join('\n')
+    await sendMessage(
+      chatId,
+      `📁 Catégorie pour <b>${name}</b> ?\n\n${list}\n\nRéponds par le slug, ou <code>/skip</code> pour créer sans catégorie.`,
+    )
+    return
+  }
+
+  // ready → récapitulatif + boutons
+  await proposeDraftConfirmation(chatId, row.id)
+}
+
+/**
+ * Récapitulatif final + boutons Confirmer/Annuler une fois le brouillon complet.
+ */
+async function proposeDraftConfirmation(chatId: number, draftId: string): Promise<void> {
+  const { findPendingDraft, listCategories } = await import('./telegram-products')
+  const row = await findPendingDraft(chatId)
+  if (!row || row.id !== draftId) {
+    await sendMessage(chatId, 'Brouillon introuvable.')
+    return
+  }
+
+  const d = row.draft
+  const a = row.answers
+  const sizeList = (a.sizes ?? []).map((s) => `${s.size}×${s.stock}`).join(', ')
+  const cats = await listCategories()
+  const catName = a.categoryId
+    ? (cats.find((c) => c.id === a.categoryId)?.name ?? '—')
+    : 'Aucune'
+
+  const summary = [
+    `<b>Produit prêt à créer</b>`,
+    '',
+    `Nom : <b>${escapeHtml(d.name)}</b>`,
+    `Marque : ${escapeHtml(d.brand)}`,
+    `Coloris : ${escapeHtml(d.colorway)}`,
+    `Prix : <b>${escapeHtml(String(a.price))} DT</b>`,
+    `Pointures : ${escapeHtml(sizeList)}`,
+    `Catégorie : ${escapeHtml(catName)}`,
+  ].join('\n')
+
+  await proposeAction(chatId, '/newproduct', {
+    action: 'product.create',
+    payload: { draftId: row.id, imageUrl: row.image_url, name: d.name },
+    summary,
+    hint: 'Le produit sera créé complet et actif (visible en boutique).',
+  })
+}
+
+/**
+ * Traite une réponse au formulaire produit interactif.
+ * Renvoie false si aucun brouillon n'attend de réponse (message non traité).
+ */
+async function handleDraftAnswer(chatId: number, text: string): Promise<boolean> {
+  const tp = await import('./telegram-products')
+  const row = await tp.findPendingDraft(chatId)
+  if (!row) return false
+
+  const step = tp.draftStep(row)
+  const trimmed = text.trim()
+
+  if (step === 'price') {
+    const price = tp.parsePrice(trimmed)
+    if (price === null) {
+      await sendMessage(chatId, `⚠️ Prix invalide. Envoie un nombre (ex : <code>202.50</code>).`)
+      return true
+    }
+    await tp.saveDraftAnswers(row.id, { price })
+    await askDraftNextStep(chatId, { ...row, answers: { ...row.answers, price } })
+    return true
+  }
+
+  if (step === 'sizes') {
+    const sizes = tp.parseSizes(trimmed)
+    if (!sizes) {
+      await sendMessage(
+        chatId,
+        `⚠️ Pointures invalides. Formats : <code>40:2, 41:3</code>, <code>40-45</code>, ou <code>40,41,42</code>.`,
+      )
+      return true
+    }
+    await tp.saveDraftAnswers(row.id, { sizes })
+    await askDraftNextStep(chatId, { ...row, answers: { ...row.answers, sizes } })
+    return true
+  }
+
+  if (step === 'category') {
+    let categoryId: string | null
+    if (/^\/skip$/i.test(trimmed)) {
+      categoryId = null
+    } else {
+      const cat = await tp.findCategory(trimmed)
+      if (cat === null) {
+        await sendMessage(chatId, `⚠️ Catégorie inconnue. Choisis dans la liste ou tape <code>/skip</code>.`)
+        return true
+      }
+      categoryId = cat === 'skip' ? null : cat.id
+    }
+    await tp.saveDraftAnswers(row.id, { categoryId })
+    await proposeDraftConfirmation(chatId, row.id)
+    return true
+  }
+
+  // ready : plus de question à poser
+  return false
 }
 
 /**
@@ -1691,7 +1815,21 @@ export async function handleTelegramUpdate(update: TelegramUpdate): Promise<void
       return
     }
 
-    await handleCommand(chatId, message.text)
+    const text = message.text.trim()
+    // `/skip` sert à ignorer la catégorie dans le formulaire produit, donc on
+    // le confie d'abord au formulaire ; les autres commandes vont au dispatch.
+    const isSkip = /^\/skip$/i.test(text)
+
+    if (text.startsWith('/') && !isSkip) {
+      await handleCommand(chatId, text)
+      return
+    }
+
+    const handled = await handleDraftAnswer(chatId, text)
+    if (!handled) {
+      // Aucun formulaire en attente : /skip (ou autre texte) → commande inconnue.
+      await handleCommand(chatId, text)
+    }
     return
   }
 

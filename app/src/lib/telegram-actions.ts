@@ -339,9 +339,8 @@ const RUNNERS: Record<string, Runner> = {
     const { confirmProductDraft } = await import('./telegram-products')
     const result = await confirmProductDraft(draftId)
 
-    return `Produit <b>${escapeHtml(name)}</b> créé.\n` +
-      `Réf <code>${result.productId.slice(0, 8).toUpperCase()}</code> · slug <code>${escapeHtml(result.slug)}</code>\n\n` +
-      `Complétez le prix, les pointures et la catégorie depuis le dashboard.`
+    return `Produit <b>${escapeHtml(name)}</b> créé et activé (visible en boutique).\n` +
+      `Réf <code>${result.productId.slice(0, 8).toUpperCase()}</code> · slug <code>${escapeHtml(result.slug)}</code>`
   },
 
   /** Confirmation d'une commande (envoie les coordonnées client). */

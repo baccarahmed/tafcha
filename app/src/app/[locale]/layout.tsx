@@ -9,6 +9,7 @@ import { buildMetadata, organizationSchema } from '@/lib/seo';
 import { JsonLd } from '@/components/seo/JsonLd';
 import MetaPixel from '@/components/analytics/MetaPixel';
 import CookieConsent from '@/components/consent/CookieConsent';
+import RegisterServiceWorker from '@/components/push/RegisterServiceWorker';
 import '@/app/globals.css';
 
 import '@fontsource/inter/300.css';
@@ -42,6 +43,7 @@ export async function generateMetadata({
   return {
     // Base commune à toutes les URL relatives (canonical, Open Graph, etc.).
     metadataBase: new URL(SITE_URL),
+    manifest: '/manifest.webmanifest',
     ...buildMetadata({
       locale,
       title: t('metaTitle'),
@@ -99,6 +101,7 @@ export default async function LocaleLayout({
           <JsonLd data={organizationSchema()} />
           <MetaPixel />
           <CookieConsent />
+          <RegisterServiceWorker />
         </NextIntlClientProvider>
       </body>
     </html>
