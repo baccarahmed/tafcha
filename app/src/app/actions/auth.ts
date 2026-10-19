@@ -113,8 +113,13 @@ export async function signUp(
   })
 
   if (error) {
-    // InsForge renvoie une erreur si l'email existe deja
-    return { error: error.message?.includes('already') ? 'exists' : 'invalid' }
+    // Durcissement pentest VULN-003 : on ne revele JAMAIS si un e-mail est
+    // deja inscrit (reponse 'exists'), ce qui permettait d'enumerer les
+    // comptes depuis /register. Reponse generique identique a toute autre
+    // erreur. Le code 'exists' reste dans AuthErrorCode pour un futur flux
+    // de verification par e-mail (ou un message « compte deja cree »
+    // delibere, a accepter explicitement par le metier).
+    return { error: 'invalid' }
   }
 
   redirect({ href: '/account', locale: readLocale(formData) })
