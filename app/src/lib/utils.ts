@@ -1,5 +1,6 @@
 import { type ClassValue, clsx } from "clsx"
 import { twMerge } from "tailwind-merge"
+import { SITE_URL } from './site'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -74,7 +75,10 @@ export function getSiteUrl() {
     return window.location.origin
   }
 
-  return process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'
+  // Côté serveur, on réutilise SITE_URL (lib/site) : sur Vercel il retombe sur
+  // VERCEL_URL. Sans ça, robots.txt annoncerait un sitemap en localhost quand
+  // NEXT_PUBLIC_SITE_URL n'est pas renseignée.
+  return SITE_URL
 }
 
 export function generateUniqueId(prefix = 'id') {

@@ -11,6 +11,9 @@ function languagesFor(path: string): Record<string, string> {
   for (const code of routing.locales) {
     languages[code] = absoluteUrl(`/${code}${path}`);
   }
+  // Même convention que buildMetadata() : la locale par défaut sert de
+  // version de référence pour les moteurs sans préférence de langue.
+  languages['x-default'] = absoluteUrl(`/${routing.defaultLocale}${path}`);
   return languages;
 }
 

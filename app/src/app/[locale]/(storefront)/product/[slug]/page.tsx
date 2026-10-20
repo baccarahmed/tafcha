@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { getProductBySlug, getProducts } from '@/lib/catalog';
-import { getProductReviews } from '@/lib/reviews';
+import { getProductReviews, reviewStats } from '@/lib/reviews';
 import { getSessionUser } from '@/lib/session';
 import { SITE_NAME } from '@/lib/site';
 import { breadcrumbSchema, buildMetadata, productSchema } from '@/lib/seo';
@@ -58,7 +58,7 @@ export default async function ProductPage({ params }: PageProps) {
 
   return (
     <>
-      <JsonLd data={productSchema(product, locale)} />
+      <JsonLd data={productSchema(product, locale, reviewStats(reviews))} />
       <JsonLd
         data={breadcrumbSchema(
           [

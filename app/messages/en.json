@@ -709,7 +709,14 @@
     "retry": "Try again",
     "required": "Required field"
   },
+  "notFound": {
+    "title": "Page not found",
+    "body": "This page doesn't exist or has moved. Browse every Q2M sneaker from the shop.",
+    "cta": "Back to home"
+  },
   "dashboard": {
+    "metaTitle": "Admin — Q2M",
+    "metaDescription": "Q2M administration: orders, catalog, users and analytics.",
     "title": "Back office",
     "overview": "Overview",
     "openNavigationMenu": "Open the navigation menu",

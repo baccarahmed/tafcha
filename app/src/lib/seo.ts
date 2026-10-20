@@ -109,7 +109,11 @@ function availability(product: CatalogProduct): string {
 }
 
 /** schema.org/Product — émis sur la fiche produit. */
-export function productSchema(product: CatalogProduct, locale: string) {
+export function productSchema(
+  product: CatalogProduct,
+  locale: string,
+  reviews?: { count: number; score: number },
+) {
   const images = (product.images.length > 0 ? product.images : [DEFAULT_OG_IMAGE]).map((src) =>
     isAbsolute(src) ? src : absoluteUrl(src),
   )
@@ -154,6 +158,17 @@ export function productSchema(product: CatalogProduct, locale: string) {
       availability: availability(product),
       itemCondition: 'https://schema.org/NewCondition',
     },
+    // Note moyenne réelle (avis visibles sur la page) → étoiles dans les
+    // résultats de recherche. Omise tant qu'aucun avis n'existe.
+    ...(reviews && reviews.count > 0
+      ? {
+          aggregateRating: {
+            '@type': 'AggregateRating',
+            ratingValue: Number(reviews.score.toFixed(1)),
+            reviewCount: reviews.count,
+          },
+        }
+      : {}),
   }
 }
 

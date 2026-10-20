@@ -709,7 +709,14 @@
     "retry": "Réessayer",
     "required": "Champ obligatoire"
   },
+  "notFound": {
+    "title": "Page introuvable",
+    "body": "Cette page n’existe pas ou a été déplacée. Retrouvez toutes les sneakers Q2M depuis la boutique.",
+    "cta": "Retour à l’accueil"
+  },
   "dashboard": {
+    "metaTitle": "Back-office — Q2M",
+    "metaDescription": "Espace d’administration Q2M : commandes, catalogue, utilisateurs et analyses.",
     "title": "Back-office",
     "overview": "Vue d’ensemble",
     "openNavigationMenu": "Ouvrir le menu de navigation",
