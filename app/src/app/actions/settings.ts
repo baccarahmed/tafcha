@@ -2,7 +2,7 @@
 
 import { revalidateCatalog } from '@/lib/revalidate-catalog'
 import { saveSiteSettings, type SiteSettingsInput } from '@/lib/admin-settings'
-import { getSessionUser } from '@/lib/session'
+import { requireAdmin } from '@/lib/admin-guard'
 
 /**
  * Persiste les reglages de la boutique depuis le back-office.
@@ -13,9 +13,9 @@ import { getSessionUser } from '@/lib/session'
 export async function updateSiteSettings(
   input: SiteSettingsInput
 ): Promise<{ ok: boolean }> {
-  const user = await getSessionUser()
+  const user = await requireAdmin()
 
-  if (!user || user.role !== 'ADMIN') {
+  if (!user) {
     throw new Error('Forbidden')
   }
 

@@ -63,7 +63,15 @@ beforeEach(() => {
 
   h.getSessionUser.mockResolvedValue(null)
   h.getActivePromotions.mockResolvedValue([])
-  h.rpc.mockResolvedValue({ data: 'order-1', error: null })
+  h.rpc.mockImplementation(async (fn: string) => {
+    // Le compteur partage (VULN-002) passe aussi par .rpc() : on repond
+    // « autorise » sans toucher au compteur reel. Les assertions des tests
+    // portent sur create_order_with_stock, pas sur le rate-limit.
+    if (fn === 'rate_limit_hit') {
+      return { data: { ok: true, remaining: 99, retryAfter: 0 }, error: null }
+    }
+    return { data: 'order-1', error: null }
+  })
 
   h.from.mockImplementation((table: string) => {
     if (table === 'products') {
@@ -135,7 +143,7 @@ describe('createOrderAction', () => {
     )
 
     expect(await createOrderAction(input())).toEqual({ ok: false, error: 'unavailable' })
-    expect(h.rpc).not.toHaveBeenCalled()
+    expect(h.rpc).not.toHaveBeenCalledWith('create_order_with_stock', expect.anything())
   })
 
   it('retraduit une rupture de stock renvoyee par la fonction', async () => {

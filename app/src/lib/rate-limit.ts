@@ -1,12 +1,31 @@
 import 'server-only'
 
+import { insforgeAdmin } from '@/lib/insforge-admin'
+
 /**
- * Limitation de debit pour les routes publiques (contact, newsletter).
+ * Limitation de debit partagee entre toutes les instances serverless.
  *
- * Table en memoire par instance de serveur : pas de dependance externe, mais
- * ephemere et non partage entre instances. C'est volontairement la couche
- * minimale qui suffit a arreter un spammeur ; un besoin d'agregat multi-pods
- * demanderait un stockage partage (InsForge / Upstash).
+ * Correction VULN-002 (audit) : la version precedente comptait en memoire
+ * locale, donc chaque lambda Vercel avait son propre compteur et l'agregat
+ * multi-instances etait inoperant (5 essais x N instances). Le compteur de
+ * reference est desormais la table InsForge `rate_limits`, mise a jour par un
+ * seul appel SQL atomique (`public.rate_limit_hit`, migration
+ * 20261019145558_shared-rate-limit.sql) qui retourne la decision.
+ *
+ * De couches, du plus rapide au plus sur :
+ *   1. memoire locale — rejet immediat quand l'instance a deja atteint le
+ *      plafond (inutile d'un aller-retour SQL pour refuser) ; ne sert jamais
+ *      a autoriser seule ;
+ *   2. base partagee — source de verite : agrège les tentatives de toutes
+ *      les instances.
+ *
+ * Si la base est indisponible, on retombe sur la couche memoire (meilleur
+ * que rien) plutot que de faire tomber le service : le rate-limit protege
+ * contre le spam, il ne doit pas devenir une source d'indisponibilite.
+ *
+ * Appele uniquement cote serveur (server actions, routes) : la table et la
+ * fonction sont REVOKEes a anon/authenticated, un visiteur ne peut ni
+ * appeler le compteur, ni observer les cles (qui contiennent des e-mails).
  */
 
 type Bucket = { hits: number; resetAt: number }
@@ -40,11 +59,6 @@ interface HeaderBag {
  * 'unknown' : mieux vaut limiter collectivement que laisser la rotation
  * d'en-tetes contourner le debit.
  *
- * Limite connue : si l'hebergement ne place pas d'adresse fiable dans un de
- * ces en-tetes (front sans proxy HTTP qui normalise), un attaquant peut
- * toujours rotater l'en-tete — la couche definitive reste un compteur
- * persistant partage (InsForge DB / Upstash).
- *
  * Source unique partagee par les route handlers (`clientIp`) et les Server
  * Actions (qui n'ont pas de `Request`, seulement `headers()`).
  */
@@ -67,11 +81,11 @@ export function clientIp(request: Request): string {
   return ipFromHeaders(request.headers)
 }
 
-export function rateLimit(
-  key: string,
-  max: number,
-  windowMs: number
-): RateLimitResult {
+/**
+ * Couche memoire (fenetre fixe par instance). Sert au rejet immediat et de
+ * repli si la base partagee est hors service.
+ */
+function memoryHit(key: string, max: number, windowMs: number): RateLimitResult {
   const now = Date.now()
 
   if (buckets.size > MAX_BUCKETS) {
@@ -98,4 +112,38 @@ export function rateLimit(
 
   bucket.hits += 1
   return { ok: true, remaining: max - bucket.hits, retryAfter: 0 }
+}
+
+/**
+ * Compteur partage : rejet local immediat si plafond atteint, sinon on
+ * compte et decide en base via `rate_limit_hit` (atomique, toutes instances
+ * confondues). Repli memoire quand la base ne repond pas.
+ */
+export async function rateLimit(
+  key: string,
+  max: number,
+  windowMs: number
+): Promise<RateLimitResult> {
+  const local = memoryHit(key, max, windowMs)
+  if (!local.ok) return local
+
+  try {
+    const { data, error } = await insforgeAdmin().database.rpc('rate_limit_hit', {
+      p_key: key,
+      p_max: max,
+      p_window_ms: windowMs,
+    })
+    if (error || !data) throw new Error(error?.message ?? 'rate_limit_hit: no data')
+
+    const shared = data as { ok?: unknown; remaining?: unknown; retryAfter?: unknown }
+    return {
+      ok: shared.ok === true,
+      remaining: Number(shared.remaining ?? 0),
+      retryAfter: Number(shared.retryAfter ?? 0),
+    }
+  } catch (dbError) {
+    // Repli memoire : la decision locale reste valable pour cette instance.
+    console.error('rate-limit: compteur partage indisponible, repli memoire', dbError)
+    return local
+  }
 }

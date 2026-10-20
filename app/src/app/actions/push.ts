@@ -1,7 +1,7 @@
 'use server'
 
 import { insforgeAdmin } from '@/lib/insforge-admin'
-import { getSessionUser } from '@/lib/session'
+import { requireAdmin } from '@/lib/admin-guard'
 
 /**
  * Abonnement push navigateur (PWA installée en raccourci).
@@ -18,8 +18,8 @@ interface RawSubscription {
 export async function savePushSubscription(
   subscription: RawSubscription
 ): Promise<{ ok: boolean; reason?: string }> {
-  const user = await getSessionUser()
-  if (!user || user.role !== 'ADMIN') return { ok: false, reason: 'forbidden' }
+  const user = await requireAdmin()
+  if (!user) return { ok: false, reason: 'forbidden' }
 
   const endpoint = subscription.endpoint
   const p256dh = subscription.keys?.p256dh
@@ -51,8 +51,8 @@ export async function savePushSubscription(
 export async function removePushSubscription(
   endpoint: string
 ): Promise<{ ok: boolean }> {
-  const user = await getSessionUser()
-  if (!user || user.role !== 'ADMIN') return { ok: false }
+  const user = await requireAdmin()
+  if (!user) return { ok: false }
 
   const { error } = await insforgeAdmin()
     .database.from('push_subscriptions')

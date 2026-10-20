@@ -1,7 +1,7 @@
 'use server'
 
 import { revalidateCatalog } from '@/lib/revalidate-catalog'
-import { getSessionUser } from '@/lib/session'
+import { requireAdmin } from '@/lib/admin-guard'
 import { saveGalleryImages } from '@/lib/admin-settings'
 import {
   uploadGalleryImage,
@@ -22,9 +22,9 @@ export async function uploadGalleryImageAction(image: {
   base64: string
   mimeType: string
 }): Promise<GalleryUploadResult> {
-  const user = await getSessionUser()
+  const user = await requireAdmin()
 
-  if (!user || user.role !== 'ADMIN') {
+  if (!user) {
     return { ok: false, reason: 'forbidden' }
   }
 
@@ -46,9 +46,9 @@ export async function uploadGalleryImageAction(image: {
 export async function updateGalleryImages(
   images: string[]
 ): Promise<{ ok: boolean }> {
-  const user = await getSessionUser()
+  const user = await requireAdmin()
 
-  if (!user || user.role !== 'ADMIN') {
+  if (!user) {
     throw new Error('Forbidden')
   }
 
@@ -70,9 +70,9 @@ export async function updateGalleryImages(
  * (`/objects/<cle url-encodee>`), seule donnee persistee en base.
  */
 export async function deleteGalleryImageAction(url: string): Promise<{ ok: boolean }> {
-  const user = await getSessionUser()
+  const user = await requireAdmin()
 
-  if (!user || user.role !== 'ADMIN') {
+  if (!user) {
     return { ok: false }
   }
 

@@ -1,7 +1,7 @@
 'use server'
 
 import { revalidateCatalog } from '@/lib/revalidate-catalog'
-import { getSessionUser } from '@/lib/session'
+import { requireAdmin } from '@/lib/admin-guard'
 import {
   createProduct,
   getProductSlug,
@@ -36,9 +36,9 @@ export async function createProductAction(
   input: ProductInput,
   images?: { base64: string; mimeType: string }[]
 ): Promise<CreateProductResult> {
-  const user = await getSessionUser()
+  const user = await requireAdmin()
 
-  if (!user || user.role !== 'ADMIN') {
+  if (!user) {
     return { ok: false, field: 'forbidden' }
   }
 
@@ -117,9 +117,9 @@ export async function analyzeProductImageAction(
   image: { base64: string; mimeType: string },
   locale: string,
 ): Promise<AnalyzeResult> {
-  const user = await getSessionUser()
+  const user = await requireAdmin()
 
-  if (!user || user.role !== 'ADMIN') {
+  if (!user) {
     return { ok: false, error: 'forbidden' }
   }
 
@@ -168,9 +168,9 @@ export async function uploadProductImageAction(
   productId: string,
   image: { base64: string; mimeType: string }
 ): Promise<ProductImageUploadResult> {
-  const user = await getSessionUser()
+  const user = await requireAdmin()
 
-  if (!user || user.role !== 'ADMIN') return { ok: false, reason: 'forbidden' }
+  if (!user) return { ok: false, reason: 'forbidden' }
 
   try {
     const slug = await getProductSlug(productId)
@@ -198,9 +198,9 @@ export async function uploadProductImageAction(
  * compare ancienne et nouvelle liste une fois l'ecriture confirmee.
  */
 export async function deleteProductImageAction(url: string): Promise<{ ok: boolean }> {
-  const user = await getSessionUser()
+  const user = await requireAdmin()
 
-  if (!user || user.role !== 'ADMIN') return { ok: false }
+  if (!user) return { ok: false }
 
   const key = storageKeyFromUrl(url)
 

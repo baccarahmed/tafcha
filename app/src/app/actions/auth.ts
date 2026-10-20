@@ -4,6 +4,7 @@ import { cookies, headers } from 'next/headers'
 import { redirect } from '@/i18n/navigation'
 import { createAuthActions } from '@insforge/sdk/ssr'
 import { rateLimit, ipFromHeaders } from '@/lib/rate-limit'
+import { clearMfaSession } from '@/lib/mfa'
 import { routing, type Locale } from '@/i18n/routing'
 import { safeReturnPath } from '@/lib/safe-redirect'
 
@@ -57,8 +58,8 @@ export async function signIn(
   // 20 essais/min/IP. La reponse reste generique ('invalid') pour ne pas
   // reveler ni la politique de debit ni la validite d'un email.
   const ip = await requestIp()
-  const emailKeyLimit = rateLimit(`signin:${email.toLowerCase().trim()}`, 5, 60_000)
-  const ipKeyLimit = rateLimit(`signin:ip:${ip}`, 20, 60_000)
+  const emailKeyLimit = await rateLimit(`signin:${email.toLowerCase().trim()}`, 5, 60_000)
+  const ipKeyLimit = await rateLimit(`signin:ip:${ip}`, 20, 60_000)
 
   if (!emailKeyLimit.ok || !ipKeyLimit.ok) {
     return { error: 'invalid' }
@@ -98,8 +99,8 @@ export async function signUp(
 
   // Throttle anti brute-force : 5 essais/min/email et 20 essais/min/IP
   const ip = await requestIp()
-  const emailKeyLimit = rateLimit(`signup:${email.toLowerCase().trim()}`, 5, 60_000)
-  const ipKeyLimit = rateLimit(`signup:ip:${ip}`, 20, 60_000)
+  const emailKeyLimit = await rateLimit(`signup:${email.toLowerCase().trim()}`, 5, 60_000)
+  const ipKeyLimit = await rateLimit(`signup:ip:${ip}`, 20, 60_000)
 
   if (!emailKeyLimit.ok || !ipKeyLimit.ok) {
     return { error: 'invalid' }
@@ -128,5 +129,8 @@ export async function signUp(
 export async function signOut(formData: FormData): Promise<void> {
   const auth = createAuthActions({ cookies: await cookies() })
   await auth.signOut()
+  // Retire egalement la preuve TOTP de ce navigateur : une session MFA ne
+  // doit pas survivre a la deconnexion (VULN-001).
+  await clearMfaSession()
   redirect({ href: '/', locale: readLocale(formData) })
 }

@@ -1,6 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 vi.mock('@/lib/session', () => ({ getSessionUser: vi.fn() }))
+// requireAdmin delegue la preuve MFA a ce module : les tests n'ont ni base
+// ni navigateur, on considere la preuve comme satisfitee (le non-admin est
+// rejete avant tout appel, grace au role relu par getSessionUser).
+vi.mock('@/lib/mfa', () => ({ hasMfaSession: vi.fn().mockResolvedValue(true) }))
 vi.mock('@/lib/admin-products', () => ({
   createProduct: vi.fn(),
   getProductSlug: vi.fn(),

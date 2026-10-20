@@ -4,7 +4,7 @@ import { headers } from 'next/headers'
 import { getSessionUser } from '@/lib/session'
 import { insforgeAdmin } from '@/lib/insforge-admin'
 import { notifyNewOrder, notifyNewOrderPush, createTelegramOrderConfirmation } from '@/lib/notify-channels'
-import { ipFromHeaders } from '@/lib/rate-limit'
+import { ipFromHeaders, rateLimit } from '@/lib/rate-limit'
 import {
   applyPercentage,
   getActivePromotions,
@@ -54,38 +54,17 @@ const PAYMENT_METHOD = 'COD'
 const round2 = (value: number) => Math.round(value * 100) / 100
 
 /**
- * Garde-fou anti-abus du checkout invité.
+ * Garde-fou anti-abus du checkout invite (VULN-002).
  *
  * Depuis qu'une commande est possible sans compte, l'action est ouverte aux
  * visiteurs anonymes : on limite le rythme par IP pour eviter le spam de
- * commandes factices. Best-effort et par instance (memoire du process), ce qui
- * suffit a un deploiement Node single-instance ; une passerelle (WAF, rate
- * limit upstream) reste la vraie protection en production.
+ * commandes factices. Le compteur est desormais partage en base via
+ * `rateLimit` (toutes instances serverless confondues, contrairement a la
+ * Map memoire precedente) ; la cle est prefixee `checkout:` pour ne pas
+ * collisionner avec les autres familles de cles.
  */
 const RATE_LIMIT_MAX = 6
 const RATE_LIMIT_WINDOW_MS = 60_000
-const recentOrders = new Map<string, number[]>()
-
-function isRateLimited(key: string): boolean {
-  const now = Date.now()
-  const hits = (recentOrders.get(key) ?? []).filter((t) => now - t < RATE_LIMIT_WINDOW_MS)
-
-  if (hits.length >= RATE_LIMIT_MAX) {
-    recentOrders.set(key, hits)
-    return true
-  }
-
-  hits.push(now)
-  recentOrders.set(key, hits)
-
-  if (recentOrders.size > 5000) {
-    for (const [k, v] of recentOrders) {
-      if (v.every((t) => now - t >= RATE_LIMIT_WINDOW_MS)) recentOrders.delete(k)
-    }
-  }
-
-  return false
-}
 
 /**
  * Cle de limitation : meme adresse « fiable » que les routes publiques
@@ -141,7 +120,12 @@ export async function createOrderAction(
   if (items.length === 0) return { ok: false, error: 'empty' }
   if (items.length > 50) return { ok: false, error: 'invalid' }
 
-  if (isRateLimited(await requestKey())) return { ok: false, error: 'rateLimited' }
+  const limit = await rateLimit(
+    `checkout:${await requestKey()}`,
+    RATE_LIMIT_MAX,
+    RATE_LIMIT_WINDOW_MS
+  )
+  if (!limit.ok) return { ok: false, error: 'rateLimited' }
 
   const quantities = new Map<string, number>()
 

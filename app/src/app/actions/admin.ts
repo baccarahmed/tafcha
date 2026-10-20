@@ -1,7 +1,7 @@
 'use server'
 
 import { revalidateCatalog } from '@/lib/revalidate-catalog'
-import { getSessionUser } from '@/lib/session'
+import { requireAdmin } from '@/lib/admin-guard'
 import {
   deleteProduct,
   duplicateProduct,
@@ -32,10 +32,11 @@ import {
 /**
  * Point d'ecriture unique du back-office.
  *
- * Toutes les actions revérifient le role en base avant d'ecrire : le layout du
- * dashboard n'est qu'un garde de rendu, la vraie autorisation doit tenir sur le
- * chemin d'ecriture, sinon un appel direct a l'action suffirait a contourner
- * l'interface.
+ * Toutes les actions passent par `requireAdmin` : session InsForge valide,
+ * role ADMIN relu en base ET preuve MFA (VULN-001) quand le compte y est
+ * inscrit. Le layout du dashboard n'est qu'un garde de rendu, la vraie
+ * autorisation doit tenir sur le chemin d'ecriture, sinon un appel direct a
+ * l'action suffirait a contourner l'interface.
  *
  * Aucune de ces actions ne leve pour un cas d'exploitation normal : elles
  * renvoient `{ ok: false, field }` afin que le composant affiche un message
@@ -53,9 +54,9 @@ export async function updateProductAction(
   id: string,
   patch: ProductPatch
 ): Promise<ActionResult> {
-  const user = await getSessionUser()
+  const user = await requireAdmin()
 
-  if (!user || user.role !== 'ADMIN') return { ok: false, field: 'forbidden' }
+  if (!user) return { ok: false, field: 'forbidden' }
 
   try {
     await updateProduct(id, patch)
@@ -70,9 +71,9 @@ export async function updateProductAction(
 }
 
 export async function deleteProductAction(id: string): Promise<ActionResult> {
-  const user = await getSessionUser()
+  const user = await requireAdmin()
 
-  if (!user || user.role !== 'ADMIN') return { ok: false, field: 'forbidden' }
+  if (!user) return { ok: false, field: 'forbidden' }
 
   try {
     await deleteProduct(id)
@@ -98,9 +99,9 @@ export async function duplicateProductAction(
   sourceId: string,
   options: DuplicateOptions = {}
 ): Promise<DuplicateProductResult> {
-  const user = await getSessionUser()
+  const user = await requireAdmin()
 
-  if (!user || user.role !== 'ADMIN') return { ok: false, field: 'forbidden' }
+  if (!user) return { ok: false, field: 'forbidden' }
 
   try {
     const created = await duplicateProduct(sourceId, options)
@@ -124,9 +125,9 @@ export async function updateOrderAction(
     deliveryWindowEnd?: string | null
   }
 ): Promise<ActionResult> {
-  const user = await getSessionUser()
+  const user = await requireAdmin()
 
-  if (!user || user.role !== 'ADMIN') return { ok: false, field: 'forbidden' }
+  if (!user) return { ok: false, field: 'forbidden' }
 
   try {
     // Les valeurs viennent d'une liste deroulante, mais une action est
@@ -163,9 +164,9 @@ export async function setUserRoleAction(
   userId: string,
   role: 'CUSTOMER' | 'ADMIN'
 ): Promise<ActionResult> {
-  const user = await getSessionUser()
+  const user = await requireAdmin()
 
-  if (!user || user.role !== 'ADMIN') return { ok: false, field: 'forbidden' }
+  if (!user) return { ok: false, field: 'forbidden' }
 
   // Un admin ne se retire pas ses propres droits : sinon le dernier clic sur
   // « retrograder » rend le back-office inaccessible a tous.
@@ -194,9 +195,9 @@ export async function savePromotionAction(
   id: string | null,
   input: PromotionInput
 ): Promise<ActionResult & { id?: string }> {
-  const user = await getSessionUser()
+  const user = await requireAdmin()
 
-  if (!user || user.role !== 'ADMIN') return { ok: false, field: 'forbidden' }
+  if (!user) return { ok: false, field: 'forbidden' }
 
   try {
     const saved = id ? await updatePromotion(id, input) : await createPromotion(input)
@@ -215,9 +216,9 @@ export async function setPromotionActiveAction(
   id: string,
   active: boolean
 ): Promise<ActionResult> {
-  const user = await getSessionUser()
+  const user = await requireAdmin()
 
-  if (!user || user.role !== 'ADMIN') return { ok: false, field: 'forbidden' }
+  if (!user) return { ok: false, field: 'forbidden' }
 
   try {
     await setPromotionActive(id, active)
@@ -232,9 +233,9 @@ export async function setPromotionActiveAction(
 }
 
 export async function deletePromotionAction(id: string): Promise<ActionResult> {
-  const user = await getSessionUser()
+  const user = await requireAdmin()
 
-  if (!user || user.role !== 'ADMIN') return { ok: false, field: 'forbidden' }
+  if (!user) return { ok: false, field: 'forbidden' }
 
   try {
     await deletePromotion(id)

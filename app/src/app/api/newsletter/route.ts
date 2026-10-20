@@ -8,7 +8,7 @@ const MAX_PER_WINDOW = 5;
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export async function POST(request: Request) {
-  const limit = rateLimit(`newsletter:${clientIp(request)}`, MAX_PER_WINDOW, WINDOW_MS);
+  const limit = await rateLimit(`newsletter:${clientIp(request)}`, MAX_PER_WINDOW, WINDOW_MS);
   if (!limit.ok) {
     return NextResponse.json(
       { error: 'rateLimited' },
