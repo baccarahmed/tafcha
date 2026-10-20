@@ -5,12 +5,67 @@
 >   Sur Vercel, utilisez une **preview deployment** (URL `tafcha-git-<branche>-evolutioncom.vercel.app`)
 >   ou un déploiement de branche dédié, **jamais** `https://que2marque.vercel.com` (prod).
 > - **Pas de DoS ni de test de charge** sans accord écrit de l'hébergeur et hors heures de pointe.
-> - **Aucune donnée réelle de client** sur le staging (seedez des comptes fictifs).
+> - **Aucune donnée réelle de client** sur le staging (fait : comptes fictifs — voir § Base de staging).
 > - Journalisez chaque commande : date, cible, outil.
 > - **Sauvegarde** de la base avant toute phase destructive.
 >
 > **Adapter la cible** : définissez une fois pour toutes
 > `export T=<URL-STAGING>` (ex. `export T=https://tafcha-git-fix-securite-evolutioncom.vercel.app`).
+
+---
+
+## Base de staging (backend de test isolé)
+
+> **Projet InsForge séparé** : `q2m-staging` (appkey `g4x6iwmj`,
+> `https://g4x6iwmj.us-east.insforge.app`). La prod reste `nova-district`
+> (`47eeq5ju`) — les deux sont dans la même organisation InsForge.
+
+- **Schéma** : historique complet des 37 migrations appliqué sur une base
+  fraîche ; config alignée sur la prod (`require_email_verification = false`).
+- **Seed (rejouable, garde-fou prod intégré)** :
+  ```bash
+  node scripts/seed-staging.mjs     # refuse 47eeq5ju / .env.local sans --allow-prod
+  ```
+
+  | Compte de test | Rôle | Mot de passe |
+  |----------------|------|--------------|
+  | `seed.client-a@q2m.test` | CUSTOMER | `Seed-Q2m-2026!` |
+  | `seed.client-b@q2m.test` | CUSTOMER | `Seed-Q2m-2026!` |
+  | `seed.admin@q2m.test`    | ADMIN    | `Seed-Q2m-2026!` |
+
+  Recrée 4 commandes factices (PENDING / SHIPPED / DELIVERED / CANCELLED,
+  dont une invitee) rattachees aux produits du catalogue de depart.
+- **Credentials** : `.env.staging.local` (ignore par git via `.env*.local`).
+- **CLI InsForge** : lancer `npx -y @insforge/cli current --json` AVANT toute
+  commande `db` pour verifier le projet lie — une migration lancee avec le
+  lien de prod par erreur (ou l'inverse) est le principal risque de cette
+  config a deux bases.
+
+### Cible frontend : preview Vercel isole
+
+Les variables InsForge du scope **Preview** de Vercel pointent sur
+`q2m-staging` (lignes `Preview` separees) ; `Production, Development`
+restent sur la prod. Un deploiement de preview (`npx vercel`, sans `--prod`,
+depuis une branche de scan) est donc **isole de la prod par construction**.
+
+```bash
+# Verification AVANT tout test actif :
+npx vercel env ls | grep -E 'INSFORGE_URL'   # 2 lignes : "Preview" et "Production, Development"
+npx vercel env pull /tmp/p.txt --environment=production
+grep INSFORGE_URL /tmp/p.txt                 # host attendu : 47eeq5ju (prod)
+```
+
+> **Piege Vercel** : `vercel env update <nom> preview` ecrase la valeur de la
+> ligne **multi-environnements entiere** (toutes les cibles) — cela peut
+> basculer la prod sur le staging. La procedure sure est
+> `vercel env remove <nom> preview` puis `vercel env add <nom> preview`
+> (valeur via stdin) : une ligne `Preview` distincte est creee sans toucher a
+> `Production/Development`. `vercel env ls` doit montrer **deux lignes** par
+> variable InsForge apres le decoupage.
+
+Un preview ne recoit que les variables InsForge + Gemini + le webhook secret :
+pas de `TELEGRAM_*`, pas de cles VAPID, pas de `NOTIFY_CHANNELS_ENABLED` →
+**canaux externes inactifs par defaut** (exigence de l'audit).
 
 ---
 
@@ -54,7 +109,8 @@ done
 ```bash
 cd tafcha/app
 
-# Dépendances connues vulnérables (déjà 2 « high » : postcss, sharp)
+# Dépendances connues vulnérables (VULN-005 corrigée : next@16 + sharp@0.35.
+# Reste 9 vulns résiduelles dev/build-only — chaîne tailwindcss@3 / eslint)
 npm audit --omit=dev
 
 # Secrets dans l'historique Git (jamais de clés commitées)
@@ -124,7 +180,8 @@ seq 1 30 | xargs -P 10 -I{} curl -s -X POST "$T/fr/login" \
 ### 4.3 Injection (Postgres/RLS via InsForge)
 ```bash
 # La requête part du client browser (clé anon) → testable via l'API PostgREST d'InsForge.
-# Base : https://47eeq5ju.us-east.insforge.app (clé anon publique).
+# Base STAGING : https://g4x6iwmj.us-east.insforge.app (clé anon dans
+# .env.staging.local). NE JAMAIS rejouer ces tests contre 47eeq5ju (prod).
 
 # Toute erreur SQL 500 / détail Postgres dans la réponse = fuite d'info.
 # Chercher les filtres non typés côté serveur (`.eq(userInput)` sans String()).
@@ -201,7 +258,7 @@ curl -s "$T/fr/" | grep -c 'application/ld+json'      # > 0
 
 ## Ce que ce scan NE couvre pas (à traiter hors de ces commandes)
 
-- **VULN-001 (MFA admin)** : configuration InsForge / restriction réseau du dashboard.
-- **VULN-002 (rate-limit partagé)** : intégration Upstash/Redis ou WAF upstream.
-- **VULN-005 (next@16 / sharp)** : montée de version en fenêtre de maintenance + re-test.
+- **VULN-001 (MFA admin)** : corrigé et déployé (TOTP + gate dashboard) — à re-tester sur staging (activation, désactivation, rate-limit du code).
+- **VULN-002 (rate-limit partagé)** : corrigé et déployé (RPC `rate_limit_hit`, fallback mémoire) — re-tester §4.2.
+- **VULN-005 (next@16 / sharp)** : corrigé et déployé — 9 vulns résiduelles = chaîne dev/build `tailwindcss@3`/eslint (fix major cassants, aucun runtime déployé, risque accepté).
 - **Tests de charge / DoS** : exclus, accord hébergeur requis.

@@ -15,8 +15,6 @@ This project uses [InsForge](https://insforge.dev): an all-in-one, open-source P
 - **Credentials:** app code reads keys from `.env.local`; the CLI reads `.insforge/project.json`. Never hardcode or commit keys.
 - **MCP (opencode):** `opencode.json` (hors git) déclare le serveur MCP `@insforge/mcp@latest` (`API_KEY`, `API_BASE_URL`) pour la gestion backend et la doc SDK.
 
-Key patterns:
-
 - Database inserts take an array: `insert([{ ... }])`.
 - Reference users with `auth.users(id)`; use `auth.uid()` in RLS policies.
 - For storage uploads, persist both the returned `url` and `key`.
