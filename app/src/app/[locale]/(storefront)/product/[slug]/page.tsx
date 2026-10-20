@@ -19,7 +19,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const { locale, slug } = await params;
   const product = await getProductBySlug(slug).catch(() => null);
 
-  if (!product) return {};
+  // notFound() ici, et pas seulement au rendu : generateMetadata se résout
+  // avant l'envoi des headers, donc le status 404 est réel. Appelé trop tard
+  // dans la page, le layout aurait déjà streamé un 200 → soft-404.
+  if (!product) notFound();
 
   const t = await getTranslations({ locale, namespace: 'product' });
 
