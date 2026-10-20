@@ -43,15 +43,16 @@ export default function PushOptIn() {
       !('serviceWorker' in navigator) ||
       !('PushManager' in window)
     ) {
-      setState('unsupported')
+      // Sonde de capacite : differee d'un tick pour ne pas cascade de rendus
+      // depuis le corps de l'effet (react-hooks/set-state-in-effect).
+      queueMicrotask(() => setState('unsupported'))
       return
     }
 
-    setState(Notification.permission as State)
-
-    navigator.serviceWorker.ready.then((reg) =>
-      reg.pushManager.getSubscription().then((sub) => setActive(Boolean(sub)))
-    )
+    navigator.serviceWorker.ready.then((reg) => {
+      setState(Notification.permission as State)
+      return reg.pushManager.getSubscription().then((sub) => setActive(Boolean(sub)))
+    })
   }, [])
 
   const enable = useCallback(async () => {

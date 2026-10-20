@@ -69,7 +69,6 @@ export default function MfaPanel({
   const t = useTranslations('mfa')
   const router = useRouter()
 
-  const [active, setActive] = useState(initialEnabled)
   const [setup, setSetup] = useState<MfaSetupState | null>(null)
   const [startBusy, setStartBusy] = useState(false)
   const [startError, setStartError] = useState<NonNullable<MfaErrorCode> | null>(null)
@@ -77,21 +76,28 @@ export default function MfaPanel({
   const [confirmState, confirmAction] = useActionState(confirmMfaSetup, INITIAL)
   const [disableState, disableAction] = useActionState(disableMfa, INITIAL)
 
-  useEffect(() => {
-    if (confirmState.ok) {
-      setActive(true)
-      setSetup(null)
-      router.refresh()
-    }
-  }, [confirmState.ok, router])
+  // Etat derive plutot que synchronise par effet (regle
+  // react-hooks/set-state-in-effect) : une desactivation reussie gagne tant
+  // que le refresh n'a pas atterri, une activation reussie prend le relais
+  // ensuite. Le `key` pose sur le panneau (page reglages) remet les etats
+  // d'action a zero a chaque bascule reelle du serveur, donc les deux `ok`
+  // ne survivent jamais ensemble au-dela d'un aller-retour.
+  const active = disableState.ok ? false : confirmState.ok ? true : initialEnabled
 
+  // Resynchronisation serveur apres chaque transition : pas de setState ici,
+  // uniquement le refresh du routeur.
+  const mfaChanged = confirmState.ok === true || disableState.ok === true
   useEffect(() => {
-    if (disableState.ok) {
-      setActive(false)
-      setSetup(null)
-      router.refresh()
-    }
-  }, [disableState.ok, router])
+    if (mfaChanged) router.refresh()
+  }, [mfaChanged, router])
+
+  // La desactivation efface le secret affiche : sans cela, un bloc de
+  // configuration perime ressurgirait (il serait alors rejete cote serveur
+  // par `noSecret`, ce qui priverait l'admin d'erreur exploitable).
+  const submitDisable = (formData: FormData) => {
+    setSetup(null)
+    return disableAction(formData)
+  }
 
   async function handleStart() {
     setStartBusy(true)
@@ -195,7 +201,7 @@ export default function MfaPanel({
             <summary className="cursor-pointer text-xs font-semibold text-ink-mute underline underline-offset-4">
               {t('disableSummary')}
             </summary>
-            <form action={disableAction} className="mt-3 flex flex-col gap-3">
+            <form action={submitDisable} className="mt-3 flex flex-col gap-3">
               <label className="flex flex-col gap-2">
                 <span className="text-[10px] font-extrabold tracking-[0.16em] text-ink-mute">
                   {t('disableLabel')}

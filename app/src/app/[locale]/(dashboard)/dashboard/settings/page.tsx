@@ -15,7 +15,14 @@ export default async function DashboardSettingsPage() {
   return (
     <div>
       <SettingsForm settings={settings} />
-      <MfaPanel accountEmail={user?.email ?? ''} initialEnabled={mfa.enabled} />
+      {/* key : remontage a chaque bascule reelle du 2FA — remet les etats
+          d'action (useActionState) a zero, ce qui rend la derivation
+          `active` du panneau correcte meme apres plusieurs allers-retours. */}
+      <MfaPanel
+        key={mfa.enabled ? 'mfa-on' : 'mfa-off'}
+        accountEmail={user?.email ?? ''}
+        initialEnabled={mfa.enabled}
+      />
     </div>
   )
 }

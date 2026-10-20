@@ -16,6 +16,10 @@ export function revalidateCatalog(): void {
   revalidatePath('/', 'layout')
 
   for (const tag of CATALOG_TAG_LIST) {
-    revalidateTag(tag)
+    // Next 16 exige un profil de cache : `{ expire: 0 }` reproduit
+    // exactement l'ancien comportement d'`revalidateTag(tag)` seul — la
+    // requete suivante bloque jusqu'a la revalidation au lieu de servir une
+    // donnee perimee (decisif sur un prix ou un stock vient de changer).
+    revalidateTag(tag, { expire: 0 })
   }
 }
