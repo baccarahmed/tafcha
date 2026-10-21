@@ -250,6 +250,42 @@
     }
   }
 
+  /* Entrées montées conditionnellement, sans état JS : le style de départ est
+     fourni par `@starting-style`. Une transition CSS plutôt qu'une keyframe,
+     parce que ces éléments peuvent être retirés par une interaction rapide et
+     qu'une transition se réajuste depuis la valeur courante. */
+  .q2m-fade-in,
+  .q2m-count-badge {
+    transition: opacity var(--q2m-dur-fast) var(--q2m-ease-out);
+  }
+
+  .q2m-fade-in {
+    @starting-style {
+      opacity: 0;
+    }
+  }
+
+  /* Le badge glisse depuis le bord où il vient de naître (à côté du libellé
+     « Filtres »), pas depuis nulle part. */
+  .q2m-count-badge {
+    transition:
+      opacity var(--q2m-dur-fast) var(--q2m-ease-out),
+      transform var(--q2m-dur-fast) var(--q2m-ease-out);
+
+    @starting-style {
+      opacity: 0;
+      transform: translateX(-4px);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .q2m-count-badge {
+      @starting-style {
+        transform: none;
+      }
+    }
+  }
+
   /* Contraste renforcé : on assombrit les hairlines et le texte secondaire
      uniquement quand l'utilisateur le demande dans son OS. */
   @media (prefers-contrast: more) {

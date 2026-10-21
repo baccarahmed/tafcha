@@ -60,10 +60,18 @@ function describeProduct(p: CatalogProduct, usage: string): string {
 export function Q2MProductCard({
   product,
   index = 0,
+  animatesIn = false,
 }: {
   product: CatalogProduct;
   /** Position dans sa grille : pilote le ripple d'entrée (60 ms par colonne). */
   index?: number;
+  /**
+   * Anime l'apparition de la carte. Faux sur la première carte d'une grille
+   * (elle doit être lisible au premier paint) et vrai pour les autres, y compris
+   * lors d'un changement de filtre où `AnimatePresence` fournit le fondu de
+   * sortie et la carte celui d'entrée.
+   */
+  animatesIn?: boolean;
 }) {
   const locale = useLocale();
   const t = useTranslations("shop");
@@ -83,8 +91,14 @@ export function Q2MProductCard({
   const isFavorite = useWishlistStore((s) => s.items.some((i) => i.productId === product.id));
   const toggleItem = useWishlistStore((s) => s.toggleItem);
 
+  /**
+   * Deux animations distinctes, donc deux nœuds : `whileInView` sur l'enveloppe
+   * (révélation au scroll, une seule fois) et le fondu d'échange sur l'article.
+   * Les fusionner sur un seul nœud ferait écraser l'opacité du fondu par le
+   * `whileInView` — la carte resterait invisible.
+   */
   return (
-    <motion.article
+    <motion.div
       initial={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 28 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-60px" }}
@@ -101,6 +115,19 @@ export function Q2MProductCard({
       }
       className="group relative"
     >
+      <motion.article
+        initial={animatesIn ? { opacity: 0 } : false}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0, transition: { duration: 0.18 } }}
+        transition={{
+          duration: reduceMotion ? 0.15 : 0.28,
+          ease: [0.23, 1, 0.32, 1],
+          // Ripple en cascade sur l'entrée : les cartes arrivantes se posent
+          // l'une après l'autre au lieu de clignoter ensemble.
+          delay: animatesIn && !reduceMotion ? (index % 3) * 0.045 : 0,
+        }}
+        className="relative"
+      >
       <Link href={`/product/${product.slug}`} className="block">
         {/* Image card — bone bg, padded inner frame, liseré or au survol */}
         <div
@@ -224,7 +251,8 @@ export function Q2MProductCard({
       >
         <Heart size={15} strokeWidth={1.5} fill={isFavorite ? Q2M.accent : "none"} />
       </motion.button>
-    </motion.article>
+      </motion.article>
+    </motion.div>
   );
 }
 
@@ -279,7 +307,12 @@ export function Q2MProductGrid({
         {/* Grid */}
         <div className="grid grid-cols-2 gap-x-4 gap-y-7 lg:grid-cols-4 lg:gap-x-[18px]">
           {products.map((product, index) => (
-            <Q2MProductCard key={product.id} product={product} index={index} />
+            <Q2MProductCard
+              key={product.id}
+              product={product}
+              index={index}
+              animatesIn={index > 0}
+            />
           ))}
         </div>
       </div>

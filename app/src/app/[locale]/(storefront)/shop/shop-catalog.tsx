@@ -1,16 +1,31 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useTransition } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { ChevronDown, ChevronLeft, ChevronRight, SlidersHorizontal } from 'lucide-react';
 import { Q2MProductCard } from '@/components/storefront/Q2MProductCard';
+import { ProductGridSkeleton } from '@/components/storefront/product-card-skeleton';
 import { Slider } from '@/components/ui/slider';
 import { Q2M, Q2M_FONT } from '@/lib/q2m-tokens';
 import { formatCurrency } from '@/lib/utils';
 import type { CatalogProduct } from '@/types/catalog';
 
 type SortOption = 'newest' | 'price-asc' | 'price-desc' | 'featured';
+
+/**
+ * Délai avant d'afficher le squelette. En dessous ~120 ms, un placeholder est un
+ * flash (le pire des deux mondes) : la grille sortante reste en place, puis est
+ * remplacée. Au-dessus, le squelette joue son rôle.
+ */
+const SKELETON_DELAY = 120;
+
+/**
+ * Courbes locales : miroirs framer des tokens `--q2m-ease-*` de `globals.css`,
+ * qui ne sont atteignables qu'en CSS. Mêmes valeurs, pas un système parallèle.
+ */
+const EXCHANGE_EASE = [0.23, 1, 0.32, 1] as const;
 
 const PAGE_SIZE = 9;
 
@@ -102,9 +117,13 @@ export default function ShopCatalog({ products }: { products: CatalogProduct[] }
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const reduceMotion = useReducedMotion();
   const [sortBy, setSortBy] = useState<SortOption>('newest');
   const [page, setPage] = useState(1);
   const [filtersOpen, setFiltersOpen] = useState(false);
+  // `isPending` de la transition : la navigation client des filtres n'est pas
+  // instantanée, et sans état de chargement le clic paraît sans effet.
+  const [isPending, startTransition] = useTransition();
 
   const priceBounds = useMemo(() => {
     const prices = products.map((p) => p.price);
@@ -193,7 +212,13 @@ export default function ShopCatalog({ products }: { products: CatalogProduct[] }
   const [priceDraft, setPriceDraft] = useState<[number, number] | null>(null);
   const sliderValue = priceDraft ?? committedPrice;
 
-  /** Writes the next filter state to the URL and returns to page 1. */
+  /**
+   * Writes the next filter state to the URL and returns to page 1.
+   *
+   * La navigation passe par une transition pour deux raisons : elle donne accès
+   * à `isPending` (l'état de chargement que la page n'avait pas), et elle empêche
+   * le re-render de bloquer le clic si le filtrage est lent.
+   */
   const commit = (next: FilterState) => {
     const params = new URLSearchParams();
     if (next.brands.length > 0) params.set('brand', next.brands.join(','));
@@ -208,7 +233,9 @@ export default function ShopCatalog({ products }: { products: CatalogProduct[] }
     const query = params.toString();
     if (!pathname) return;
     setPage(1);
-    router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+    startTransition(() => {
+      router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+    });
   };
 
   const toggle = <K extends 'brands' | 'sizes' | 'genders' | 'colors' | 'categories'>(
@@ -279,6 +306,28 @@ export default function ShopCatalog({ products }: { products: CatalogProduct[] }
   const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const currentPage = Math.min(page, pageCount);
   const visible = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+
+  /**
+   * Le squelette a un délai : sur une transition instantanée la grille reste en
+   * place, sur une transition lente le squelette s'installe.
+   *
+   * L'effet ne fait que *retarder l'affichage* (setState dans un timer, pas
+   * synchrone) ; la disparition est dérivée de `isPending` au rendu, donc aucune
+   * remise à zéro dans le corps de l'effet.
+   */
+  const [skeletonReady, setSkeletonReady] = useState(false);
+  const showSkeleton = isPending && skeletonReady;
+
+  useEffect(() => {
+    if (!isPending) {
+      return;
+    }
+    const timer = setTimeout(() => setSkeletonReady(true), SKELETON_DELAY);
+    return () => {
+      clearTimeout(timer);
+      setSkeletonReady(false);
+    };
+  }, [isPending]);
 
   const reset = () => {
     commit(EMPTY_FILTERS);
@@ -368,7 +417,7 @@ export default function ShopCatalog({ products }: { products: CatalogProduct[] }
             {t('filters')}
             {activeFilterCount > 0 && (
               <span
-                className="flex h-5 min-w-5 items-center justify-center px-1 text-[10px] font-black tabular-nums"
+                className="q2m-count-badge flex h-5 min-w-5 items-center justify-center px-1 text-[10px] font-black tabular-nums"
                 style={{ background: Q2M.accent, color: Q2M.onAccent, borderRadius: 999 }}
               >
                 {activeFilterCount}
@@ -384,7 +433,7 @@ export default function ShopCatalog({ products }: { products: CatalogProduct[] }
             <button
               type="button"
               onClick={reset}
-              className="text-[10px] font-bold uppercase tracking-[0.16em] transition-opacity hover:opacity-60"
+              className="q2m-fade-in text-[10px] font-bold uppercase tracking-[0.16em] transition-opacity hover:opacity-60"
               style={{ color: Q2M.inkMute }}
             >
               {t('clear')}
@@ -581,12 +630,36 @@ export default function ShopCatalog({ products }: { products: CatalogProduct[] }
             </div>
           </div>
 
-          {/* Grille — 3 colonnes, gap 18px / 28px */}
-          {visible.length > 0 ? (
-            <div className="grid grid-cols-2 gap-x-4.5 gap-y-7 md:grid-cols-3 md:gap-x-[18px]">
-              {visible.map((product, index) => (
-                <Q2MProductCard key={product.id} product={product} index={index} />
-              ))}
+          {/* Grille — 3 colonnes, gap 18px / 28px.
+              `relative` + grille superposée en absolute : quand le squelette
+              apparaît, il se croise en fondu avec la grille sortante au lieu de
+              la pousser. Aucun saut de mise en page, donc aucun `popLayout`. */}
+          {filtered.length > 0 ? (
+            <div className="relative">
+              <motion.div
+                animate={{ opacity: showSkeleton ? 0 : 1 }}
+                transition={{ duration: 0.2, ease: EXCHANGE_EASE }}
+                className="grid grid-cols-2 gap-x-4.5 gap-y-7 md:grid-cols-3 md:gap-x-[18px]"
+                aria-hidden={showSkeleton}
+              >
+                <AnimatePresence mode="popLayout" initial={false}>
+                  {visible.map((product, index) => (
+                    <Q2MProductCard
+                      key={product.id}
+                      product={product}
+                      index={index}
+                      animatesIn
+                    />
+                  ))}
+                </AnimatePresence>
+              </motion.div>
+
+              {showSkeleton && (
+                <ProductGridSkeleton
+                  count={PAGE_SIZE}
+                  className="q2m-fade-in pointer-events-none absolute inset-x-0 top-0 grid grid-cols-2 gap-x-4.5 gap-y-7 md:grid-cols-3 md:gap-x-[18px]"
+                />
+              )}
             </div>
           ) : (
             <div
@@ -605,46 +678,72 @@ export default function ShopCatalog({ products }: { products: CatalogProduct[] }
             </div>
           )}
 
-          {/* Pagination — boutons 36×36 */}
-          {pageCount > 1 && (
-            <div className="flex items-center justify-center gap-2">
-              <button
-                type="button"
-                aria-label={t('previousPage')}
-                disabled={currentPage === 1}
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                className="flex h-9 w-9 items-center justify-center rounded border border-[var(--q2m-line-strong)] bg-[var(--q2m-bg-elevated)] text-[var(--q2m-ink)] transition-[transform,border-color] duration-140 ease-q2m hover:border-[var(--q2m-accent)] active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:border-[var(--q2m-line-strong)]"
-              >
-                <ChevronLeft size={14} className="rtl:-scale-x-100" />
-              </button>
-              {Array.from({ length: pageCount }, (_, i) => i + 1).map((n) => (
-                <button
-                  key={n}
-                  type="button"
-                  onClick={() => setPage(n)}
-                  aria-current={n === currentPage ? 'page' : undefined}
-                  className={
-                    n === currentPage
-                      ? 'h-9 w-9 rounded border border-[var(--q2m-accent)] bg-[var(--q2m-bg-dark)] text-xs font-bold text-white transition-[border-color,background-color,color] duration-140 ease-q2m'
-                      : 'h-9 w-9 rounded border border-[var(--q2m-line-strong)] bg-[var(--q2m-bg-elevated)] text-xs text-[var(--q2m-ink)] transition-[border-color,background-color,color,transform] duration-140 ease-q2m hover:border-[var(--q2m-accent)] active:scale-95'
-                  }
-                >
-                  {n}
-                </button>
-              ))}
-              <button
-                type="button"
-                aria-label={t('nextPage')}
-                disabled={currentPage === pageCount}
-                onClick={() => setPage((p) => Math.min(pageCount, p + 1))}
-                className="flex h-9 w-9 items-center justify-center rounded border border-[var(--q2m-line-strong)] bg-[var(--q2m-bg-elevated)] text-[var(--q2m-ink)] transition-[transform,border-color] duration-140 ease-q2m hover:border-[var(--q2m-accent)] active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:border-[var(--q2m-line-strong)]"
-              >
-                <ChevronRight size={14} className="rtl:-scale-x-100" />
-              </button>
-            </div>
-          )}
+          {/* Pagination — boutons 36×36. Hors du conditionnel : une page vide
+              n'a jamais de pagination, mais elle ne doit pas dépendre du chemin
+              qui a produit la grille. */}
+          <Pagination
+            pageCount={pageCount}
+            currentPage={currentPage}
+            onSelect={setPage}
+            labels={{
+              previous: t('previousPage'),
+              next: t('nextPage'),
+            }}
+          />
         </div>
       </div>
     </main>
+  );
+}
+
+function Pagination({
+  pageCount,
+  currentPage,
+  onSelect,
+  labels,
+}: {
+  pageCount: number;
+  currentPage: number;
+  onSelect: (page: number) => void;
+  labels: { previous: string; next: string };
+}) {
+  if (pageCount <= 1) return null;
+
+  return (
+    <div className="flex items-center justify-center gap-2">
+      <button
+        type="button"
+        aria-label={labels.previous}
+        disabled={currentPage === 1}
+        onClick={() => onSelect(Math.max(1, currentPage - 1))}
+        className="flex h-9 w-9 items-center justify-center rounded border border-[var(--q2m-line-strong)] bg-[var(--q2m-bg-elevated)] text-[var(--q2m-ink)] transition-[transform,border-color] duration-140 ease-q2m hover:border-[var(--q2m-accent)] active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:border-[var(--q2m-line-strong)]"
+      >
+        <ChevronLeft size={14} className="rtl:-scale-x-100" />
+      </button>
+      {Array.from({ length: pageCount }, (_, i) => i + 1).map((n) => (
+        <button
+          key={n}
+          type="button"
+          onClick={() => onSelect(n)}
+          aria-current={n === currentPage ? 'page' : undefined}
+          className={
+            n === currentPage
+              ? 'h-9 w-9 rounded border border-[var(--q2m-accent)] bg-[var(--q2m-bg-dark)] text-xs font-bold text-white transition-[border-color,background-color,color] duration-140 ease-q2m'
+              : 'h-9 w-9 rounded border border-[var(--q2m-line-strong)] bg-[var(--q2m-bg-elevated)] text-xs text-[var(--q2m-ink)] transition-[border-color,background-color,color,transform] duration-140 ease-q2m hover:border-[var(--q2m-accent)] active:scale-95'
+          }
+        >
+          {n}
+        </button>
+      ))}
+      <button
+        type="button"
+        aria-label={labels.next}
+        disabled={currentPage === pageCount}
+        onClick={() => onSelect(Math.min(pageCount, currentPage + 1))}
+        className="flex h-9 w-9 items-center justify-center rounded border border-[var(--q2m-line-strong)] bg-[var(--q2m-bg-elevated)] text-[var(--q2m-ink)] transition-[transform,border-color] duration-140 ease-q2m hover:border-[var(--q2m-accent)] active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:border-[var(--q2m-line-strong)]"
+      >
+        <ChevronRight size={14} className="rtl:-scale-x-100" />
+      </button>
+    </div>
   );
 }

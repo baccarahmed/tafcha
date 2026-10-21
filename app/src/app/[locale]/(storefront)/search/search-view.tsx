@@ -110,7 +110,7 @@ export default function SearchView({ products }: { products: CatalogProduct[] })
         ) : (
           <div className="grid grid-cols-2 gap-x-4.5 gap-y-7 md:grid-cols-3 lg:grid-cols-4 lg:gap-x-[18px]">
             {results.map((product, index) => (
-              <Q2MProductCard key={product.id} product={product} index={index} />
+              <Q2MProductCard key={product.id} product={product} index={index} animatesIn />
             ))}
           </div>
         )}

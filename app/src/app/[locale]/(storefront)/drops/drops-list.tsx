@@ -347,7 +347,7 @@ export default function DropsList({
 
             <div className="grid grid-cols-2 gap-x-4.5 gap-y-7 md:grid-cols-4 md:gap-x-[18px]">
               {archives.map((product, index) => (
-                <Q2MProductCard key={product.id} product={product} index={index} />
+                <Q2MProductCard key={product.id} product={product} index={index} animatesIn />
               ))}
             </div>
           </div>
