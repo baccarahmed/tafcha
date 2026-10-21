@@ -23,6 +23,9 @@ export default function RootNotFound() {
         color: '#080909',
       }}
     >
+      {/* Pas de root layout ici → aucune metadata Next : React 19 hoiste ce
+          <title> dans le <head>. Sans lui, l'onglet resterait vide. */}
+      <title>404 — Page introuvable | Q2M</title>
       <p style={{ fontSize: 12, letterSpacing: '0.3em', color: '#737373' }}>404</p>
       <h1 style={{ fontSize: 30, fontWeight: 700, margin: 0 }}>Page introuvable</h1>
       <p style={{ color: '#525252', margin: 0, maxWidth: 420, lineHeight: 1.6 }}>
