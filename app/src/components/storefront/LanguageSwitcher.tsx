@@ -65,7 +65,7 @@ export function LanguageSwitcher() {
         <ul
           role="listbox"
           aria-label={t('label')}
-          className="absolute end-0 top-[calc(100%+0.5rem)] z-50 min-w-[10rem] origin-top-right overflow-hidden rounded-sm border border-white/10 bg-black py-1 shadow-2xl transition-[opacity,transform] duration-140 ease-q2m starting:-translate-y-1 starting:opacity-0 rtl:origin-top-left"
+          className="absolute end-0 top-[calc(100%+0.5rem)] z-50 min-w-[10rem] origin-top-right overflow-hidden rounded-sm border border-white/10 bg-black py-1 shadow-2xl transition-[opacity,transform] duration-140 ease-q2m rtl:origin-top-left"
         >
           {routing.locales.map((code) => {
             const item = LOCALE_LABELS[code]

@@ -171,7 +171,7 @@ export function NotificationBell({ userId, initialNotifications }: NotificationB
         aria-label={t('open')}
         aria-expanded={open}
         onClick={() => setOpen((value) => !value)}
-        className="relative flex h-10 w-10 items-center justify-center rounded-full text-[var(--q2m-on-dark-soft)] transition-colors duration-180 ease-q2m hover:text-[var(--q2m-accent)] focus-visible:text-[var(--q2m-accent)]"
+        className="relative flex h-10 w-10 items-center justify-center rounded-full text-[var(--q2m-on-dark-soft)] transition-[color,transform] duration-140 ease-q2m hover:scale-105 hover:text-[var(--q2m-accent)] active:scale-95 focus-visible:text-[var(--q2m-accent)]"
       >
         <Bell size={18} strokeWidth={1.5} />
         {unread > 0 && (

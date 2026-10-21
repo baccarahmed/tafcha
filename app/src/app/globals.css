@@ -225,6 +225,31 @@
     }
   }
 
+  /* Ripple d'entrée du menu mobile. Keyframe plutôt que transition : les liens
+     montent en même temps que le panneau se déploie, et le `both` du fill-mode
+     ne les bloque pas — ils restent cliquables pendant le décalage. */
+  @keyframes q2m-menu-item-in {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    @keyframes q2m-menu-item-in {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+  }
+
   /* Contraste renforcé : on assombrit les hairlines et le texte secondaire
      uniquement quand l'utilisateur le demande dans son OS. */
   @media (prefers-contrast: more) {

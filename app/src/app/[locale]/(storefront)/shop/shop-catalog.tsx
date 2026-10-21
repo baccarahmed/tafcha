@@ -584,8 +584,8 @@ export default function ShopCatalog({ products }: { products: CatalogProduct[] }
           {/* Grille — 3 colonnes, gap 18px / 28px */}
           {visible.length > 0 ? (
             <div className="grid grid-cols-2 gap-x-4.5 gap-y-7 md:grid-cols-3 md:gap-x-[18px]">
-              {visible.map((product) => (
-                <Q2MProductCard key={product.id} product={product} />
+              {visible.map((product, index) => (
+                <Q2MProductCard key={product.id} product={product} index={index} />
               ))}
             </div>
           ) : (

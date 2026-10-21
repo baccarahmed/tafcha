@@ -2,7 +2,7 @@
 
 import { Link } from "@/i18n/navigation";
 import Image from "next/image";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { ArrowUpRight, Heart } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { Q2M, Q2M_FONT } from "@/lib/q2m-tokens";
@@ -57,10 +57,18 @@ function describeProduct(p: CatalogProduct, usage: string): string {
   return `${usage} • EU ${sizes[0]}–${sizes[sizes.length - 1]}`;
 }
 
-export function Q2MProductCard({ product }: { product: CatalogProduct }) {
+export function Q2MProductCard({
+  product,
+  index = 0,
+}: {
+  product: CatalogProduct;
+  /** Position dans sa grille : pilote le ripple d'entrée (60 ms par colonne). */
+  index?: number;
+}) {
   const locale = useLocale();
   const t = useTranslations("shop");
   const tFav = useTranslations("favorites");
+  const reduceMotion = useReducedMotion();
   const tag = getTag(product);
   const discounted =
     product.discountPercentage !== undefined &&
@@ -77,10 +85,20 @@ export function Q2MProductCard({ product }: { product: CatalogProduct }) {
 
   return (
     <motion.article
-      initial={{ opacity: 0, y: 28 }}
+      initial={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 28 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-60px" }}
-      transition={{ duration: 0.55 }}
+      transition={
+        reduceMotion
+          ? { duration: 0.2, ease: [0.23, 1, 0.32, 1] }
+          : {
+              duration: 0.55,
+              ease: [0.23, 1, 0.32, 1],
+              // Chaque rangée repart de zéro (modulo 4 = colonnes en desktop) :
+              // un delay cumulé ferait attendre la 12e carte une demi-seconde.
+              delay: (index % 4) * 0.06,
+            }
+      }
       className="group relative"
     >
       <Link href={`/product/${product.slug}`} className="block">
@@ -176,7 +194,7 @@ export function Q2MProductCard({ product }: { product: CatalogProduct }) {
         </div>
       </Link>
 
-      <button
+      <motion.button
         type="button"
         aria-label={isFavorite ? tFav('remove') : tFav('add')}
         aria-pressed={isFavorite}
@@ -190,7 +208,14 @@ export function Q2MProductCard({ product }: { product: CatalogProduct }) {
             image: product.images[0],
           })
         }
-        className="absolute right-3.5 top-3.5 z-10 flex h-8 w-8 items-center justify-center transition-[transform,border-color,color] duration-140 ease-q2m hover:scale-110 hover:border hover:border-[var(--q2m-accent)] active:scale-90"
+        // Le remplissage du cœur change d'état : un pop court le rend lisible
+        // sans raconter une histoire. `transform` en chaîne complète (et non les
+        // shorthands scale/x/y) pour rester accéléré matériellement sous charge.
+        animate={{
+          transform: isFavorite && !reduceMotion ? "scale(1.16)" : "scale(1)",
+        }}
+        transition={{ duration: 0.16, ease: "easeOut" }}
+        className="absolute right-3.5 top-3.5 z-10 flex h-8 w-8 items-center justify-center transition-[border-color,color] duration-140 ease-q2m hover:border hover:border-[var(--q2m-accent)]"
         style={{
           background: Q2M.bgElevated,
           borderRadius: "999px",
@@ -198,7 +223,7 @@ export function Q2MProductCard({ product }: { product: CatalogProduct }) {
         }}
       >
         <Heart size={15} strokeWidth={1.5} fill={isFavorite ? Q2M.accent : "none"} />
-      </button>
+      </motion.button>
     </motion.article>
   );
 }
@@ -253,8 +278,8 @@ export function Q2MProductGrid({
 
         {/* Grid */}
         <div className="grid grid-cols-2 gap-x-4 gap-y-7 lg:grid-cols-4 lg:gap-x-[18px]">
-          {products.map((product) => (
-            <Q2MProductCard key={product.id} product={product} />
+          {products.map((product, index) => (
+            <Q2MProductCard key={product.id} product={product} index={index} />
           ))}
         </div>
       </div>

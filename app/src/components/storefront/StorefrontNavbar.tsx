@@ -3,6 +3,7 @@
 import { Link } from "@/i18n/navigation";
 import { Q2MLogo } from "@/components/brand/Q2MLogo";
 import { useEffect, useState } from "react";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useTranslations } from "next-intl";
 import {
   Heart,
@@ -39,6 +40,7 @@ export function StorefrontNavbar({
   notifications?: NotificationDTO[];
 }) {
   const [open, setOpen] = useState(false);
+  const reduceMotion = useReducedMotion();
   const totalItems = useCartStore((s) => s.totalItems);
   const openCart = useCartStore((s) => s.openCart);
   const wishlistCount = useWishlistStore((s) => s.items.length);
@@ -199,31 +201,49 @@ export function StorefrontNavbar({
         </div>
       </header>
 
-      {/* Mobile menu — même noir que la barre */}
-      {open && (
-        <div
-          id="storefront-mobile-menu"
-          className="fixed inset-x-0 top-[113px] bottom-0 z-40 overflow-y-auto lg:hidden"
-          style={{ background: "#000000" }}
-        >
-          <nav
-            className="flex flex-col px-5 py-8"
-            style={{ fontFamily: Q2M_FONT }}
+      {/* Mobile menu — même noir que la barre. Il pousse depuis la barre (son
+          déclencheur) et repart par le haut, jamais par un autre bord. */}
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            id="storefront-mobile-menu"
+            initial={reduceMotion ? { opacity: 0 } : { opacity: 0, y: -12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: -12 }}
+            transition={
+              reduceMotion
+                ? { duration: 0.15, ease: "easeOut" }
+                : { duration: 0.24, ease: [0.23, 1, 0.32, 1] }
+            }
+            className="fixed inset-x-0 top-[113px] bottom-0 z-40 overflow-y-auto lg:hidden"
+            style={{ background: "#000000" }}
           >
-            {links.map((l) => (
-              <Link
-                key={l.href}
-                href={l.href}
-                onClick={() => setOpen(false)}
-                className={`border-b py-5 text-2xl font-black tracking-[0.16em] uppercase ${CHROME_TEXT} ${CHROME_HOVER}`}
-                style={{ borderColor: "rgba(255, 255, 255, 0.08)" }}
-              >
-                {l.label}
-              </Link>
-            ))}
-          </nav>
-        </div>
-      )}
+            <nav
+              className="flex flex-col px-5 py-8"
+              style={{ fontFamily: Q2M_FONT }}
+            >
+              {links.map((l, i) => (
+                <Link
+                  key={l.href}
+                  href={l.href}
+                  onClick={() => setOpen(false)}
+                  className={`border-b py-5 text-2xl font-black tracking-[0.16em] uppercase ${CHROME_TEXT} ${CHROME_HOVER}`}
+                  style={{
+                    borderColor: "rgba(255, 255, 255, 0.08)",
+                    // Ripple d'entrée : décoratif, ne retarde jamais l'interaction
+                    // (les liens restent cliquables pendant le décalage).
+                    animation: reduceMotion
+                      ? undefined
+                      : `q2m-menu-item-in 0.32s cubic-bezier(0.23, 1, 0.32, 1) ${i * 0.04}s both`,
+                  }}
+                >
+                  {l.label}
+                </Link>
+              ))}
+            </nav>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 }
